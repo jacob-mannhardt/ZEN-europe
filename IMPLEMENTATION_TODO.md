@@ -27,7 +27,7 @@ reproduced and should be resolved with the domain owner before hardcoding a choi
 - [~] `power_line` (transport tech) — `reference_carrier` real; `lifetime` not even set (NaN); everything else default
 
 ### Carriers (31)
-- [ ] ammonia
+- [x] ammonia
 - [x] biomass — see gap note above
 - [ ] biomethane
 - [ ] carbon
