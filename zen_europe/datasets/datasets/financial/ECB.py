@@ -71,7 +71,3 @@ class ECB(Dataset[pd.DataFrame]):
         )
         return float(inflation_rates.to_numpy(dtype=float).prod())
 
-
-if __name__ == "__main__":
-    ecb = ECB()
-    print(ecb.get_inflation_rate(base_year=2010, target_year=2020))

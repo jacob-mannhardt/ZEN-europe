@@ -3,7 +3,7 @@ from pathlib import Path
 from zen_creator import Model
 
 # import custom element classes to register them in the registry (side effect)
-from .elements.carriers import Electricity  # noqa: F401
+from .elements.carriers import Biomass, Electricity  # noqa: F401
 from .elements.conversion_technologies import Photovoltaics  # noqa: F401
 from .elements.energy_systems import EnergySystemNuts0  # noqa: F401
 from .elements.storage_technologies import PumpedHydro  # noqa: F401

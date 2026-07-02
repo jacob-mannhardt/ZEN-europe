@@ -1,6 +1,6 @@
 # global settings
 name: crystal_ball
-source_path: "./data"
+source_path: "./data/raw_data"
 output_folder: null
 
 # all settings in the system.json file with the exception of technology lists
@@ -191,12 +191,13 @@ elements:
     set_retrofitting_technologies: []
     set_carriers: []
 
-# settings for individual data sources
-data:
-  datasets:
-    setting: true
-  dataset_collections:
-    setting: true
+# # settings for individual data sources
+# TODO commented out because results in error and unclear to me
+# data:
+#   datasets:
+#     setting: true
+#   dataset_collections:
+#     setting: true
 
 # settings that go into the energy_system folder
 energy_system:
