@@ -12,6 +12,8 @@ from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 from zen_creator.utils.attribute import Attribute, SourceInformation
 
+from zen_europe.utils.utils import interpolate_missing_years
+
 class EnspresoBiomass(Dataset[pd.DataFrame]):
     """Dataset class for the ENSPRESO biomass data.
     
@@ -59,7 +61,7 @@ class EnspresoBiomassAvailability(EnspresoBiomass):
         self,
         element: Carrier,
         biomass_types: list[str],
-        scenario: str = "ENS_Med",
+        scenario: str = "ENS_Med"
     ) -> Attribute:
         """
         Compute the import availability of a biomass carrier from ENSPRESO potentials.
@@ -83,9 +85,7 @@ class EnspresoBiomassAvailability(EnspresoBiomass):
             scenario=scenario)
         potential = potential.groupby(["NUTS0", "Year"]).sum()["Value"].unstack()
         potential = potential / 3.6 * 1000 / 8760  # PJ/a -> GW
-        potential = potential.reindex(
-            range(potential.columns.min(), potential.columns.max() + 1), axis=1
-        ).interpolate(axis=1)
+        potential = interpolate_missing_years(potential)
 
         nodes = pd.Index(element.model.config.system.set_nodes)
         common_nodes = nodes.intersection(potential.index)
@@ -113,6 +113,57 @@ class EnspresoBiomassAvailability(EnspresoBiomass):
             df=reference_year_values,
             unit="GW",
             yearly_variations_df=yearly_variation,
+        )
+    
+    def get_availability_import_yearly(
+        self,
+        element: Carrier,
+        biomass_types: list[str],
+        scenario: str = "ENS_Med"
+    ) -> Attribute:
+        """
+        Compute the yearly import availability of a biomass carrier from ENSPRESO potentials.
+
+        Filters the ENSPRESO NUTS0 energy-commodity potentials to the given
+        scenario and energy-commodity codes, converts to GWh
+
+        :param element: The Carrier element for which to compute the import availability.
+        :param biomass_types: 
+            List of biomass energy-commodity codes to filter the ENSPRESO data.
+        :param scenario: The scenario for which to compute the import availability.
+
+        Returns:
+            Attribute: the element's `availability_import` attribute, updated
+                with the computed data.
+        """
+        potential = self._get_availability_import(
+            biomass_types=biomass_types, 
+            scenario=scenario)
+        potential = potential.groupby(["NUTS0", "Year"]).sum()["Value"].unstack()
+        potential = potential / 3.6 * 1000  # PJ/a -> GWh
+        potential = interpolate_missing_years(potential)
+
+        nodes = pd.Index(element.model.config.system.set_nodes)
+        common_nodes = nodes.intersection(potential.index)
+        potential = potential.loc[common_nodes].sort_index()
+
+        reference_year = element.config.system.reference_year
+        potential = potential.loc[:, reference_year:].T
+        potential.index.name = "year"
+
+        source = SourceInformation(
+            description=(
+                "Annual biomass import availability derived from ENSPRESO NUTS0 energy "
+                f"commodity potentials {biomass_types}, scenario '{scenario}'. "
+                "Values are converted from PJ/a to GWh and interpolated to fill "
+                "missing years."
+            ),
+            metadata=self.metadata,
+        )
+        return element.availability_import_yearly.set_data(
+            source=source,
+            df=potential,
+            unit="GWh",
         )
     
     def _get_availability_import(
@@ -227,9 +278,7 @@ class EnspresoBiomassPrice(EnspresoBiomass):
         price = price * inflation_rate
         price = price.astype(float)
 
-        price = price.reindex(
-            range(price.columns.min(), price.columns.max() + 1), axis=1
-        ).interpolate(axis=1)
+        price = interpolate_missing_years(price)
 
         price = price.loc[common_nodes].sort_index()
         price.index.name = "node"

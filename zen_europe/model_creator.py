@@ -27,7 +27,7 @@ def create_model(
     # TODO: this should be remove in the long run and replaced
     # with model.from_config()
     model = Model.from_existing(crystal_ball_path, config=config)
-    model.output_folder = Path(output_folder)
+    model.output_folder = Path(output_folder) / "data"
     model.name = name
 
     # apply changes

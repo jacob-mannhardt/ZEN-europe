@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+import numpy as np
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -33,6 +33,10 @@ class Biomass(Carrier):
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
+        # TODO make these options configurable in the model config
+        self.use_regional_prices = True  
+        self.use_annual_import_availability = True  
+
         # set the inflation rate function from the ECB dataset
         # TODO make the inflation rate function directly available in the model, 
         # so that it can be used by other elements as well
@@ -43,10 +47,33 @@ class Biomass(Carrier):
 
     def _set_availability_import(self) -> Attribute:
         """Return the import availability of biomass from ENSPRESO potentials."""
-        enspreso = EnspresoBiomassAvailability(self.source_path)
-        return enspreso.get_availability_import(
-            element=self, biomass_types=self._biomass_types
-        )
+        if self.use_annual_import_availability:
+            return Attribute(
+                "availability_import",
+                default_value=np.inf,
+                element=self,
+                unit=self.power_unit,
+            )
+        else:
+            enspreso = EnspresoBiomassAvailability(self.source_path)
+            return enspreso.get_availability_import(
+                element=self, biomass_types=self._biomass_types
+            )
+
+    def _set_availability_import_yearly(self) -> Attribute:
+        """Return the import availability of biomass from ENSPRESO potentials."""
+        if self.use_annual_import_availability:
+            enspreso = EnspresoBiomassAvailability(self.source_path)
+            return enspreso.get_availability_import_yearly(
+                element=self, biomass_types=self._biomass_types
+            )
+        else:
+            return Attribute(
+                "availability_import_yearly",
+                default_value=np.inf,
+                element=self,
+                unit=self.energy_unit,
+            )
 
     def _set_price_import(self) -> Attribute:
         """Return the import price of biomass from ENSPRESO potentials.
