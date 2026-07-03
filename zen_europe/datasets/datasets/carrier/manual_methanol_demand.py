@@ -1,0 +1,182 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+from zen_creator.datasets.datasets.dataset import Dataset
+from zen_creator.datasets.datasets.metadata import MetaData
+
+import pandas as pd
+
+
+class WITS(Dataset[pd.DataFrame]):
+    """
+    WITS (World Integrated Trade Solution) dataset class by the World Bank.
+
+    This class implements the specific behavior for the WITS dataset.
+    """
+
+    name = "wits"
+
+    def __init__(self, source_path: Path | str | None = None):
+        super().__init__(source_path=source_path)
+
+    def _set_metadata(self) -> MetaData:
+        return MetaData(
+            name=self.name,
+            title=(
+                "Methanol Imports and Exports by Country"
+            ),
+            author=["World Bank"],
+            publication="World Bank",
+            publication_year=2022,
+            url="https://wits.worldbank.org/trade/comtrade/en/country/CHE/year/2022/tradeflow/Imports/partner/ALL/product/290511",
+        )
+
+    def _set_path(self) -> Path | None:
+        return None
+
+    def _set_data(self) -> dict[str, int]:
+        """ sets the manual data for the WITS dataset in kt/y in 2022
+        
+        The provided number is the total production of methanol in CH in 2022.
+        The import is calculated from the total trade value of methanol divided by the 
+        weighted average price of all methanol imports.
+        The exports is obtained from
+        https://wits.worldbank.org/trade/comtrade/en/country/ALL/year/2022/tradeflow/Exports/partner/WLD/product/290511
+        """
+        return {
+            "CH": 33.48552246-2.415940}
+
+    # -------- methods ------------------------
+    def get_manual_methanol_demand_wits(self, node) -> int:
+        """
+        Get the demand of methanol for CH from the WITS dataset.
+
+        Returns the demand in kt/y for the given node.
+
+        Args:
+            node: The node for which to get the demand.
+
+        Returns:
+            The demand in kt/y for the given node.
+        """
+        if node.name in self.data:
+            return self.data[node.name]
+        else:
+            raise ValueError(
+                f"Node {node.name} not found in the manual values of the" 
+                f" WITS dataset.")
+
+class Equinor(Dataset[pd.DataFrame]):
+    """
+    Equinor dataset class.
+
+    This class implements the specific behavior for the Equinor dataset.
+    """
+
+    name = "equinor"
+
+    def __init__(self, source_path: Path | str | None = None):
+        super().__init__(source_path=source_path)
+
+    def _set_metadata(self) -> MetaData:
+        return MetaData(
+            name=self.name,
+            title=(
+                "Tjeldbergodden industrial facility"
+            ),
+            author=["Equinor"],
+            publication="Equinor",
+            publication_year=2026,
+            url="https://www.equinor.com/energy/tjeldbergodden",
+        )
+
+    def _set_path(self) -> Path | None:
+        return None
+
+    def _set_data(self) -> dict[str, int]:
+        """ sets the manual data for the Equinor dataset in kt/y in 2026
+        
+        The provided number is the total production of methanol at the Tjeldbergodden facility in 2026.
+        """
+        return {
+            "NO": 900}
+
+    # -------- methods ------------------------
+    def get_manual_methanol_demand_equinor(self, node) -> int:
+        """
+        Get the demand of methanol for the UK from the Equinor dataset.
+
+        Returns the demand in kt/y for the given node.
+
+        Args:
+            node: The node for which to get the demand.
+
+        Returns:
+            The demand in kt/y for the given node.
+        """
+        if node.name in self.data:
+            return self.data[node.name]
+        else:
+            raise ValueError(
+                f"Node {node.name} not found in the manual values of the" 
+                f" Equinor dataset.")
+
+
+class ChemAnalyst(Dataset[pd.DataFrame]):
+    """
+    ChemAnalyst dataset class.
+
+    This class implements the specific behavior for the ChemAnalyst dataset.
+    """
+
+    name = "chemanalyst"
+
+    def __init__(self, source_path: Path | str | None = None):
+        super().__init__(source_path=source_path)
+
+    def _set_metadata(self) -> MetaData:
+        return MetaData(
+            name=self.name,
+            title=(
+                "UK Methanol Market Analysis"
+            ),
+            author=["World Bank"],
+            publication="World Bank",
+            publication_year=2023,
+            url="https://www.chemanalyst.com/industry-report/united-kingdom-methanol-market-206",
+        )
+
+    def _set_path(self) -> Path | None:
+        return None
+
+    def _set_data(self) -> dict[str, int]:
+        """ sets the manual data for the ChemAnalyst dataset in kt/y in 2023
+        
+        The provided number is the total production of methanol in the UK in 2023.
+        """
+        return {
+            "UK": 530}
+
+    # -------- methods ------------------------
+    def get_manual_methanol_demand_chemanalyst(self, node) -> int:
+        """
+        Get the demand of methanol for the UK from the ChemAnalyst dataset.
+
+        Returns the demand in kt/y for the given node.
+
+        Args:
+            node: The node for which to get the demand.
+
+        Returns:
+            The demand in kt/y for the given node.
+        """
+        if node.name in self.data:
+            return self.data[node.name]
+        else:
+            raise ValueError(
+                f"Node {node.name} not found in the manual values of the" 
+                f" ChemAnalyst dataset.")

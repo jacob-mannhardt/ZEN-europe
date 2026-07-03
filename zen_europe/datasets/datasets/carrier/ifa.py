@@ -48,7 +48,7 @@ class IFA(Dataset[pd.DataFrame]):
     def _set_path(self) -> Path | None:
         if self.source_path is None:
             raise ValueError("source_path must be set to load the dataset.")
-        return self.source_path / "02-carrier" / "ammonia" 
+        return self.source_path / "02-carrier" / "industry" 
 
     def _set_data(self) -> dict[str, pd.DataFrame]:
         ys = [2020,2050]
@@ -83,6 +83,9 @@ class IFA(Dataset[pd.DataFrame]):
         d = d/8760 * 1000 * element._TON_NH3_TO_GWH
         d = d[(d != 0).all(axis=1)]
 
+        d.index.name = "node"
+        d = d.sort_index()
+
         reference_year = element.config.system.reference_year
         yearly_variation = d.div(d[reference_year], axis=0)
         reference_year_values = d[reference_year]
@@ -99,9 +102,9 @@ class IFA(Dataset[pd.DataFrame]):
             ),
             metadata=self.metadata,
         )
-        return element.demand.set_data(
+        return  element.demand.set_data(
             source=source,
             df=reference_year_values,
-            yearly_variation=yearly_variation,
+            yearly_variations_df=yearly_variation,
             unit="GW",
         )

@@ -208,7 +208,7 @@ energy_system:
       - km
       - megatons
       - megaEuro
-      - kilotCO2eq
+      - kilotCO2
       - megapkm
       - megatkm
       - ktonproduct
@@ -218,10 +218,10 @@ energy_system:
         aliases:
           - EURO
           - Eur
-      tCO2eq:
-        dimension: massCO2eq
+      tCO2:
+        dimension: massCO2
         aliases:
-          - tonCO2eq
+          - tonCO2
           - tCO2
           - tonne_carbon
       pkm:

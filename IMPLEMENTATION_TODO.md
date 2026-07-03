@@ -29,30 +29,30 @@ reproduced and should be resolved with the domain owner before hardcoding a choi
 ### Carriers (31)
 - [x] ammonia
 - [x] biomass — see gap note above
-- [ ] biomethane
-- [ ] carbon
-- [ ] clinker
+- [x] biomethane
+- [x] carbon
+- [x] clinker
 - [ ] crude_oil
 - [ ] diesel
-- [ ] district_heat
+- [x] district_heat
 - [ ] electricity — see gap note above
-- [ ] fuel_for_cement
+- [x] fuel_for_cement
 - [ ] gasoline
 - [ ] hard_coal
 - [ ] heat
-- [ ] hydrogen
+- [x] hydrogen
 - [ ] kerosene
 - [ ] lignite
 - [ ] lng
-- [ ] methanol
-- [ ] naphtha
+- [x] methanol
+- [x] naphtha
 - [ ] natural_gas
-- [ ] natural_gas_industry
+- [REMOVE] natural_gas_industry
 - [ ] oil
 - [ ] olefin
 - [ ] passenger_mileage
-- [ ] primary_steel
-- [ ] secondary_steel
+- [x] primary_steel
+- [x] secondary_steel
 - [ ] shipping
 - [ ] truck_mileage
 - [ ] uranium
