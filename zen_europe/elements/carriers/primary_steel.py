@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
-from zen_europe.datasets.dataset_collections.industry_demand import IndustryDemand
+from zen_europe.datasets.dataset_collections.steel_demand import SteelDemand
 
 class PrimarySteel(Carrier):
     """Primary steel carrier class.
@@ -40,5 +41,5 @@ class PrimarySteel(Carrier):
         Return the demand of primary steel.
 
         """
-        industry_demand = IndustryDemand(source_path=self.model.source_path)
-        return industry_demand.get_steel_demand(element=self)
+        steel_demand = SteelDemand(source_path=self.model.source_path)
+        return steel_demand.get_steel_demand(element=self)

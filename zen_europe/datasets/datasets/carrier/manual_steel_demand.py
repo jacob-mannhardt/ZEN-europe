@@ -37,18 +37,17 @@ class Eurofer(Dataset[pd.DataFrame]):
     def _set_path(self) -> Path | None:
         return None
 
-    def _set_data(self) -> dict[str, int]:
+    def _set_data(self) -> pd.Series:
         """ sets the manual data for the Eurofer dataset in kt/y in 2021 
         
         We assume that all Swiss steel production is imported from the EU.
 
         The provided number is the total export of steel from the EU to Switzerland in 2021
         """
-        return {
-            "CH": 1701}
+        return pd.Series({"CH": 1701})
 
     # -------- methods ------------------------
-    def get_manual_steel_demand_eurofer(self, node) -> int:
+    def get_manual_steel_demand_eurofer(self, node: str) -> int:
         """
         Get the demand of steel for CH from the Eurofer dataset.
 
@@ -60,11 +59,11 @@ class Eurofer(Dataset[pd.DataFrame]):
         Returns:
             The demand in kt/y for the given node.
         """
-        if node.name in self.data:
-            return self.data[node.name]
+        if node in self.data.index:
+            return self.data.loc[node]
         else:
             raise ValueError(
-                f"Node {node.name} not found in the manual values of the" 
+                f"Node {node} not found in the manual values of the" 
                 f" Eurofer dataset.")
 
 class WorldSteel(Dataset[pd.DataFrame]):
@@ -94,16 +93,15 @@ class WorldSteel(Dataset[pd.DataFrame]):
     def _set_path(self) -> Path | None:
         return None
 
-    def _set_data(self) -> dict[str, int]:
+    def _set_data(self) -> pd.Series:
         """ sets the manual data for the World Steel dataset in kt/y in 2023
         
         The provided number is the total production of steel in the UK in 2021
         """
-        return {
-            "UK": 7200}
+        return pd.Series({"UK": 7200})
 
     # -------- methods ------------------------
-    def get_manual_steel_demand_worldsteel(self, node) -> int:
+    def get_manual_steel_demand_worldsteel(self, node: str) -> int:
         """
         Get the demand of steel for UK from the World Steel dataset.
 
@@ -115,11 +113,11 @@ class WorldSteel(Dataset[pd.DataFrame]):
         Returns:
             The demand in kt/y for the given node.
         """
-        if node.name in self.data:
-            return self.data[node.name]
+        if node in self.data.index:
+            return self.data.loc[node]
         else:
             raise ValueError(
-                f"Node {node.name} not found in the manual values of the" 
+                f"Node {node} not found in the manual values of the" 
                 f" World Steel dataset.")
 
 class TradeEconomics(Dataset[pd.DataFrame]):
@@ -149,16 +147,16 @@ class TradeEconomics(Dataset[pd.DataFrame]):
     def _set_path(self) -> Path | None:
         return None
 
-    def _set_data(self) -> dict[str, int]:
+    def _set_data(self) -> pd.Series:
         """ sets the manual data for the Trade Economics dataset in kt/y in 2020
         
         The provided number is the total production of steel in Norway in 2020
         """
-        return {
-            "NO": 61.515+51.833+63.722+50.631+55+57.463+18.087+60+61.248+65+65+41.203}
+        return pd.Series({
+            "NO": 61.515+51.833+63.722+50.631+55+57.463+18.087+60+61.248+65+65+41.203})
 
     # -------- methods ------------------------
-    def get_manual_steel_demand_trade_economics(self, node) -> int:
+    def get_manual_steel_demand_trade_economics(self, node: str) -> int:
         """
         Get the demand of steel for NO from the Trade Economics dataset.
 
@@ -170,9 +168,9 @@ class TradeEconomics(Dataset[pd.DataFrame]):
         Returns:
             The demand in kt/y for the given node.
         """
-        if node.name in self.data:
-            return self.data[node.name]
+        if node in self.data.index:
+            return self.data.loc[node]
         else:
             raise ValueError(
-                f"Node {node.name} not found in the manual values of the" 
+                f"Node {node} not found in the manual values of the" 
                 f" Trade Economics dataset.")

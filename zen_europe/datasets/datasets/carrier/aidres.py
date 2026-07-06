@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from zen_creator.elements.carriers.carrier import Carrier
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
-from zen_creator.utils.attribute import Attribute, SourceInformation
 from zen_europe.utils.utils import convert_country_names, interpolate_missing_years
 
 import pandas as pd
@@ -37,7 +36,7 @@ class Aidres(Dataset[pd.DataFrame]):
                     "Joris Valee"],
             publication="Publications Office of the European Union",
             publication_year=2023,
-            url="https://data.europa.eu/doi/10.2833/696697",
+            url="https://op.europa.eu/en/publication-detail/-/publication/d80943a6-5116-11ee-9220-01aa75ed71a1/language-en",
         )
 
     def _set_path(self) -> Path | None:
@@ -55,8 +54,9 @@ class Aidres(Dataset[pd.DataFrame]):
         methanol_demand = methanol_demand["All sectors (PJ/y).1"]
 
         data = {
-            "cement": cement_demand.to_frame(name="demand"),
-            "steel": steel_demand.to_frame(name="demand"),
+            "clinker": cement_demand.to_frame(name="demand"),
+            "primary_steel": steel_demand.to_frame(name="demand"),
+            "secondary_steel": steel_demand.to_frame(name="demand"),
             "methanol": methanol_demand.to_frame(name="demand")
         }
         return data
@@ -93,4 +93,15 @@ class Aidres(Dataset[pd.DataFrame]):
             A float representing the clinker to cement ratio.
         """
         return 0.7
-        
+    
+    def get_energy_density_methanol(self) -> float:
+        """
+        Get the energy density of methanol from the Aidres dataset.
+
+        This method retrieves the energy density of methanol from the Aidres dataset
+        and returns it as a float.
+
+        Returns:
+            A float representing the energy density of methanol in MWh/t.
+        """
+        return 20.1/3.6

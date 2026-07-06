@@ -9,6 +9,9 @@ from .elements.energy_systems import EnergySystemNuts0  # noqa: F401
 from .elements.storage_technologies import PumpedHydro  # noqa: F401
 from .elements.transport_technologies import PowerLine  # noqa: F401
 
+# import settings categories to register them in the registry (side effect)
+from . import settings  # noqa: F401
+
 
 def create_model(
     config: Path | str | None = None,

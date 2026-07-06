@@ -48,16 +48,17 @@ class BritishGeologicalSurvey(Dataset[pd.DataFrame]):
     def _set_path(self) -> Path | None:
         return None
 
-    def _set_data(self) -> dict[str, int]:
+    def _set_data(self) -> pd.Series:
         """ sets the manual data for the British Geological Survey dataset in kt/y
         in 2021 """
-        return {
+        return pd.Series({
             "UK": 9008,
             "CH": 4180,
             "NO": 1780}
+        )
 
     # -------- methods ------------------------
-    def get_manual_cement_demand(self, node) -> int:
+    def get_manual_cement_demand(self, node: str) -> int:
         """
         Get the demand of cement from the British Geological Survey dataset.
 
@@ -69,9 +70,9 @@ class BritishGeologicalSurvey(Dataset[pd.DataFrame]):
         Returns:
             The demand in kt/y for the given node.
         """
-        if node.name in self.data:
-            return self.data[node.name]
+        if node in self.data.index:
+            return self.data.loc[node]
         else:
             raise ValueError(
-                f"Node {node.name} not found in the manual values of the" 
+                f"Node {node} not found in the manual values of the" 
                 f" British Geological Survey dataset.")

@@ -14,21 +14,16 @@ if TYPE_CHECKING:
 from zen_creator import Attribute, DatasetCollection
 from zen_creator.utils.attribute import SourceInformation
 
-from zen_europe.utils.time_settings import get_optimization_years
 from zen_europe.datasets.datasets.carrier.aidres import Aidres
-from zen_europe.datasets.datasets.carrier.british_geological_survey import BritishGeologicalSurvey
 from zen_europe.datasets.datasets.carrier.manual_steel_demand import (Eurofer,
                                                                       WorldSteel,
                                                                       TradeEconomics)
-from zen_europe.datasets.datasets.carrier.manual_methanol_demand import (WITS,
-                                                                         Equinor,
-                                                                         ChemAnalyst)
 from zen_europe.datasets.datasets.carrier.material_economics import MaterialEconomics
 
-class IndustryDemand(DatasetCollection):
-    """Extracting industry demand data for clinker, steel, and methanol."""
+class SteelDemand(DatasetCollection):
+    """Extracting steel demand data."""
 
-    name = "industry_demand"
+    name = "steel_demand"
 
     def __init__(self, source_path: Path | str):
         super().__init__(source_path=source_path)
@@ -41,51 +36,11 @@ class IndustryDemand(DatasetCollection):
 
         return {
             "aidres": Aidres(self.source_path),
-            "british_geological_survey": BritishGeologicalSurvey(self.source_path),
             "eurofer": Eurofer(self.source_path),
             "worldsteel": WorldSteel(self.source_path),
             "trade_economics": TradeEconomics(self.source_path),
-            "wits": WITS(self.source_path),
-            "equinor": Equinor(self.source_path),
-            "chem_analyst": ChemAnalyst(self.source_path),
             "material_economics": MaterialEconomics(self.source_path),
         }
-
-    def get_clinker_demand(self, element: Element) -> Attribute:
-        """
-        Get the demand for clinker.
-
-        This function retrieves the clinker demand data for the specified element.
-        """
-        aidres_dataset = cast(Aidres, self.data["aidres"])
-        data = aidres_dataset.get_demand(element.name)
-        bgs_dataset = cast(BritishGeologicalSurvey, self.data["british_geological_survey"])
-        
-        missing_countries = pd.Index(element.model.config.system.set_nodes).difference(
-            data.index)
-        
-        for country in missing_countries:
-            data[country] = bgs_dataset.get_manual_cement_demand(country)
-    
-        d = d.sort_index() / 8.76 * aidres_dataset.get_CEM2_clinker_ratio()
-        
-        d.index.name = "node"
-        d.name = "demand"
-
-        source = SourceInformation(
-            description=(
-                "Clinker demand data is derived from the Aidres dataset, which provides "
-                "demand data for various industrial sectors. "
-                "For countries not covered in the Aidres dataset, "
-                " cement demand data from the British Geological Survey is used."
-            ),
-            metadata=self.metadata,
-        )
-        return element.demand.set_data(
-            source=source,
-            df=d,
-            unit="t/h",
-        )
 
     def get_steel_demand(self, element: Element) -> Attribute:
         """
@@ -94,7 +49,7 @@ class IndustryDemand(DatasetCollection):
         This function retrieves the steel demand data for the specified element.
         """
         aidres_dataset = cast(Aidres, self.data["aidres"])
-        data = aidres_dataset.get_demand(element.name)
+        data = aidres_dataset.get_demand(element)
         eurofer_dataset = cast(Eurofer, self.data["eurofer"])
         worldsteel_dataset = cast(WorldSteel, self.data["worldsteel"])
         trade_economics_dataset = cast(TradeEconomics, self.data["trade_economics"])
@@ -105,11 +60,15 @@ class IndustryDemand(DatasetCollection):
         
         for country in missing_countries:
             if country == "CH":
-                data[country] = eurofer_dataset.get_manual_steel_demand(country)
+                data.loc[country] = (
+                    eurofer_dataset.get_manual_steel_demand_eurofer(country))
             elif country == "UK":
-                data[country] = worldsteel_dataset.get_manual_steel_demand(country)
+                data.loc[country] = (
+                    worldsteel_dataset.get_manual_steel_demand_worldsteel(country))
             elif country == "NO":
-                data[country] = trade_economics_dataset.get_manual_steel_demand(country)
+                data.loc[country] = (
+                    trade_economics_dataset.get_manual_steel_demand_trade_economics(
+                        country))
             else:
                 raise ValueError(
                     f"Steel demand data for country {country} is not available in the "
@@ -132,7 +91,7 @@ class IndustryDemand(DatasetCollection):
         d.index.name = "node"
         d.name = "demand"
         
-        years = get_optimization_years(element.model)
+        years = element.model.settings.time.get_optimization_years()
 
         d_yearly_variation = pd.Series(index=years, dtype=float)
         d_yearly_variation.iloc[0] = 1
@@ -145,7 +104,7 @@ class IndustryDemand(DatasetCollection):
             description=(
                 "Steel demand data is derived from multiple sources. The main source"
                 "is the Aidres dataset. "
-                "Additional manual data for specific countries is obtained from the "
+                "Additional manual data for missing countries is obtained from the "
                 "following datasets:"
                 "Eurofer, WorldSteel, and TradeEconomics. "
                 "The secondary steel ratios are derived from the Material Economics dataset."
@@ -155,7 +114,7 @@ class IndustryDemand(DatasetCollection):
         return element.demand.set_data(
             source=source,
             df=d,
-            yearly_variation=d_yearly_variation,
+            yearly_variations_df=d_yearly_variation,
             unit="t/h",
         )
     
