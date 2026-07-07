@@ -86,7 +86,7 @@ class IFA(Dataset[pd.DataFrame]):
         d.index.name = "node"
         d = d.sort_index()
 
-        reference_year = element.config.system.reference_year
+        reference_year = element.settings.time.reference_year
         yearly_variation = d.div(d[reference_year], axis=0)
         reference_year_values = d[reference_year]
         reference_year_values.name = "demand"

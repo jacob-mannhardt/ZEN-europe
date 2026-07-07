@@ -14,6 +14,7 @@ class TimeSettings(SettingsCategory):
     aggregated_time_steps_per_year: int = 100
     reference_year: int = 2022
     last_year: int = 2050
+    year_time_series: int = 2019
     total_hours_per_year: Optional[int] = None
     optimized_years: Optional[int] = None
     interval_between_years: int = 2
@@ -29,7 +30,7 @@ class TimeSettings(SettingsCategory):
             A list of integers representing the optimization years.
         """
         return list(range(
-            self.reference_year, self.last_year + 1, self.interval_between_years
+            self.reference_year, self.last_year + 1
             ))
     
     def get_optimization_years(self) -> list[int]:

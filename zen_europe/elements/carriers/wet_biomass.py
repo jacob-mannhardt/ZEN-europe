@@ -15,20 +15,15 @@ from zen_europe.datasets.datasets.carrier.enspreso_biomass import (
 from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 
 
-class Biomass(Carrier):
-    """All data and assumptions for the (solid) biomass carrier."""
+class WetBiomass(Carrier):
+    """All data and assumptions for the wet biomass carrier."""
 
-    name: str = "biomass"
+    name: str = "wet_biomass"
 
-    # solid-biomass ENSPRESO energy-commodity codes, ported from
-    # Input_data_creation/carriers.py::_extract_biomass_availability
+    # solid-biomass ENSPRESO energy-commodity codes
     _biomass_types = [
-        "MINBIOAGRW1",
-        "MINBIOFRSR1a",
-        "MINBIOWOO",
-        "MINBIOWOOW1",
-        "MINBIOWOOW1a",
-        "MINBIOMUN1",
+        "MINBIOGAS1",  # Manure solid, liquid
+        "MINBIOSLU1",  # sludge
     ]
 
     def __init__(self, model: Model, power_unit: str = "MW"):
@@ -42,7 +37,7 @@ class Biomass(Carrier):
     # ----Example of optional methods for overriding default attributes ------
 
     def _set_availability_import(self) -> Attribute:
-        """Return the import availability of biomass from ENSPRESO potentials."""
+        """Return the import availability of wetbiomass from ENSPRESO potentials."""
         if self.settings.availability.annual_cap_biomass_import:
             return Attribute(
                 "availability_import",
@@ -57,7 +52,7 @@ class Biomass(Carrier):
             )
 
     def _set_availability_import_yearly(self) -> Attribute:
-        """Return the import availability of biomass from ENSPRESO potentials."""
+        """Return the import availability of wet biomass from ENSPRESO potentials."""
         if self.settings.availability.annual_cap_biomass_import:
             enspreso = EnspresoBiomassAvailability(self.source_path)
             return enspreso.get_availability_import_yearly(
@@ -72,13 +67,11 @@ class Biomass(Carrier):
             )
 
     def _set_price_import(self) -> Attribute:
-        """Return the import price of biomass from ENSPRESO potentials.
-        
-        We assume that the price of biomass is that of chips and pellets (MINBIOWOOa) 
-        as a proxy for the price of all solid biomass types."""
+        """Return the import price of wet biomass from ENSPRESO potentials.
+        """
         enspreso = EnspresoBiomassPrice(self.source_path)
         return enspreso.get_price_import(
             element=self, 
-            biomass_types=["MINBIOWOOa"], 
+            biomass_types=self._biomass_types, 
             regional_prices=self.settings.cost.use_nodal_biomass_prices
         )

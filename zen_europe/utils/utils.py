@@ -51,13 +51,25 @@ def interpolate_missing_years(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame with missing years interpolated.
     """
-    assert isinstance(df, pd.DataFrame), "Input must be a pandas DataFrame."
-    assert (
-        all(isinstance(col, int) for col in df.columns) 
-        and df.columns.dtype == "int64"), (
-        "All columns must be numeric (years).")
-    # Reindex the columns to include all years from min to max
-    df = df.reindex(
-        range(df.columns.min(), df.columns.max() + 1), axis=1
-    ).interpolate(axis=1)
+    if isinstance(df, pd.DataFrame):
+        assert (
+            all(isinstance(col, int) for col in df.columns) 
+            and df.columns.dtype == "int64"), (
+            "All columns must be numeric (years).")
+        # Reindex the columns to include all years from min to max
+        df = df.reindex(
+            range(df.columns.min(), df.columns.max() + 1), axis=1
+        ).interpolate(axis=1)
+    elif isinstance(df, pd.Series):
+        assert (
+            all(isinstance(idx, int) for idx in df.index) 
+            and df.index.dtype == "int64"), (
+            "All index values must be numeric (years).")
+        # Reindex the index to include all years from min to max
+        df = df.reindex(
+            range(df.index.min(), df.index.max() + 1)
+        ).interpolate()
+    else:
+        raise TypeError("Input must be a pandas DataFrame or Series,"
+                        f" but got {type(df).__name__}.")
     return df

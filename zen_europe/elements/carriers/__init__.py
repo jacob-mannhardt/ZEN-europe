@@ -1,4 +1,5 @@
 from .biomass import Biomass
+from .wet_biomass import WetBiomass
 from .electricity import Electricity
 from .ammonia import Ammonia
 from .clinker import Clinker
@@ -10,10 +11,20 @@ from .secondary_steel import SecondarySteel
 from .carbon import Carbon
 from .district_heat import DistrictHeat
 from .naphtha import Naphtha
-
+from .hard_coal import HardCoal
+from .lignite import Lignite
+from .natural_gas import NaturalGas
+from .oil import Oil
+from .waste import Waste
+from .diesel import Diesel
+from .gasoline import Gasoline
+from .olefin import Olefin
+from .kerosene import Kerosene
+from .shipping import Shipping
 
 __all__ = [
     "Biomass",
+    "WetBiomass",
     "Electricity",
     "Ammonia",
     "Clinker",
@@ -25,4 +36,14 @@ __all__ = [
     "DistrictHeat",
     "Naphtha",
     "Methanol",
+    "HardCoal",
+    "Lignite",
+    "NaturalGas",
+    "Oil",
+    "Waste",
+    "Diesel",
+    "Gasoline",
+    "Olefin",
+    "Kerosene",
+    "Shipping",
 ]

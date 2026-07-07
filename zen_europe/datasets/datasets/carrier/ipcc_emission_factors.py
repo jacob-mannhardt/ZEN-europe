@@ -1,0 +1,90 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+from zen_creator import Carrier
+from zen_creator.datasets.datasets.dataset import Dataset
+from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
+
+import pandas as pd
+
+
+class IPCCEmissionFactors(Dataset[pd.DataFrame]):
+    """
+    IPCC emission factors dataset.
+
+    This class implements the specific behavior for the IPCC emission factors dataset.
+    """
+
+    name = "ipcc_emission_factors"
+
+    def __init__(self, source_path: Path | str | None = None):
+        super().__init__(source_path=source_path)
+
+    def _set_metadata(self) -> MetaData:
+        return MetaData(
+            name=self.name,
+            title=(
+                "2006 IPCC Guidelines for National Greenhouse Gas Inventories - Volume 2: Energy"
+            ),
+            author=["IPCC"],
+            publication="2006 IPCC Guidelines for National Greenhouse Gas Inventories",
+            publication_year=2006,
+            url="https://www.ipcc-nggip.iges.or.jp/public/2006gl/",
+            note="Introduction, Table 1.4"
+        )
+
+    def _set_path(self) -> Path | None:
+        return None
+
+    def _set_data(self) -> pd.Series:
+        """ sets the data for the IPCC emission factors dataset from kg/TJ to tons/MWh
+        
+        """
+        conversion_factor = 3.6 / 1000 / 1000 # from kg/TJ to tons/MWh
+        data = {}
+
+        data["oil"] = 74100 * conversion_factor # Gas/Diesel Oil
+        data["crude_oil"] = 73300 * conversion_factor # Crude Oil
+        data["natural_gas"] = 56100 * conversion_factor # Natural Gas
+        data["lng"] = 56100 * conversion_factor # Natural Gas
+        data["gasoline"] = 69300 * conversion_factor # Motor Gasoline
+        data["diesel"] = 74100 * conversion_factor # Gas/Diesel Oil
+        data["waste"] = 91700 * conversion_factor # Municipal Wastes (non-biomass fraction)
+        data["hard_coal"] = 94600 * conversion_factor # Coking Coal/Other bituminous Coal
+        data["lignite"] = 101000 * conversion_factor # Lignite
+
+        return pd.Series(data)
+
+    # -------- methods ------------------------
+    def get_carbon_intensity(self, element: Carrier) -> int:
+        """
+        Get the carbon intensity of a specific element.
+
+        Returns the carbon intensity in kg/MWh for the given element.
+
+        Args:
+            element: The element for which to get the carbon intensity.
+
+        Returns:
+            The carbon intensity in kg/MWh for the given element.
+        """
+        if element.name not in self.data.index:
+            raise ValueError(f"Carbon intensity for {element.name}" 
+                             "is not available in the IPCC emission factors dataset.")
+        default_value = self.data.loc[element.name]
+        source = SourceInformation(
+            description=(
+                f"Carbon intensity of {element.name} from the IPCC emission factors dataset, "
+                "converted from kg/TJ to kg/MWh."
+            ),
+            metadata=self.metadata,
+        )
+        return element.carbon_intensity_carrier_import.set_data(
+            source=source,
+            default_value=default_value,
+            unit="kgCO2/MWh",
+        )

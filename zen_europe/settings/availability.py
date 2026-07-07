@@ -6,9 +6,9 @@ class AvailabilitySettings(SettingsCategory):
 
     name: str = "availability"
 
-    cap_waste_import: bool = False
-    cap_coal_oil_import: bool = False
-    annual_cap_coal_oil_import: bool = False
+    cap_waste_import: bool = True
+    cap_coal_import: bool = False
+    cap_oil_import: bool = True
     annual_cap_biomass_import: bool = False
     allow_heat_demand_shedding: bool = False
     allow_all_demand_shedding: bool = False

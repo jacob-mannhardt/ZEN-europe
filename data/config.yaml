@@ -61,7 +61,7 @@ system:
 # dataset-specific, type-checked settings (see zen_europe/settings/).
 # categories/fields not listed here keep their class defaults.
 settings:
-  time_settings:
+  time:
     reference_year: 2022
     optimized_years: 15
     interval_between_years: 2

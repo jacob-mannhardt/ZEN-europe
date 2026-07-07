@@ -91,7 +91,7 @@ class SteelDemand(DatasetCollection):
         d.index.name = "node"
         d.name = "demand"
         
-        years = element.model.settings.time.get_optimization_years()
+        years = element.settings.time.get_optimization_years()
 
         d_yearly_variation = pd.Series(index=years, dtype=float)
         d_yearly_variation.iloc[0] = 1

@@ -9,6 +9,8 @@ from .manual_steel_demand import (Eurofer,
 from .manual_methanol_demand import (WITS,
                                     Equinor,
                                     ChemAnalyst)
+from .eurostat import Eurostat
+from .ipcc_emission_factors import IPCCEmissionFactors
 
 __all__ = [
     "EnspresoBiomassAvailability",
@@ -20,5 +22,7 @@ __all__ = [
     "TradeEconomics",
     "WITS",
     "Equinor",
-    "ChemAnalyst"
+    "ChemAnalyst",
+    "Eurostat",
+    "IPCCEmissionFactors",
 ]

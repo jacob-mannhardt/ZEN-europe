@@ -92,7 +92,7 @@ class EnspresoBiomassAvailability(EnspresoBiomass):
         potential = potential.loc[common_nodes].sort_index()
         potential.index.name = "node"
 
-        reference_year = element.config.system.reference_year
+        reference_year = element.settings.time.reference_year
         potential = potential.loc[:, reference_year:]
         yearly_variation = potential.div(potential[reference_year], axis=0)
         reference_year_values = potential[reference_year]
@@ -147,7 +147,7 @@ class EnspresoBiomassAvailability(EnspresoBiomass):
         common_nodes = nodes.intersection(potential.index)
         potential = potential.loc[common_nodes].sort_index()
 
-        reference_year = element.config.system.reference_year
+        reference_year = element.settings.time.reference_year
         potential = potential.loc[:, reference_year:].T
         potential.index.name = "year"
 
@@ -273,22 +273,31 @@ class EnspresoBiomassPrice(EnspresoBiomass):
         # convert from 2010 Euro/GJ to Euro/MWh in reference year
         price = price * 3.6
         inflation_rate = element.get_inflation_rate(
-            base_year=2010, target_year=element.config.system.reference_year
+            base_year=2010, target_year=element.settings.time.reference_year
         )
         price = price * inflation_rate
         price = price.astype(float)
 
         price = interpolate_missing_years(price)
 
-        price = price.loc[common_nodes].sort_index()
-        price.index.name = "node"
+        reference_year = element.settings.time.reference_year
 
-        reference_year = element.config.system.reference_year
-        price = price.loc[:, reference_year:]
-        yearly_variation = price.div(price[reference_year], axis=0)
-        reference_year_values = price[reference_year]
-        reference_year_values.name = "price_import"
-
+        if regional_prices:
+            price = price.loc[common_nodes].sort_index()
+            price.index.name = "node"
+            price = price.loc[:, reference_year:]
+            yearly_variation = price.div(price[reference_year], axis=0)
+            df = price[reference_year]
+            df.name = "price_import"
+            default_value = None
+        else:
+            price = price.loc[reference_year:]
+            yearly_variation = price.div(price[reference_year])
+            default_value = price[reference_year]
+            df = None
+            yearly_variation.name = "price_import_yearly_variation"
+            yearly_variation.index.name = "year"
+        
         source = SourceInformation(
             description=(
                 "Biomass import price derived from ENSPRESO NUTS0 energy "
@@ -303,9 +312,11 @@ class EnspresoBiomassPrice(EnspresoBiomass):
             ),
             metadata=self.metadata,
         )
+
         return element.price_import.set_data(
             source=source,
-            df=reference_year_values,
+            df=df,
+            default_value=default_value,
             unit="Euro/MWh",
             yearly_variations_df=yearly_variation,
         )
