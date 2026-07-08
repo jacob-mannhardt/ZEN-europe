@@ -42,6 +42,19 @@ def convert_country_names(series: pd.Series):
         lambda el: country_names[el] if el in country_names.keys() else None)
     return series_new
 
+def link_lng_countries() -> dict:
+    lng_link = {"lng_russia": ["LNG Russia"],
+                "lng": ["LNG Middle East", "LNG North Africa", "LNG North America", "LNG Others"]}
+    return lng_link
+
+def link_natural_gas_countries() -> dict:
+    natural_gas_link = {
+        ("Algeria", "Libya"): ["ES", "IT"], 
+        ("Azerbaijan", "Turkey", "Turkmenistan"): ["EL"],
+        ("Russia"): ["BG", "RO", "HU", "SK", "PL", "LT", "EE", "DE", "FI"],  
+    }
+    return natural_gas_link
+
 def interpolate_missing_years(df: pd.DataFrame) -> pd.DataFrame:
     """Interpolate missing years in a DataFrame.
 

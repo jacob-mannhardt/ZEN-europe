@@ -86,11 +86,10 @@ _HEAT_TECHNOLOGY_NAMES_DH = {
     "Manufactured gases": "natural_gas_boiler_DH",
     "Nuclear heat": "hard_coal_boiler_DH",
 }
-_HEAT_HOUSEHOLD_SIEC = {"E7000": "Electricity"}
+_HEAT_HOUSEHOLD_SIEC = {"TOTAL": "Total"}
 _HEAT_HOUSEHOLD_NRG_BAL = {
-    "FC_OTH_HH_E": "Final consumption households",
-    "FC_OTH_HH_E_LE": "Final consumption households - lighting and electrical appliances",
-    "FC_OTH_HH_E_CK": "Final consumption households - cooking",
+    "FC_OTH_HH_E_SH": "space_heating",
+    "FC_OTH_HH_E_WH": "water_heating",
 }
 _HEAT_HOUSEHOLD_DATASET = "nrg_d_hhq"
 _HEAT_HOUSEHOLD_UNIT = "TJ"
@@ -103,6 +102,9 @@ _COAL_NRG_BAL = {
     "IMP": "Imports",
     "PPRD": "Production",
 }
+
+_NATURAL_GAS_SIEC = {"G3000": "natural_gas"}
+_NATURAL_GAS_NRG_BAL = {"PPRD": "Production"}
 
 _BIOMASS_SIEC = {"R5110-5150_W6000RI": "biomass", "R5300": "biogas"}
 _BIOMASS_NRG_BAL = {
@@ -251,7 +253,6 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         available Eurostat year."""
         return self._query_electricity_generation()
 
-    # TODO remove?
     def get_heat(self) -> pd.DataFrame:
         """Heat and household-electricity consumption per technology/node."""
         return self._query_heat()
@@ -263,6 +264,10 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
     def get_oil_availability(self) -> pd.Series:
         """Oil availability per node."""
         return self._query_oil_availability()
+
+    def get_natural_gas_production(self) -> pd.Series:
+        """Natural gas production per node."""
+        return self._query_natural_gas_production()
 
     def get_waste_availability(self, include_industry: bool = False) -> pd.Series:
         """Waste availability per node.
@@ -330,30 +335,19 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
 
     def _query_heat(self) -> pd.DataFrame:
         """Load Eurostat heat and household-electricity consumption data."""
-        household_electricity = self._query_siec_data(
+        heat_data = self._query_siec_data(
             nrg_bal=_HEAT_HOUSEHOLD_NRG_BAL,
             siec=_HEAT_HOUSEHOLD_SIEC,
             start_period=_EUROSTAT_START_YEAR,
             dataset=_HEAT_HOUSEHOLD_DATASET,
             unit=_HEAT_HOUSEHOLD_UNIT,
+            geo=["NO", "UK"]
         )
-        heat = self._query_siec_data(
-            nrg_bal=_HEAT_NRG_BAL,
-            siec=_HEAT_SIEC,
-            start_period=_EUROSTAT_START_YEAR,
-        )
-        heat_data = pd.concat({"heat": heat, "eleHH": household_electricity})
-        heat_data = heat_data.drop(["freq", "unit"], axis=1).set_index(
-            ["nrg_bal", "geo\\TIME_PERIOD", "siec"]
-        ).squeeze()
-        heat_data = heat_data.loc[
-            :, heat_data.columns.astype(int) <= self.eurostat_year
-        ].astype(float)
-        heat_index = heat_data.index
-        heat_data = heat_data.reset_index(drop=True).bfill(axis=1)
-        heat_data.index = heat_index
-        heat_data.loc[(slice(None), "UK"), :] = heat_data.loc[(slice(None), "UK"), :].ffill(axis=1)
-        return heat_data
+        heat_data = self._convert_availability(
+            heat_data, _HEAT_HOUSEHOLD_SIEC, cutoff_year=self.eurostat_year_time_series)
+        heat_data = heat_data.rename(index=_HEAT_HOUSEHOLD_NRG_BAL, level=0)
+        heat_data = heat_data.swaplevel(0, 1).sort_index(level=0)
+        return heat_data / 3.6  # convert from TJ to GWh
 
     def _query_coal_availability(self) -> pd.Series:
         """Calculate coal availability, scaled from imports and production
@@ -368,6 +362,17 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         availability = availability.fillna(0)
         availability.index.name = "node"
         return availability.sort_index()
+
+    def _query_natural_gas_production(self) -> pd.Series:
+        """Calculate natural gas production."""
+        data = self._query_siec_data(
+            nrg_bal=_NATURAL_GAS_NRG_BAL,
+            siec=_NATURAL_GAS_SIEC,
+            start_period=self.eurostat_year,
+        )
+        data = self._convert_availability(data, _NATURAL_GAS_SIEC)
+        production = data.groupby(level=1).sum(numeric_only=True)
+        return production.sort_index()
 
     def _query_biomass_availability(self) -> pd.Series:
         """Calculate biomass availability from transformation input and

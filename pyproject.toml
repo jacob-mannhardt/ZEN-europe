@@ -15,7 +15,8 @@ authors = [
 
 dependencies = [
     "zen-creator>=1.2.0",
-    "eurostat"
+    "eurostat",
+    "requests"
 ]
 
 [project.scripts]

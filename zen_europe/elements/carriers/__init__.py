@@ -21,6 +21,8 @@ from .gasoline import Gasoline
 from .olefin import Olefin
 from .kerosene import Kerosene
 from .shipping import Shipping
+from .lng import LNG
+from .heat import Heat
 
 __all__ = [
     "Biomass",
@@ -38,7 +40,6 @@ __all__ = [
     "Methanol",
     "HardCoal",
     "Lignite",
-    "NaturalGas",
     "Oil",
     "Waste",
     "Diesel",
@@ -46,4 +47,7 @@ __all__ = [
     "Olefin",
     "Kerosene",
     "Shipping",
+    "LNG",
+    "NaturalGas",
+    "Heat",
 ]

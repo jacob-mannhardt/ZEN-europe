@@ -1,0 +1,51 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from zen_creator import Model
+
+from zen_creator.elements import Carrier
+from zen_creator.utils.attribute import Attribute
+from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
+
+import numpy as np
+
+class Heat(Carrier):
+    """All data and assumption for heat carrier."""
+
+    name: str = "heat"
+
+    def __init__(self, model: Model, power_unit: str = "MW"):
+        super().__init__(model=model, power_unit=power_unit)
+
+    # ----Example of optional methods for overriding default attributes ------
+
+    def _set_demand(self) -> Attribute:
+        """
+        Return the demand of the carrier.
+
+        """
+        heat_demand_dataset = HeatDemand(self.settings, self.source_path)
+        return heat_demand_dataset.get_demand(self)
+        
+    
+    def _set_price_shed_demand(self) -> Attribute:
+        """
+        Return the price of shed demand of the carrier.
+
+        """
+        if self.settings.availability.allow_heat_demand_shedding:
+            return Attribute(
+                "price_shed_demand",
+                default_value=1e4,
+                element=self,
+                unit="EUR/MWh",
+            )
+        else:
+            return Attribute(
+                "price_shed_demand",
+                default_value=np.inf,
+                element=self,
+                unit="EUR/MWh",
+            )
