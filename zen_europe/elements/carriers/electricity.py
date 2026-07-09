@@ -21,11 +21,8 @@ class Electricity(Carrier):
 
     def _set_demand(self) -> Attribute:
         """
-        Return the demand of the carrier.
+        Return the demand for electricity.
 
-        This method is used to set the self.demand property when the
-        model is built. It is optional to implement this method if the
-        default value of 0 is suitable for all time steps.
         """
         attr = self.demand
         return attr

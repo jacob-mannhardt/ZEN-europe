@@ -49,3 +49,15 @@ class Heat(Carrier):
                 element=self,
                 unit="EUR/MWh",
             )
+
+    def _set_availability_import(self) -> Attribute:
+        """
+        Return the availability of import of the carrier.
+
+        """
+        return Attribute(
+            "availability_import",
+            default_value=0,
+            element=self,
+            unit="GW",
+        )
