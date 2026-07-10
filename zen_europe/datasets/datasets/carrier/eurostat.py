@@ -160,6 +160,16 @@ _EUROSTAT_START_YEAR = 1990
 _EUROSTAT_REPORT_YEAR = 2025
 _LAST_EUROSTAT_YEAR_UK = 2019
 
+# ilc_lvho01: population by degree of urbanization ("deg_urb").
+_URBANIZATION_DATASET = "ilc_lvho01"
+_URBANIZATION_RISK_OF_POVERTY = {"TOTAL": "total"}
+_URBANIZATION_TYPE_OF_BUILDING = {"TOTAL": "total"}
+_URBANIZATION_DEGREE = {
+    "DEG1": "cities",
+    "DEG2": "towns_and_suburbs",
+    "DEG3": "rural",
+}
+
 
 class Eurostat(Dataset[dict[str, pd.DataFrame]]):
     """Dataset class for Eurostat energy-balance and vehicle-fleet data.
@@ -309,6 +319,11 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
     def get_shipping_fuel_demand(self) -> pd.Series:
         """Shipping fuel demand per node."""
         return self._query_shipping_fuel_demand()
+
+    def get_population_by_urbanization(self) -> pd.DataFrame:
+        """Population share per country and degree of urbanization (urban,
+        intermediate, rural), for all available Eurostat years."""
+        return self._query_population_by_urbanization()
 
     # -------- data queries ------------------
 
@@ -497,6 +512,24 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         demand = data.groupby(level=1).sum(numeric_only=True).sum(axis=1)
         return demand.sort_index()
 
+    def _query_population_by_urbanization(self) -> pd.DataFrame:
+        """Extract population by degree of urbanization from Eurostat."""
+        population = self._query_urbanization_data(
+            risk_of_pov=_URBANIZATION_RISK_OF_POVERTY,
+            building=_URBANIZATION_TYPE_OF_BUILDING,
+            deg_urb=_URBANIZATION_DEGREE,
+            start_period=_EUROSTAT_START_YEAR,
+        )
+        population = population.drop(
+            ["freq", "rskpovth", "building","unit"], axis=1).set_index(
+            ["deg_urb", "geo\\TIME_PERIOD"]
+        )
+        population.columns = population.columns.astype(int)
+        population = population.rename(_URBANIZATION_DEGREE, axis=0)
+        population.index.names = ["deg_urb", "geo"]
+        population = population.bfill(axis=1).ffill(axis=1)
+        return population.sort_index() / 100
+
     def _convert_availability(
         self,
         data: pd.DataFrame,
@@ -590,6 +623,47 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
             lambda: self._query_in_parallel(filter_pars, common_geo, dataset),
         )
 
+    def _query_urbanization_data(
+        self,
+        risk_of_pov: dict[str, str],
+        building: dict[str, str],
+        deg_urb: dict[str, str],
+        start_period: int,
+        geo: list[str] | None = None,
+        dataset: str = _URBANIZATION_DATASET,
+    ) -> pd.DataFrame:
+        """Query the Eurostat urt_pjanaggr3 API (population by degree of
+        urbanization), filtered by risk_of_pov/building/deg_urb.
+
+        Cached to disk since Eurostat queries are slow; the cache key is
+        derived from the actual request parameters.
+        """
+        filter_pars: dict[str, Any] = {"start_period": start_period}
+
+        eurostat_countries = es.get_par_values(dataset, "geo")
+        common_geo = sorted(set(geo or eurostat_countries).intersection(eurostat_countries))
+        assert common_geo, f"None of the locations {geo} are in Eurostat database"
+        filter_pars["geo"] = common_geo
+
+        common_risk_of_pov = sorted(set(es.get_par_values(dataset, "rskpovth")).intersection(risk_of_pov))
+        assert common_risk_of_pov, f"None of the risk_of_pov {risk_of_pov} are in Eurostat database"
+        filter_pars["rskpovth"] = common_risk_of_pov
+
+        common_building = sorted(set(es.get_par_values(dataset, "building")).intersection(building))
+        assert common_building, f"None of the building {building} are in Eurostat database"
+        filter_pars["building"] = common_building
+
+        common_deg_urb = sorted(
+            set(es.get_par_values(dataset, "deg_urb")).intersection(deg_urb)
+        )
+        assert common_deg_urb, f"None of the deg_urb {deg_urb} are in Eurostat database"
+        filter_pars["deg_urb"] = common_deg_urb
+
+        return self._cached_query(
+            self._query_cache_key(dataset, filter_pars),
+            lambda: self._query_in_parallel(filter_pars, common_geo, dataset),
+        )
+
     def _query_in_parallel(
         self, filter_pars: dict[str, Any], geo: list[str], dataset: str
     ) -> pd.DataFrame:
@@ -625,3 +699,28 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
             return result
 
         return es.get_data_df(dataset, filter_pars=filter_pars)
+
+    def get_vehicle_occupancy(self) -> float:
+        """Get the average vehicle occupancy.
+        
+        From https://ec.europa.eu/eurostat/statistics-explained/index.php?title=Passenger_mobility_statistics#Passenger_car_occupancy
+
+        Read from the plot
+        """
+        values = [
+            1.873239419845443,
+            1.7370892042322186,
+            1.3826287732314277,
+            1.3427226344836363,
+            1.2793424070891761,
+            1.2605630108062045,
+            1.2535210976262958,
+            1.2347414506120507,
+            1.2230043436058982,
+            1.2183095258765642,
+            1.220657248155323,
+            1.199530505690503,
+            1.1619714623932864
+        ]
+        return sum(values) / len(values)
+        

@@ -236,11 +236,11 @@ energy_system:
           - tonCO2
           - tCO2
           - tonne_carbon
-      pkm:
+      vkm:
         dimension: mileage
         aliases:
-          - passenger_km
-          - passenger_kilometer
+          - vehicle_km
+          - vehicle_kilometer
       tkm:
         dimension: tonne_mileage
         aliases:

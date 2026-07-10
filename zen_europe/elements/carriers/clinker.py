@@ -40,5 +40,5 @@ class Clinker(Carrier):
         Return the demand of clinker.
 
         """
-        clinker_demand = ClinkerDemand(source_path=self.model.source_path)
+        clinker_demand = ClinkerDemand(source_path=self.source_path)
         return clinker_demand.get_clinker_demand(element=self)

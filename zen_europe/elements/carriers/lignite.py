@@ -6,7 +6,7 @@ import numpy as np
 
 from zen_europe.datasets.dataset_collections.carrier_availability import CarrierAvailability 
 from zen_europe.datasets.datasets.carrier.ipcc_emission_factors import IPCCEmissionFactors
-from zen_europe.datasets.datasets.financial.ECB import ECBInflation,ECBDollar2Euro
+from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 
 if TYPE_CHECKING:
     from zen_creator.model import Model

@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 
+import numpy as np
+
 class Olefin(Carrier):
     """Olefin carrier class.
 
@@ -36,6 +38,27 @@ class Olefin(Carrier):
                 unit=self.power_unit,
             )
     
+    
+    def _set_price_shed_demand(self) -> Attribute:
+        """
+        Return the price of shed demand of the carrier.
+
+        """
+        if self.settings.availability.allow_all_demand_shedding:
+            return Attribute(
+                "price_shed_demand",
+                default_value=1e4,
+                element=self,
+                unit="EUR/tproduct",
+            )
+        else:
+            return Attribute(
+                "price_shed_demand",
+                default_value=np.inf,
+                element=self,
+                unit="EUR/tproduct",
+            )
+        
     def _set_demand(self) -> Attribute:
         """
         Return the demand of olefin.

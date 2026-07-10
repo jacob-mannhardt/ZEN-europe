@@ -79,12 +79,12 @@ class IPCCEmissionFactors(Dataset[pd.DataFrame]):
         source = SourceInformation(
             description=(
                 f"Carbon intensity of {element.name} from the IPCC emission factors dataset, "
-                "converted from kg/TJ to kg/MWh."
+                "converted from kgCO2/TJ to tonsCO2/MWh."
             ),
             metadata=self.metadata,
         )
         return element.carbon_intensity_carrier_import.set_data(
             source=source,
             default_value=default_value,
-            unit="kgCO2/MWh",
+            unit="tCO2/MWh",
         )

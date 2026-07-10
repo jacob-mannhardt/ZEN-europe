@@ -23,6 +23,8 @@ from .kerosene import Kerosene
 from .shipping import Shipping
 from .lng import LNG
 from .heat import Heat
+from .passenger_mileage import PassengerMileage
+from .truck_mileage import TruckMileage 
 
 __all__ = [
     "Biomass",

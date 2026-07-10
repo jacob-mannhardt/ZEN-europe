@@ -82,7 +82,7 @@ class Gasoline(Carrier):
                     "carbon_intensity_carrier_import",
                     default_value=0,
                     element=self,
-                    unit="kgCO2/MWh",
+                    unit="tCO2/MWh",
                 )
         else:
             ipcc_emission_factors = IPCCEmissionFactors(source_path=self.model.source_path)

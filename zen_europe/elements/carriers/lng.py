@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
-from zen_europe.datasets.dataset_collections.carrier_availability import CarrierAvailability 
 from zen_europe.datasets.dataset_collections.lng_availability import LNGAvailability
 from zen_europe.datasets.datasets.carrier.bnef import BNEFFuelPrices
 from zen_europe.datasets.datasets.carrier.ipcc_emission_factors import IPCCEmissionFactors
