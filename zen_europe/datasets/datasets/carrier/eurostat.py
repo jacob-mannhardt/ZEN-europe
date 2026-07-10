@@ -40,24 +40,7 @@ _EFFICIENCY_TECHNOLOGY_NAMES = {
     "biomass": "biomass_plant",
 }
 
-_HEAT_SIEC = {
-    "C0000X0350-0370": "Solid fossil fuels",
-    "P1000": "Peat and peat products",
-    "O4000XBIO": "Oil and petroleum products",
-    "G3000": "Natural gas",
-    "R5110-5150_W6000RI": "Primary solid biofuels",
-    "R5300": "Biogases",
-    "E7000": "Electricity",
-    "RA600": "Ambient heat",
-    "H8000": "Heat",
-    "W6100_6220": "Non-renewable waste",
-    "C0350-0370": "Manufactured gases",
-    "N900H": "Nuclear heat",
-}
-_HEAT_NRG_BAL = {
-    "GHP": "Gross heat production",
-    "FC_OTH_E": "Final consumption - other sectors - energy use",
-}
+
 _HEAT_TECHNOLOGY_NAMES = {
     "Solid fossil fuels": "hard_coal_boiler",
     "Peat and peat products": "hard_coal_boiler",
@@ -86,13 +69,42 @@ _HEAT_TECHNOLOGY_NAMES_DH = {
     "Manufactured gases": "natural_gas_boiler_DH",
     "Nuclear heat": "hard_coal_boiler_DH",
 }
-_HEAT_HOUSEHOLD_SIEC = {"TOTAL": "Total"}
+_HEAT_HOUSEHOLD_SIEC_TOTAL = {"TOTAL": "Total"}
+
+_HEAT_HOUSEHOLD_SIEC = {
+    "G3000": "natural_gas_boiler",
+    "O4000": "oil_boiler", # Oil and petroleum products (larger category)
+    "RA600": "heat_pump", # Ambient heat (heat pumps)
+    "R5110-5150_W6000RI": "biomass_boiler", # Primary solid biofuels
+    "R5300": "biomass_boiler", # Biogases
+    "E7000": "electricity", # Electricity
+    "H8000": "heat", # Heat
+}
+
 _HEAT_HOUSEHOLD_NRG_BAL = {
     "FC_OTH_HH_E_SH": "space_heating",
     "FC_OTH_HH_E_WH": "water_heating",
 }
 _HEAT_HOUSEHOLD_DATASET = "nrg_d_hhq"
 _HEAT_HOUSEHOLD_UNIT = "TJ"
+
+_HEAT_DH_SIEC = {
+    "C0000X0350-0370": "hard_coal_boiler_DH", # Solid fossil fuels
+    "P1000": "hard_coal_boiler_DH", # Peat and peat products
+    "O4000XBIO": "oil_boiler_DH", # Oil and petroleum products
+    "G3000": "natural_gas_boiler_DH", # Natural gas
+    "R5110-5150_W6000RI": "biomass_boiler_DH", # Primary solid biofuels
+    "R5300": "biomass_boiler_DH", # Biogases
+    "E7000": "electricity_DH", # Electricity
+    "RA600": "heat_pump_DH", # Ambient heat
+    "W6100_6220": "waste_boiler_DH", # Non-renewable waste
+    "C0350-0370": "natural_gas_boiler_DH", # Manufactured gases
+    "N900H": "hard_coal_boiler_DH", # Nuclear heat
+}
+
+_HEAT_DH_NRG_BAL = {
+    "GHP": "Gross heat production",
+}
 
 _COAL_SIEC = {"C0220": "lignite", "C0129": "hard_coal"}
 _COAL_NRG_BAL = {
@@ -253,9 +265,17 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         available Eurostat year."""
         return self._query_electricity_generation()
 
-    def get_heat(self) -> pd.DataFrame:
-        """Heat and household-electricity consumption per technology/node."""
-        return self._query_heat()
+    def get_total_heat_household(self) -> pd.DataFrame:
+        """Heat consumption per node."""
+        return self._query_total_heat_household()
+    
+    def get_heat_household_technology(self) -> pd.DataFrame:
+        """Household heat consumption per technology/node."""
+        return self._query_heat_household_technology()
+    
+    def get_heat_dh_technology(self) -> pd.DataFrame:
+        """District heat consumption per technology/node."""
+        return self._query_heat_dh_technology()
     
     def get_coal_availability(self) -> pd.Series:
         """Coal availability per node."""
@@ -333,22 +353,55 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         generation = generation[self.eurostat_year_time_series]
         return generation.sort_index()
 
-    def _query_heat(self) -> pd.DataFrame:
-        """Load Eurostat heat and household-electricity consumption data."""
+    def _query_total_heat_household(self) -> pd.DataFrame:
+        """Load total Eurostat household-electricity heat data for NO + UK."""
         heat_data = self._query_siec_data(
             nrg_bal=_HEAT_HOUSEHOLD_NRG_BAL,
-            siec=_HEAT_HOUSEHOLD_SIEC,
+            siec=_HEAT_HOUSEHOLD_SIEC_TOTAL,
             start_period=_EUROSTAT_START_YEAR,
             dataset=_HEAT_HOUSEHOLD_DATASET,
             unit=_HEAT_HOUSEHOLD_UNIT,
             geo=["NO", "UK"]
         )
         heat_data = self._convert_availability(
-            heat_data, _HEAT_HOUSEHOLD_SIEC, cutoff_year=self.eurostat_year_time_series)
+            heat_data, _HEAT_HOUSEHOLD_SIEC_TOTAL, cutoff_year=self.eurostat_year_time_series)
         heat_data = heat_data.rename(index=_HEAT_HOUSEHOLD_NRG_BAL, level=0)
         heat_data = heat_data.swaplevel(0, 1).sort_index(level=0)
         return heat_data / 3.6  # convert from TJ to GWh
 
+    def _query_heat_household_technology(self) -> pd.DataFrame:
+        """Load Eurostat household heat data."""
+        heat_data = self._query_siec_data(
+            nrg_bal=_HEAT_HOUSEHOLD_NRG_BAL,
+            siec=_HEAT_HOUSEHOLD_SIEC,
+            start_period=_EUROSTAT_START_YEAR,
+            dataset=_HEAT_HOUSEHOLD_DATASET,
+            unit=_HEAT_HOUSEHOLD_UNIT
+        )
+        heat_data = self._convert_availability(
+            heat_data, _HEAT_HOUSEHOLD_SIEC, return_all_years=True)
+        heat_data = heat_data.rename(index=_HEAT_HOUSEHOLD_NRG_BAL, level=0)
+        heat_data = heat_data.rename(index=_HEAT_HOUSEHOLD_SIEC, level=2)
+        heat_data = heat_data.groupby(level=[1,2]).sum(numeric_only=True)
+        heat_data = heat_data.swaplevel(0, 1).sort_index()
+        return heat_data / 3.6  # convert from TJ to GWh
+
+    def _query_heat_dh_technology(self) -> pd.DataFrame:
+        """Load Eurostat district heat data."""
+        heat_data = self._query_siec_data(
+            nrg_bal=_HEAT_DH_NRG_BAL,
+            siec=_HEAT_DH_SIEC,
+            start_period=_EUROSTAT_START_YEAR,
+            unit=_HEAT_HOUSEHOLD_UNIT
+        )
+        heat_data = self._convert_availability(
+            heat_data, _HEAT_DH_SIEC, return_all_years=True)
+        heat_data = heat_data.rename(index=_HEAT_DH_NRG_BAL, level=0)
+        heat_data = heat_data.rename(index=_HEAT_DH_SIEC, level=2)
+        heat_data = heat_data.groupby(level=[1,2]).sum(numeric_only=True)
+        heat_data = heat_data.swaplevel(0, 1).sort_index()
+        return heat_data / 3.6  # convert from TJ to GWh
+    
     def _query_coal_availability(self) -> pd.Series:
         """Calculate coal availability, scaled from imports and production
         by the ratio of total consumption to total availability."""

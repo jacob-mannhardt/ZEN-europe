@@ -12,8 +12,14 @@ from zen_creator.utils.attribute import Attribute
 
 import pandas as pd
 
-_KTOE2GWH = 1 / 0.0859845  # ktoe (useful energy) -> GWh
-
+_MAP_TECHNOLOGY = {
+    "Heizöl": "oil_boiler",
+    "Erdgas": "gas_boiler",
+    "Holz": "biomass_boiler",
+    "El. Widerstandsheizungen": "electrode_boiler",
+    "Fernwärme": "district_heating",
+    "El. Ohm'sche Anlagen": "electrode_boiler",
+}
 class BFE(Dataset[pd.DataFrame]):
     """
     Bundesamt für Energie (BFE) dataset class.
@@ -50,9 +56,22 @@ class BFE(Dataset[pd.DataFrame]):
         data_ser = pd.read_excel(
             self.path, sheet_name="Tabelle26",
             skiprows=5,usecols="B:AA")
+        data_res_space_split = pd.read_excel(
+            self.path, sheet_name="Tabelle20",
+            skiprows=5,usecols="B:AA")
+        data_res_water_split = pd.read_excel(
+            self.path, sheet_name="Tabelle22",
+            skiprows=5,usecols="B:AA")
         data_res = data_res.set_index("Verwendungszweck") / 3.6 * 1000 # from PJ to GWh
         data_ser = data_ser.set_index("Verwendungszweck") / 3.6 * 1000 # from PJ to GWh
-        return {"residential": data_res.sort_index(), "service": data_ser.sort_index()}
+        data_res_space_split = data_res_space_split.set_index("Anlagensystem") / 3.6 * 1000 # from PJ to GWh
+        data_res_water_split = data_res_water_split.set_index("Anlagensystem") / 3.6 * 1000 # from PJ to GWh
+        return {
+            "residential": data_res.sort_index(), 
+            "service": data_ser.sort_index(),
+            "residential_space_split": data_res_space_split.sort_index(),
+            "residential_water_split": data_res_water_split.sort_index()
+        }
 
     # -------- methods ------------------------
     def get_demand(self, element: Carrier) -> Attribute:
@@ -75,3 +94,27 @@ class BFE(Dataset[pd.DataFrame]):
         })
         data = pd.concat({"residential": data_res, "tertiary": data_ser})
         return data
+
+    def get_share_household(self) -> Attribute:
+        """
+        Get the split of household heat demand into technology categories 
+        """
+        space_split = self.data["residential_space_split"].rename(
+            index=_MAP_TECHNOLOGY)
+        water_split = self.data["residential_water_split"].rename(
+            index=_MAP_TECHNOLOGY)
+        space_split.loc["heat_pump"] = (
+            space_split.loc["El. Wärmepumpen ¹⁾"] + 
+            space_split.loc["Umweltwärme"])
+        water_split.loc["heat_pump"] = (
+            water_split.loc["El. Wärmepumpen"] + 
+            water_split.loc["Umweltwärme"])
+        selected_technologies = list(set(_MAP_TECHNOLOGY.values())) + ["heat_pump"]
+        space_split = space_split.loc[selected_technologies]
+        water_split = water_split.loc[selected_technologies]
+        total = space_split + water_split
+        share = total.div(total.sum())
+        share = share.sort_index()
+        share.index.name = "technology"
+        share.columns = share.columns.astype(int)
+        return share

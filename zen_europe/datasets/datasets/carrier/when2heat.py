@@ -99,6 +99,8 @@ class When2Heat(Dataset[pd.DataFrame]):
         # rename GB->UK and GR->EL on first level
         data_profile = data_profile.rename(
             columns={"GB": "UK", "GR": "EL"}, level="node")
+        data_COP = data_COP.rename(
+            columns={"GB": "UK", "GR": "EL"}, level="node")
 
         return {
             "profile": data_profile,
@@ -106,7 +108,7 @@ class When2Heat(Dataset[pd.DataFrame]):
         }
 
     # -------- methods ------------------------
-    def get_profiles(self, element: Carrier) -> pd.DataFrame:
+    def get_profiles(self) -> pd.DataFrame:
         """
         Get the heat demand profiles.
 
@@ -118,3 +120,14 @@ class When2Heat(Dataset[pd.DataFrame]):
         """
         return self.data["profile"]
     
+    def get_COP(self) -> pd.DataFrame:
+        """
+        Get the COP data.
+
+        Args:
+            element (Carrier): The carrier element for which to get the COP data.
+
+        Returns:
+            A pandas DataFrame containing the COP data for the specified carrier.
+        """
+        return self.data["COP"]

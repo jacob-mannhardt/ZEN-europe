@@ -29,7 +29,6 @@ class Heat(Carrier):
         heat_demand_dataset = HeatDemand(self.settings, self.source_path)
         return heat_demand_dataset.get_demand(self)
         
-    
     def _set_price_shed_demand(self) -> Attribute:
         """
         Return the price of shed demand of the carrier.

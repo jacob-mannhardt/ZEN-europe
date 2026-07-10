@@ -93,12 +93,11 @@ class HeatDemand(DatasetCollection):
             data_jrc.index.get_level_values("node").unique()
         )
         for country in missing_countries:
-            # TODO THIS WILL CHANGE
             if country == "CH":
                 data = bfe_dataset.get_demand(element)
             elif country == "NO" or country == "UK":
                 # residential heat demand from Eurostat
-                data_res = eurostat_dataset.get_heat().squeeze()
+                data_res = eurostat_dataset.get_total_heat_household().squeeze()
                 data_res = data_res.loc[country]
                 # tertiary heat demand for UK from ECUK
                 if country == "UK":
@@ -116,7 +115,7 @@ class HeatDemand(DatasetCollection):
             data_jrc = pd.concat([data_jrc, data])
         # add heating profiles
         when2heat_dataset = cast(When2Heat, self.data["when2heat"])
-        profiles = when2heat_dataset.get_profiles(element)
+        profiles = when2heat_dataset.get_profiles()
 
         # align jrc_idees's (node, sector, category) labels with when2heat's
         # (node, house_type, category) column naming convention
@@ -130,4 +129,71 @@ class HeatDemand(DatasetCollection):
         # then sum residential/tertiary and space/water heating per country
         demand = (profiles * data_jrc).T.groupby(level="node").sum().T
         demand = demand / 1e6 # convert to GW
+
+        demand.index.name = "time"
         return demand
+    
+    
+    def _calculate_heating_share_household(self) -> pd.DataFrame:
+        """
+        Calculate the heating share of all household heating technologies.
+
+        Returns:
+            pd.DataFrame: A DataFrame containing the heating shares
+            for all household heating technologies.
+        """
+        eurostat_dataset = cast(Eurostat, self.data["eurostat"])
+        household_heat = eurostat_dataset.get_heat_household_technology()
+        # average COP
+        when2heat_dataset = cast(When2Heat, self.data["when2heat"])
+        cop_data = when2heat_dataset.get_COP()
+        cop_data = cop_data.xs("floor",level="category", axis=1).mean()
+        common_nodes = cop_data.index.intersection(
+            household_heat.index.get_level_values(1).unique()
+        )
+        cop_data = cop_data.loc[common_nodes]
+        electricity_hp = household_heat.loc["heat_pump"].div(cop_data-1,axis=0)
+        electricity_hp = electricity_hp.fillna(0)
+        electricity_eb = household_heat.loc["electricity"] - electricity_hp
+        electricity_eb = pd.concat([electricity_eb],keys=["electrode_boiler"])
+        household_heat = pd.concat([household_heat, electricity_eb]).sort_index()
+        household_heat = household_heat.drop("electricity")
+        household_heat = household_heat.rename(index={"heat": "district_heating_grid"})
+        share_household_heat = household_heat.div(
+            household_heat.groupby(level=1).sum(), axis=1)
+        share_household_heat.columns = share_household_heat.columns.astype(int)
+        
+        # swiss data is missing in Eurostat, so we use BFE data for CH
+        bfe_dataset = cast(BFE, self.data["bfe"])
+        share_CH = bfe_dataset.get_share_household()
+        common_years = share_CH.columns.intersection(share_household_heat.columns)
+        share_CH = share_CH.loc[:, common_years]
+        share_CH = pd.concat([share_CH],keys=["CH"], names=["node"])
+        share_CH = share_CH.swaplevel(0, 1).sort_index()
+        share_household_heat = pd.concat([share_household_heat, share_CH])
+        share_household_heat = share_household_heat.sort_index().sort_index(axis=1)
+        share_household_heat = share_household_heat.bfill(axis=1)
+
+        return share_household_heat 
+    
+    def _calculate_heating_share_DH(self) -> pd.DataFrame:
+        """
+        Calculate the heating share of electricity demand for district heating.
+        """
+        eurostat_dataset = cast(Eurostat, self.data["eurostat"])
+        district_heat = eurostat_dataset.get_heat_dh_technology()
+        # average COP
+        when2heat_dataset = cast(When2Heat, self.data["when2heat"])
+        cop_data = when2heat_dataset.get_COP()
+        cop_data = cop_data.xs("floor",level="category", axis=1).mean()
+        electricity_hp_dh = district_heat.loc["heat_pump_DH"].div(cop_data-1,axis=0)
+        electricity_hp_dh = electricity_hp_dh.fillna(0)
+        electricity_eb_dh = district_heat.loc["electricity_DH"] - electricity_hp_dh
+        electricity_eb_dh = pd.concat([electricity_eb_dh],keys=["electrode_boiler_DH"])
+        electricity_eb_dh = electricity_eb_dh.clip(lower=0)
+        district_heat = pd.concat([district_heat, electricity_eb_dh]).sort_index()
+        district_heat = district_heat.drop("electricity_DH")
+        share_district_heat = district_heat.div(
+            district_heat.groupby(level=1).sum(), axis=1)
+        raise NotImplementedError("This method is not yet implemented for CH values.")        
+        return share_district_heat

@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
+from zen_europe.datasets.dataset_collections.electricity_demand import ElectricityDemand
 
 
 class Electricity(Carrier):
@@ -24,5 +25,33 @@ class Electricity(Carrier):
         Return the demand for electricity.
 
         """
-        attr = self.demand
-        return attr
+        electricity_demand_dataset = ElectricityDemand(
+            self.settings, 
+            self.model.config.system.set_nodes, 
+            self.source_path)
+        return electricity_demand_dataset.get_demand(self)
+    
+    def _set_price_shed_demand(self) -> Attribute:
+        """
+        Return the price of shed demand of the carrier.
+
+        """
+        return Attribute(
+            "price_shed_demand",
+            default_value=1e4,
+            element=self,
+            unit="EUR/MWh",
+        )
+
+    def _set_availability_import(self) -> Attribute:
+        """
+        Return the availability of import of the carrier.
+
+        """
+        return Attribute(
+            "availability_import",
+            default_value=0,
+            element=self,
+            unit="GW",
+        )
+

@@ -1,3 +1,7 @@
+import logging
+logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 import argparse
 from pathlib import Path
 
@@ -32,11 +36,11 @@ def zen_europe_cli() -> None:
     )
     args = parser.parse_args()
 
-    print(f"Generating model '{args.name}' ...")
+    logger.info(f"Generating model '{args.name}' ...")
     create_model(config=args.config, name=args.name, output_folder=args.output_folder)
     path = (args.output_folder / args.name).resolve()
-    print(
-        COLOR_SUCCESS
-        + f"Successfully generated model '{args.name}' and saved to {path}/"
-        + COLOR_RESET
-    )
+    logger.info(
+        COLOR_SUCCESS + 
+        f"Successfully generated model '{args.name}' and saved to {path}/" +
+        COLOR_RESET)
+
