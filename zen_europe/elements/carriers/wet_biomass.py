@@ -39,12 +39,7 @@ class WetBiomass(Carrier):
     def _set_availability_import(self) -> Attribute:
         """Return the import availability of wetbiomass from ENSPRESO potentials."""
         if self.settings.availability.annual_cap_biomass_import:
-            return Attribute(
-                "availability_import",
-                default_value=np.inf,
-                element=self,
-                unit=self.power_unit,
-            )
+            return self.availability_import
         else:
             enspreso = EnspresoBiomassAvailability(self.source_path)
             return enspreso.get_availability_import(
@@ -59,12 +54,7 @@ class WetBiomass(Carrier):
                 element=self, biomass_types=self._biomass_types
             )
         else:
-            return Attribute(
-                "availability_import_yearly",
-                default_value=np.inf,
-                element=self,
-                unit=self.energy_unit,
-            )
+            return self.availability_import_yearly
 
     def _set_price_import(self) -> Attribute:
         """Return the import price of wet biomass from ENSPRESO potentials.

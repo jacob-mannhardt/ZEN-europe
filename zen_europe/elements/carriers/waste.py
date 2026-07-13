@@ -42,12 +42,7 @@ class Waste(Carrier):
             return carrier_availability.get_waste_availability(
                 element=self,include_industry=include_industry)
         else:
-            return Attribute(
-                        "availability_import",
-                        default_value=np.inf,
-                        element=self,
-                        unit=self.power_unit,
-                    )
+            return self.availability_import
     
     def _set_price_import(self) -> Attribute:
         """

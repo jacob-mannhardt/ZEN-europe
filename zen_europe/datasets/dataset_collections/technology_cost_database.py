@@ -1,30 +1,34 @@
 """Aggregated technology cost database.
 
 Combines capex/opex/efficiency/lifetime/construction-time figures from
-several independent technology-cost sources (DEA, TYNDP, DIW, LUW, EUREF)
-into a single queryable database, following the same "many agencies, one
-schema" approach as the legacy ``agg_financial_parameters.py`` script this
-class replaces.
+several independent technology-cost sources (DEA, TYNDP, DIW, LUW, EUREF,
+Potencia) into a single queryable database, following the same "many
+agencies, one schema" approach as the legacy ``agg_financial_parameters.py``
+script this class replaces.
 
 Not ported from the legacy script (documented limitations):
-    - The Potencia, ETRI, BNEF, NREL and IRENA sources. Potencia's raw file
-      needs a bespoke multi-block Excel parser that was judged not worth the
-      complexity/fragility trade-off for this port; the other four were
-      already unimplemented stubs in the legacy script.
-    - DEA's CO2 transport/storage/liquefaction entries, and LUW's Direct Air
-      Capture entry: these price logistics infrastructure or duplicate a
-      technology already covered by DEA's own (better-documented) DAC entry,
-      not a standalone conversion technology.
+    - The ETRI, BNEF, NREL and IRENA sources: these were already
+      unimplemented stubs in the legacy script, so there was nothing to port.
+    - DEA's CO2 transport/storage/liquefaction entries: these were never
+      parsed by the legacy script either, price logistics infrastructure
+      rather than a standalone conversion technology, and the technologies
+      that could theoretically consume them (`carbon_pipeline`,
+      `carbon_storage`) already source their costs from a separate, active
+      pipeline (``costs_additional_technologies.xlsx``).
     - `oil_boiler_DH` (DEA mapped it to the same row as `waste_boiler_DH` in
       the legacy script - looks like a bug, not reproduced here).
     - Automatic plotting (matplotlib cost-curve figures) - omitted per
       request; `export_cost_table` still provides a numeric Excel export.
 
-Note: DEA's carbon-capture technologies (DAC and retrofit post-combustion
-capture) are reported on a Euro/tCO2(/h) basis rather than Euro/kW; the
-`unit` returned by `get_capex_specific_conversion` etc. reflects whichever
-basis the technology actually uses (see `_unit_for`), it is not always
-`Euro/kW`.
+Note: DEA's and LUW's carbon-capture technologies (DAC and DEA's retrofit
+post-combustion capture) are reported on a Euro/tCO2(/h) basis rather than
+Euro/kW; the `unit` returned by `get_capex_specific_conversion` etc.
+reflects whichever basis the technology actually uses (see `_unit_for`), it
+is not always `Euro/kW`.
+
+Note: Potencia reports a single point estimate per technology/year (no
+min/max spread, ``scenario="ref"`` only) at up to four plant sizes, of which
+this database uses S/M/L.
 """
 
 from __future__ import annotations
@@ -43,16 +47,17 @@ from zen_creator.utils.attribute import SourceInformation
 from zen_creator.utils.settings import Settings
 
 from zen_europe.datasets.datasets.financial.ECB import ECBInflation
-from zen_europe.datasets.datasets.technology._cost_schema import (
+from zen_europe.datasets.datasets.financial._cost_schema import (
     COST_VARIABLES,
     STANDARD_UNITS,
     YEARS,
 )
-from zen_europe.datasets.datasets.technology.dea import DEA
-from zen_europe.datasets.datasets.technology.diw import DIW
-from zen_europe.datasets.datasets.technology.euref import EUREF
-from zen_europe.datasets.datasets.technology.luw import LUW
-from zen_europe.datasets.datasets.technology.tyndp_technology_cost import TYNDPTechnologyCost
+from zen_europe.datasets.datasets.financial.dea import DEA
+from zen_europe.datasets.datasets.financial.diw import DIW
+from zen_europe.datasets.datasets.financial.euref import EUREF
+from zen_europe.datasets.datasets.financial.luw import LUW
+from zen_europe.datasets.datasets.financial.potencia import Potencia
+from zen_europe.datasets.datasets.financial.tyndp_technology_cost import TYNDPTechnologyCost
 
 _AGENCY_DATASETS = {
     "dea": DEA,
@@ -60,6 +65,7 @@ _AGENCY_DATASETS = {
     "diw": DIW,
     "luw": LUW,
     "euref": EUREF,
+    "potencia": Potencia,
 }
 _METRICS = ("mean", "median", "min", "max")
 
@@ -111,7 +117,7 @@ class TechnologyCostDatabase(DatasetCollection):
         )
 
     def get_lifetime(
-        self, element: Element, plant_size: str = "M", metric: str = "mean"
+        self, element: Element, plant_size: str = "M", metric: str = "median"
     ) -> Attribute:
         """Technical lifetime [years] for `element`'s technology."""
         return self._set_technology_attribute(
@@ -140,7 +146,9 @@ class TechnologyCostDatabase(DatasetCollection):
         single common attribute to populate across all conversion technologies.
         """
         return self._aggregate(
-            technology, "efficiency", plant_size, metric, reference_year or self.settings.time.reference_year
+            technology, "efficiency", 
+            plant_size, metric, 
+            reference_year or self.settings.time.reference_year
         )
 
     def check_if_available(self, technology: str, variable: str | None = None) -> bool:
@@ -174,7 +182,8 @@ class TechnologyCostDatabase(DatasetCollection):
         for technology in technologies:
             for variable in COST_VARIABLES:
                 for metric in ("min", "mean", "max"):
-                    series = self._aggregate(technology, variable, plant_size, metric, reference_year)
+                    series = self._aggregate(
+                        technology, variable, plant_size, metric, reference_year)
                     if series.empty:
                         continue
                     key = (technology, variable, metric)
@@ -193,7 +202,8 @@ class TechnologyCostDatabase(DatasetCollection):
         plant_size: str, metric: str, description: str,
     ) -> Attribute:
         reference_year = element.settings.time.reference_year
-        series = self._aggregate(element.name, variable, plant_size, metric, reference_year)
+        series = self._aggregate(
+            element.name, variable, plant_size, metric, reference_year)
         source = SourceInformation(
             description=(
                 f"{description.capitalize()} for '{element.name}' is the {metric} across all "
@@ -207,8 +217,11 @@ class TechnologyCostDatabase(DatasetCollection):
             return attribute.set_data(source=source)
 
         optimization_years = pd.Index(element.settings.time.get_optimization_years())
-        default_value = float(self._reindex_to_years(series, pd.Index([reference_year])).loc[reference_year])
-        yearly_variations = self._reindex_to_years(series, optimization_years) / default_value
+        default_value = float(
+            self._reindex_to_years(series, 
+                                   pd.Index([reference_year])).loc[reference_year])
+        yearly_variations = self._reindex_to_years(
+            series, optimization_years) / default_value
         yearly_variations.index.name = "year"
         yearly_variations.name = attribute.name
 
@@ -220,7 +233,12 @@ class TechnologyCostDatabase(DatasetCollection):
         )
 
     def _aggregate(
-        self, technology: str, variable: str, plant_size: str, metric: str, reference_year: int,
+        self, 
+        technology: str, 
+        variable: str, 
+        plant_size: str, 
+        metric: str, 
+        reference_year: int,
     ) -> pd.Series:
         """Aggregate `variable` for `technology` across agencies/scenarios.
 
@@ -239,7 +257,8 @@ class TechnologyCostDatabase(DatasetCollection):
         if variable in COST_VARIABLES:
             rows = rows.assign(
                 value=[
-                    value * self._inflation.get_inflation_rate(int(money_year_src), reference_year)
+                    value * self._inflation.get_inflation_rate(
+                        int(money_year_src), reference_year)
                     for value, money_year_src in zip(rows["value"], rows["money_year_src"])
                 ]
             )
@@ -253,14 +272,16 @@ class TechnologyCostDatabase(DatasetCollection):
         ref_columns = [col for col in pivoted.columns if col[1] == "ref"]
         reference = pivoted[ref_columns].mean(axis=1) if ref_columns else pivoted.mean(axis=1)
         if metric == "min":
-            candidate = pivoted.xs("min", level="scenario", axis=1) if "min" in pivoted.columns.get_level_values(
-                "scenario") else pivoted[ref_columns]
+            candidate = (pivoted.xs("min", level="scenario", axis=1) 
+            if "min" in pivoted.columns.get_level_values(
+                "scenario") else pivoted[ref_columns])
             result = candidate.min(axis=1)
             # guard against a reported "min" scenario that isn't actually below "ref"
             result = result.where(result <= reference, reference)
         elif metric == "max":
-            candidate = pivoted.xs("max", level="scenario", axis=1) if "max" in pivoted.columns.get_level_values(
-                "scenario") else pivoted[ref_columns]
+            candidate = (pivoted.xs("max", level="scenario", axis=1) 
+            if "max" in pivoted.columns.get_level_values(
+                "scenario") else pivoted[ref_columns])
             result = candidate.max(axis=1)
             result = result.where(result >= reference, reference)
         elif metric == "median":
@@ -285,7 +306,8 @@ class TechnologyCostDatabase(DatasetCollection):
             sel["agency"] = agency
             frames.append(sel)
         if not frames:
-            return pd.DataFrame(columns=["agency", "scenario", "year", "value", "money_year_src"])
+            return pd.DataFrame(
+                columns=["agency", "scenario", "year", "value", "money_year_src"])
         return pd.concat(frames, ignore_index=True)
 
     def _unit_for(self, technology: str, variable: str, plant_size: str) -> str:
@@ -312,5 +334,6 @@ class TechnologyCostDatabase(DatasetCollection):
     @staticmethod
     def _reindex_to_years(series: pd.Series, years: pd.Index) -> pd.Series:
         combined_index = sorted(set(series.index) | set(years))
-        reindexed = series.reindex(combined_index).interpolate(method="index", limit_direction="both")
+        reindexed = series.reindex(combined_index).interpolate(
+            method="index", limit_direction="both")
         return reindexed.loc[years]

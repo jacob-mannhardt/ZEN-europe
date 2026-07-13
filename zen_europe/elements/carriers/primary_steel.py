@@ -52,12 +52,7 @@ class PrimarySteel(Carrier):
                 unit="EUR/t",
             )
         else:
-            return Attribute(
-                "price_shed_demand",
-                default_value=np.inf,
-                element=self,
-                unit="EUR/t",
-            )
+            return self.price_shed_demand
         
     def _set_demand(self) -> Attribute:
         """

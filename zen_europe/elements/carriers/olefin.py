@@ -52,12 +52,7 @@ class Olefin(Carrier):
                 unit="EUR/tproduct",
             )
         else:
-            return Attribute(
-                "price_shed_demand",
-                default_value=np.inf,
-                element=self,
-                unit="EUR/tproduct",
-            )
+            return self.price_shed_demand
         
     def _set_demand(self) -> Attribute:
         """

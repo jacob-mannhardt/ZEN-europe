@@ -9,7 +9,7 @@ import pandas as pd
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
-from zen_europe.datasets.datasets.technology._cost_schema import INDEX_NAMES, VALUE_COLUMNS
+from zen_europe.datasets.datasets.financial._cost_schema import INDEX_NAMES, VALUE_COLUMNS
 
 # internal technology name -> TYNDP technology label
 _TECHS: dict[str, str] = {

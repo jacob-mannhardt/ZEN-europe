@@ -9,7 +9,7 @@ import pandas as pd
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
-from zen_europe.datasets.datasets.technology._cost_schema import INDEX_NAMES, VALUE_COLUMNS
+from zen_europe.datasets.datasets.financial._cost_schema import INDEX_NAMES, VALUE_COLUMNS
 
 # internal technology name -> DIW cost-sheet technology label. DIW only
 # reports a single (reference) capex figure per technology, no fopex/vopex.
@@ -32,6 +32,7 @@ _COST_TECHS: dict[str, str] = {
     "biomass_plant": "BiomassPowerPlant",
     "biomass_plant_CCS": "BiomassPowerPlant+CCTS",
     "oil_plant": "OilPowerPlant(CCGT)",
+    "fuel_cell": "FuelCell",
 }
 # efficiency sheet uses yet another label set, only covering thermal plants
 _EFFICIENCY_TECHS: dict[str, str] = {

@@ -45,12 +45,7 @@ class HardCoal(Carrier):
                 settings=self.settings, source_path=self.model.source_path)
             return carrier_availability.get_coal_availability(element=self)
         else:
-            return Attribute(
-                        "availability_import",
-                        default_value=np.inf,
-                        element=self,
-                        unit=self.power_unit,
-                    )
+            return self.availability_import
     
     def _set_price_import(self) -> Attribute:
         """

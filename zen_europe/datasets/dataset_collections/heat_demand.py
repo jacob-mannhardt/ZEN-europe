@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from zen_creator import Dataset
 
 
-from zen_creator import Attribute, Carrier, DatasetCollection
+from zen_creator import Attribute, Carrier, DatasetCollection, Element
 from zen_creator.utils.attribute import SourceInformation
 from zen_creator.utils.settings import Settings
 
@@ -77,7 +77,7 @@ class HeatDemand(DatasetCollection):
             unit="GW",
         )
     
-    def _calculate_demand(self, element: Carrier) -> pd.Series:
+    def _calculate_demand(self, element: Element) -> pd.Series:
         """
         Calculate the heat demand for the specified element.
 

@@ -42,12 +42,7 @@ class Heat(Carrier):
                 unit="EUR/MWh",
             )
         else:
-            return Attribute(
-                "price_shed_demand",
-                default_value=np.inf,
-                element=self,
-                unit="EUR/MWh",
-            )
+            return self.price_shed_demand
 
     def _set_availability_import(self) -> Attribute:
         """

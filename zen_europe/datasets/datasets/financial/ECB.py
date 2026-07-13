@@ -65,11 +65,19 @@ class ECBInflation(Dataset[pd.DataFrame]):
 
     def get_inflation_rate(self, base_year: int, target_year: int) -> float:
         """Method to calculate the inflation rate between two years."""
+        if base_year >= target_year:
+            by = target_year
+            ty = base_year
+            exp = -1
+        else:
+            by = base_year
+            ty = target_year
+            exp = 1
         inflation_rates = pd.to_numeric(
-            self.data.loc[base_year : target_year - 1, "inflation_rate"],
+            self.data.loc[by : ty - 1, "inflation_rate"],
             errors="raise",
         )
-        return float(inflation_rates.to_numpy(dtype=float).prod())
+        return float((inflation_rates.to_numpy(dtype=float).prod())**exp)
 
 
 class ECBDollar2Euro(Dataset[pd.DataFrame]):

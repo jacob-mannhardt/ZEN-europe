@@ -53,12 +53,7 @@ class Oil(Carrier):
                     settings=self.settings, source_path=self.model.source_path)
                 return carrier_availability.get_oil_availability(element=self)
             else:
-                return Attribute(
-                        "availability_import",
-                        default_value=np.inf,
-                        element=self,
-                        unit=self.power_unit,
-                    )
+                return self.availability_import
     
     def _set_price_import(self) -> Attribute:
         """
@@ -66,12 +61,7 @@ class Oil(Carrier):
 
         """
         if "crude_oil" in self.model.carriers:
-            return Attribute(
-                    "price_import",
-                    default_value=0,
-                    element=self,
-                    unit="Euro/MWh",
-                )
+            return self.price_import
         else:
             bnef_fuel_prices = BNEFFuelPrices(source_path=self.model.source_path)
             return bnef_fuel_prices.get_price_import(element=self)
@@ -83,12 +73,7 @@ class Oil(Carrier):
 
         """
         if "crude_oil" in self.model.carriers:
-            return Attribute(
-                    "carbon_intensity_carrier_import",
-                    default_value=0,
-                    element=self,
-                    unit="tCO2/MWh",
-                )
+            return self.carbon_intensity_carrier_import
         else:
             ipcc_emission_factors = IPCCEmissionFactors(source_path=self.model.source_path)
             return ipcc_emission_factors.get_carbon_intensity(element=self)

@@ -61,12 +61,7 @@ class Gasoline(Carrier):
 
         """
         if "crude_oil" in self.model.carriers:
-            return Attribute(
-                    "price_import",
-                    default_value=0,
-                    element=self,
-                    unit="Euro/MWh",
-                )
+            return self.price_import
         else:
             gasoline_diesel_prices = GasolineDieselPrice(
                 source_path=self.model.source_path)
@@ -78,12 +73,7 @@ class Gasoline(Carrier):
 
         """
         if "crude_oil" in self.model.carriers:
-            return Attribute(
-                    "carbon_intensity_carrier_import",
-                    default_value=0,
-                    element=self,
-                    unit="tCO2/MWh",
-                )
+            return self.carbon_intensity_carrier_import
         else:
             ipcc_emission_factors = IPCCEmissionFactors(source_path=self.model.source_path)
             return ipcc_emission_factors.get_carbon_intensity(element=self)

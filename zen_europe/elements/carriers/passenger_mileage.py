@@ -47,12 +47,7 @@ class PassengerMileage(Carrier):
                 unit="EUR/vkm",
             )
         else:
-            return Attribute(
-                "price_shed_demand",
-                default_value=np.inf,
-                element=self,
-                unit="EUR/vkm",
-            )
+            return self.price_shed_demand
 
     def _set_availability_import(self) -> Attribute:
         """
