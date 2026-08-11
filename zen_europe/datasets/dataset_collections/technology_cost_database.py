@@ -17,8 +17,7 @@ Not ported from the legacy script (documented limitations):
       pipeline (``costs_additional_technologies.xlsx``).
     - `oil_boiler_DH` (DEA mapped it to the same row as `waste_boiler_DH` in
       the legacy script - looks like a bug, not reproduced here).
-    - Automatic plotting (matplotlib cost-curve figures) - omitted per
-      request; `export_cost_table` still provides a numeric Excel export.
+
 
 Note: DEA's and LUW's carbon-capture technologies (DAC and DEA's retrofit
 post-combustion capture) are reported on a Euro/tCO2(/h) basis rather than
@@ -95,7 +94,7 @@ class TechnologyCostDatabase(DatasetCollection):
         """Specific investment cost [Euro/kW] for `element`'s technology."""
         return self._set_technology_attribute(
             element, element.capex_specific_conversion, "capex", plant_size, metric,
-            description="specific investment cost (CAPEX)",
+            description="specific investment cost (CAPEX)", annual_values=True
         )
 
     def get_opex_specific_fixed(
@@ -104,7 +103,7 @@ class TechnologyCostDatabase(DatasetCollection):
         """Fixed operational cost [Euro/kW/year] for `element`'s technology."""
         return self._set_technology_attribute(
             element, element.opex_specific_fixed, "fopex", plant_size, metric,
-            description="fixed operational cost",
+            description="fixed operational cost", annual_values=True
         )
 
     def get_opex_specific_variable(
@@ -113,7 +112,7 @@ class TechnologyCostDatabase(DatasetCollection):
         """Variable operational cost [Euro/MWh] for `element`'s technology."""
         return self._set_technology_attribute(
             element, element.opex_specific_variable, "vopex", plant_size, metric,
-            description="variable operational cost",
+            description="variable operational cost", annual_values=False
         )
 
     def get_lifetime(
@@ -121,18 +120,18 @@ class TechnologyCostDatabase(DatasetCollection):
     ) -> Attribute:
         """Technical lifetime [years] for `element`'s technology."""
         return self._set_technology_attribute(
-            element, element.lifetime, "lifetime", plant_size, metric,
-            description="technical lifetime",
-        )
+                    element, element.lifetime, "lifetime", plant_size, metric,
+                    description="technical lifetime", annual_values=True
+                )
 
     def get_construction_time(
-        self, element: Element, plant_size: str = "M", metric: str = "mean"
+        self, element: Element, plant_size: str = "M", metric: str = "median"
     ) -> Attribute:
         """Construction time [years] for `element`'s technology."""
         return self._set_technology_attribute(
-            element, element.construction_time, "construction_time", plant_size, metric,
-            description="construction time",
-        )
+                    element, element.construction_time, "construction_time", plant_size, metric,
+                    description="construction time", annual_values=True
+                )
 
     def get_efficiency(
         self, technology: str, plant_size: str = "M", metric: str = "mean",
@@ -199,15 +198,16 @@ class TechnologyCostDatabase(DatasetCollection):
 
     def _set_technology_attribute(
         self, element: Element, attribute: Attribute, variable: str,
-        plant_size: str, metric: str, description: str,
+        plant_size: str, metric: str, description: str, annual_values: bool = True
     ) -> Attribute:
         reference_year = element.settings.time.reference_year
         series = self._aggregate(
             element.name, variable, plant_size, metric, reference_year)
+        agencies = self._extract_agencies(element.name, variable, plant_size)
         source = SourceInformation(
             description=(
-                f"{description.capitalize()} for '{element.name}' is the {metric} across all "
-                "technology-cost agencies (DEA, TYNDP, DIW, LUW, EUREF) reporting data for this "
+                f"{description.capitalize()} for '{element.name}' is the {metric} across "
+                f"for the agencies {', '.join(agencies)} reporting data for this "
                 f"technology at plant size '{plant_size}'. Monetary values are rebased to "
                 f"{reference_year} EUR using ECB HICP inflation."
             ),
@@ -217,17 +217,28 @@ class TechnologyCostDatabase(DatasetCollection):
             return attribute.set_data(source=source)
 
         optimization_years = pd.Index(element.settings.time.get_optimization_years())
-        default_value = float(
-            self._reindex_to_years(series, 
-                                   pd.Index([reference_year])).loc[reference_year])
-        yearly_variations = self._reindex_to_years(
-            series, optimization_years) / default_value
-        yearly_variations.index.name = "year"
-        yearly_variations.name = attribute.name
-
+        if annual_values:
+            df = self._reindex_to_years(series, optimization_years)
+            default_value = float(df.loc[reference_year])
+            if len(df.unique()) == 1:
+                df = None
+            else:
+                df.index.name = "year"
+                df.name = attribute.name
+            yearly_variations = None
+        else:
+            default_value = float(
+                self._reindex_to_years(series, 
+                                    pd.Index([reference_year])).loc[reference_year])
+            yearly_variations = self._reindex_to_years(
+                series, optimization_years) / default_value
+            yearly_variations.index.name = "year"
+            yearly_variations.name = attribute.name
+            df = None
         return attribute.set_data(
             source=source,
             default_value=default_value,
+            df=df,
             unit=self._unit_for(element.name, variable, plant_size),
             yearly_variations_df=yearly_variations,
         )
@@ -291,6 +302,11 @@ class TechnologyCostDatabase(DatasetCollection):
         result.index.name = "year"
         return result
 
+    def _extract_agencies(self, technology: str, variable: str, plant_size: str) -> set[str]:
+        """Return the set of agencies reporting data for `technology`/`variable`."""
+        rows = self._collect_rows(technology, variable, plant_size)
+        return set(rows["agency"].unique())
+    
     def _collect_rows(self, technology: str, variable: str, plant_size: str) -> pd.DataFrame:
         frames = []
         for agency, dataset in self.data.items():

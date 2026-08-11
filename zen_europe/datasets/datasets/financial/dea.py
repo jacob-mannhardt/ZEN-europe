@@ -21,12 +21,8 @@ from zen_europe.datasets.datasets.financial._cost_schema import (
 # `size=None` means the technology varies by plant_size in the source data
 # (looked up dynamically); a fixed string means the technology only exists at
 # that one DEA size.
-#
-# Not ported (documented limitation): `oil_boiler_DH` -- the legacy script
-# mapped it to the same DEA row as `waste_boiler_DH`, which looks like a
-# copy-paste bug rather than an intentional simplification, so we drop it
-# instead of repeating it. (`oil_boiler_DH` costs are still available via
-# the LUW dataset.)
+
+
 _MAIN_TECHS: dict[str, tuple[str, str, str, str | None]] = {
     "wind_onshore": ("Onshore wind turbine, utility", "renewable power", "wind", "large"),
     "photovoltaics": ("PV", "renewable power", "solar", "utility-scale, ground mounted"),
@@ -42,6 +38,14 @@ _MAIN_TECHS: dict[str, tuple[str, str, str, str | None]] = {
     "electrode_boiler_DH": ("Electric boiler", "boiler", "electricity", None),
     "fuel_cell": ("Low temp PEM fuel cell", "back pressure", "hydrogen", "small"),
 }
+
+# DEA reports rooftop-residential/rooftop-commercial/utility-scale PV as three separate
+# `Technology` rows, keyed here via `_SIZE_MAP_PV` purely to find each one's DEA label -- unlike
+# `_MAIN_TECHS`'s other `fixed_size` entries, this isn't a real small/medium/large *capacity*
+# split, since each of the three is already its own internal technology name. None of them have
+# genuine size variation, so (per `_cost_schema`'s "agencies/technologies without a size
+# dimension report under 'M'" convention, followed by every other agency here) their rows are
+# tagged `plant_size="M"` regardless of which DEA label matched -- see `_parse_main`.
 _PV_TECHS = {"photovoltaics", "rooftop_photovoltaics", "rooftop_photovoltaics_com"}
 _SIZE_MAP = {"S": "small", "M": "medium", "L": "large"}
 _SIZE_MAP_PV = {"S": "residential rooftop", "M": "commercial/industrial rooftop", "L": "utility-scale, ground mounted"}
@@ -328,7 +332,7 @@ class DEA(Dataset[pd.DataFrame]):
 
     District heating distribution-network data are available separately via
     `get_dh_distribution_data`, in DEA's own native units (`€/km²` capacity, not `€/kW`) rather
-    than folded into `get_costs()`'s shared schema -- see that method's docstring.
+    than folded into `get_costs()`'s shared schema.
     """
 
     name = "dea"
@@ -419,7 +423,8 @@ class DEA(Dataset[pd.DataFrame]):
                 if fixed_size is not None and size != fixed_size:
                     continue
                 label = " - ".join([dea_tech, category, dea_input, size]) + _LABEL_SUFFIXES.get(technology, "")
-                rows += self._parse_main_label(financial, technical, label, technology, plant_size)
+                output_size = "M" if technology in _PV_TECHS else plant_size
+                rows += self._parse_main_label(financial, technical, label, technology, output_size)
         for technology, (label, plant_size) in _MAIN_TECHS_LITERAL.items():
             rows += self._parse_main_label(financial, technical, label, technology, plant_size)
         return rows

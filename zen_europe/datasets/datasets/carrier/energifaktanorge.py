@@ -44,7 +44,7 @@ class Energifaktanorge(Dataset[pd.DataFrame]):
         return pd.Series()
 
     # -------- methods ------------------------
-    def get_service_demand(self, element: Carrier) -> Attribute:
+    def get_service_demand(self) -> Attribute:
         """
         Get the NO heat demand for the Service sector
 

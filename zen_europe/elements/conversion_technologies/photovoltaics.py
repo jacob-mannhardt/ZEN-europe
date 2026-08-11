@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.dataset_collections.potential_capacity_renewables import PotentialCapacityRenewables
+from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
@@ -49,16 +52,71 @@ class Photovoltaics(ConversionTechnology):
         """
         Sets the lifetime of photovoltaics.
 
-        This method is currently returns the default value.
         """
-        attr = self.lifetime
-        return attr
+        tech_db = TechnologyCostDatabase(
+            settings=self.settings, source_path=self.source_path)
+        return tech_db.get_lifetime(self)
 
+    def _set_construction_time(self) -> Attribute:
+        """
+        Sets the construction time of district heating grids.
+
+        """
+        if self.settings.investment.use_construction_times:
+            tech_db = TechnologyCostDatabase(
+                        settings=self.settings, source_path=self.source_path)
+            return tech_db.get_construction_time(self)
+        else:
+            return self.construction_time
+        
     def _set_conversion_factor(self) -> Attribute:
         """
         Return the conversion factor of photovoltaics.
 
-        This method currently returns the default value.
         """
         attr = self.conversion_factor
         return attr
+
+    def _set_capex_specific_conversion(self) -> Attribute:
+        """
+        Sets the specific capital expenditure (capex) for photovoltaics.
+
+        Returns:
+            Attribute: An Attribute object containing the specific capex data.
+        """
+        tech_db = TechnologyCostDatabase(
+            settings=self.settings, source_path=self.source_path)
+        return tech_db.get_capex_specific_conversion(self)
+    
+    def _set_opex_specific_fixed(self) -> Attribute:
+        """
+        Sets the specific fixed operational expenditure (opex) for photovoltaics.
+
+        Returns:
+            Attribute: An Attribute object containing the specific fixed opex data.
+        """
+        tech_db = TechnologyCostDatabase(
+            settings=self.settings, source_path=self.source_path)
+        return tech_db.get_opex_specific_fixed(self)
+    
+    def _set_opex_specific_variable(self) -> Attribute:
+        """
+        Sets the specific variable operational expenditure (opex) for photovoltaics.
+
+        Returns:
+            Attribute: An Attribute object containing the specific variable opex data.
+        """
+        tech_db = TechnologyCostDatabase(
+            settings=self.settings, source_path=self.source_path)
+        return tech_db.get_opex_specific_variable(self)
+
+    def _set_capacity_limit(self) -> Attribute:
+        """
+        Sets the capacity limit for photovoltaics.
+
+        Returns:
+            Attribute: An Attribute object containing the capacity limit data.
+        """
+        pcr = PotentialCapacityRenewables(
+            source_path=self.source_path)
+        return pcr.get_capacity_limit(self)

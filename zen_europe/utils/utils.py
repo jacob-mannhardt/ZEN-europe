@@ -1,4 +1,8 @@
 import pandas as pd
+from typing import Union
+from zen_creator import Technology
+
+MIN_CAPACITY_ADDITION = 1e-5
 
 # maps the country names used in the raw source file to NUTS0 node codes,
 def convert_country_names(series: pd.Series):
@@ -85,4 +89,121 @@ def interpolate_missing_years(df: pd.DataFrame) -> pd.DataFrame:
     else:
         raise TypeError("Input must be a pandas DataFrame or Series,"
                         f" but got {type(df).__name__}.")
+    return df
+
+def calculate_capacity_addition_from_cumulative(df: pd.DataFrame, element: Technology) -> pd.DataFrame:
+    """Calculate capacity addition from cumulative capacity data.
+
+    Args:
+        df (pd.DataFrame): DataFrame with cumulative capacity data.
+        element (Technology): The conversion technology element.
+
+    Returns:
+        pd.DataFrame: DataFrame with capacity addition data.
+    """
+    df = divide_evolution_of_cumulative_capacity(df)
+    df = account_for_decommissioned_capacity(df, element)
+    return df
+    
+def divide_evolution_of_cumulative_capacity(df: pd.DataFrame) -> pd.DataFrame:
+    """Divide the evolution of the cumulative capacity into capacity additions.
+    We calculate the capacity addition by taking the difference between consecutive years.
+    We start at the last year and move backwards, so that we can account for decommissioned capacity.
+    If the capacity diff is positive, it is a capacity addition. If it is negative,
+    it is a decommissioned capacity, which we subtract from the first year of the cumulative capacity data.
+    The first year then represents the total capacity that was available in that year,
+    corrected for decommissioned capacity. 
+    Args:
+        df (pd.DataFrame): DataFrame with cumulative capacity data.
+
+    Returns:
+        pd.DataFrame: DataFrame with capacity addition data.
+    """
+    df = df.astype(float)
+    df = df.sort_index(axis=1,ascending=True)
+    # take difference
+    df[df.columns[1:]] = df.diff(axis=1)[df.columns[1:]]
+    # decommissioned capacity
+    decom_capa = df.clip(upper=0)
+    total_decom_capa = decom_capa.sum(axis=1)
+    # capacity additions
+    df = df.clip(lower=0)
+    # subtract decommissioned capacity from existing capa in first time step
+    df[df.columns[0]] += total_decom_capa
+    for col in df.columns.sort_values(ascending=True):
+        if col != df.columns.max():
+            pos_col = df[col].clip(lower=0)
+            neg_col = df[col].clip(upper=0)
+            if (neg_col.dropna() == 0).all():
+                break
+            df[col + 1] += neg_col
+            df[col] = pos_col
+
+    return df
+
+def account_for_decommissioned_capacity(df: pd.DataFrame, element: Technology) -> pd.DataFrame:
+    """Account for decommissioned capacity.
+    The value in the first year of the capacity dataframe is assumed to have been built 
+    steadily over the previous lifetime of the technology.
+    Thus, we divide the value in the first year by the lifetime of the technology and
+    add this value to the previous years, so that we can account for decommissioned capacity.
+    Any capacity built in year x must be decommissioned in year x + lifetime, 
+    so we add the decommissioned capacity to the dataframe, shifted by the lifetime.
+
+    Args:
+        df (pd.DataFrame): DataFrame with cumulative capacity data.
+
+    Returns:
+        pd.DataFrame: DataFrame with decommissioned capacity accounted for.
+    """
+    df.columns = df.columns.astype(int)
+    df = df.sort_index(axis=1)
+    # get years
+    start_year = df.columns.min()
+    reference_year = element.settings.time.reference_year
+    lifetime = element.lifetime.default_value
+    assert int(lifetime) == lifetime, "Lifetime must be an integer"
+    lifetime = int(lifetime)
+    relevant_lifetime = (
+        lifetime - 
+        element.settings.time.interval_between_years - 
+        int(element.construction_time.default_value))
+    lifetime_years = list(range((reference_year) - relevant_lifetime, reference_year))
+    earlier_years = list(range((start_year + 1) - relevant_lifetime,start_year+1))
+    combined_years = df.columns.union(earlier_years).sort_values()
+    # allocate the existing units of years before the lifetime to first year of lifetime
+    # extended capacity df
+    df_ext = pd.DataFrame(index=df.index,columns=combined_years)
+    df_ext[df.columns] = df
+    # divide capacity in first year by lifetime
+    df_ext[start_year] /= relevant_lifetime
+    # fill previous years by
+    df_ext = df_ext.bfill(axis=1)
+    # decommissioned capacity
+    df_decom = df_ext.copy()
+    df_decom.columns = df_ext.columns + lifetime
+    # add decommissioned capacity
+    df_tot = df_ext.add(df_decom,fill_value=0)
+    # only choose lifetime years
+    common_years = df_tot.columns.intersection(lifetime_years)
+    df_tot = df_tot[common_years]
+    # scale to match total capacity again
+    df_tot = df_tot[df_tot.sum(axis=1)!=0]
+    df = df[df.sum(axis=1)!=0]
+    df_tot = df_tot.mul(df.sum(axis=1)/df_tot.sum(axis=1),axis=0)
+    return df_tot
+
+def format_existing_capacity(df: Union[pd.DataFrame, pd.Series]) -> pd.Series:
+    """Format the existing capacity data to match the expected format.
+
+    Args:
+        df (pd.DataFrame, pd.Series): DataFrame or Series with existing capacity data.
+    Returns:
+        pd.Series: Formatted Series with existing capacity data.
+    """
+    if isinstance(df, pd.DataFrame):
+        df = df.stack()
+    df = df[df >= MIN_CAPACITY_ADDITION]
+    df.index.names = ["node","year_construction"]
+    df.name = "existing_capacity"
     return df

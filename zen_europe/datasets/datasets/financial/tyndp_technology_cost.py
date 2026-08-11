@@ -16,7 +16,7 @@ _TECHS: dict[str, str] = {
     "wind_onshore": "Wind on-shore",
     "wind_offshore": "Wind off-shore",
     "rooftop_photovoltaics": "Solar PV (residential)",
-    "rooftop_photovoltaics_com": "Solar PV (commercial)",
+    "photovoltaics": "Solar PV (commercial)",
     "natural_gas_turbine": "CCGT",
     "oc_natural_gas_turbine": "OCGT",
 }

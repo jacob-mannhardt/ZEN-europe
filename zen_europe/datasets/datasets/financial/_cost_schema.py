@@ -41,11 +41,11 @@ TECH_VARIABLES: tuple[str, ...] = ("efficiency", "lifetime", "construction_time"
 
 STANDARD_UNITS: dict[str, str] = {
     "capex": "Euro/kW",
-    "fopex": "Euro/kW/year",
+    "fopex": "Euro/kW",
     "vopex": "Euro/MWh",
-    "efficiency": "-",
-    "lifetime": "years",
-    "construction_time": "years",
+    "efficiency": "1",
+    "lifetime": "1",
+    "construction_time": "1",
 }
 
 # A handful of DEA technologies (carbon capture) are sized by CO2 throughput

@@ -17,7 +17,7 @@ _MAP_TECHNOLOGY = {
     "Erdgas": "gas_boiler",
     "Holz": "biomass_boiler",
     "El. Widerstandsheizungen": "electrode_boiler",
-    "Fernwärme": "district_heating",
+    "Fernwärme": "district_heating_grid",
     "El. Ohm'sche Anlagen": "electrode_boiler",
 }
 class BFE(Dataset[pd.DataFrame]):

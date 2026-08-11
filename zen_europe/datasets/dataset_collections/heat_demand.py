@@ -4,8 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, cast
 
 import pandas as pd
 
-
-
+from zen_europe.utils.utils import calculate_capacity_addition_from_cumulative, format_existing_capacity
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -13,7 +12,7 @@ if TYPE_CHECKING:
     from zen_creator import Dataset
 
 
-from zen_creator import Attribute, Carrier, DatasetCollection, Element
+from zen_creator import Attribute, Carrier, ConversionTechnology, DatasetCollection, Element
 from zen_creator.utils.attribute import SourceInformation
 from zen_creator.utils.settings import Settings
 
@@ -79,7 +78,7 @@ class HeatDemand(DatasetCollection):
     
     def _calculate_demand(self, element: Element) -> pd.Series:
         """
-        Calculate the heat demand for the specified element.
+        Calculate the heat demand.
 
         """
         
@@ -103,7 +102,7 @@ class HeatDemand(DatasetCollection):
                 if country == "UK":
                     data_ser = desnz_dataset.get_service_demand(element)
                 else:
-                    data_ser = energifaktanorge_dataset.get_service_demand(element)
+                    data_ser = energifaktanorge_dataset.get_service_demand()
                 data = pd.concat({"residential": data_res, "tertiary": data_ser})
                 data = data.squeeze()
             else:
@@ -132,7 +131,6 @@ class HeatDemand(DatasetCollection):
 
         demand.index.name = "time"
         return demand
-    
     
     def _calculate_heating_share_household(self) -> pd.DataFrame:
         """
@@ -197,3 +195,90 @@ class HeatDemand(DatasetCollection):
             district_heat.groupby(level=1).sum(), axis=1)
         raise NotImplementedError("This method is not yet implemented for CH values.")        
         return share_district_heat
+
+    def get_capacity_existing(self, element: ConversionTechnology) -> Attribute:
+        """
+        Get the existing capacity of a heat conversion technology.
+
+        """
+        heat_demand = self._calculate_demand(element)
+        peak_demand = heat_demand.max()
+        heating_share = self._calculate_heating_share_household()
+        assert element.name in heating_share.index.get_level_values(0), (
+            f"Element {element.name} not found in heating share data."
+        )
+        heating_share_element = heating_share.loc[element.name]
+        common_nodes = heating_share_element.index.intersection(
+            peak_demand.index)
+        missing_nodes = set(element.model.config.system.set_nodes).difference(
+            common_nodes)
+        assert len(missing_nodes) == 0, (f"Missing nodes in heating share data: "
+                                        f"{missing_nodes}")
+        heating_share_element = heating_share_element.loc[common_nodes]
+        assert not heating_share_element.isna().any().any(), (
+            f"NaN values found in heating share data for element {element.name}."
+        )
+        capacity_existing = heating_share_element.mul(peak_demand, axis=0)
+        capacity_addition = calculate_capacity_addition_from_cumulative(
+            capacity_existing, element)
+        capacity_addition = format_existing_capacity(capacity_addition)
+    
+        source = SourceInformation(
+            description=(
+                "The existing capacity of a heat conversion technology is calculated "
+                "based on the peak heat demand and the heating share of the technology. "
+                "The peak heat demand is derived from the heat demand time series, "
+                "while the heating share is obtained mainly from the Eurostat dataset. "
+            ),
+            metadata=self.metadata,
+        )
+        return element.capacity_existing.set_data(
+            source=source,
+            df=capacity_addition,
+            unit="GW",
+        )
+
+    def get_max_load(self, element: ConversionTechnology) -> Attribute:
+        """
+        Get the maximum load of a heat conversion technology.
+
+        The maximum load is calculated as the ratio of the heat demand to the peak heat demand.
+        In contrast to electricity, the heat supply cannot be easily substituted 
+        by another fuel even if idle capacity is available. 
+        In fact, most heat is generated onsite with only one energy carrier (monovalent operation). 
+        Furthermore, the heat cannot be shared with other buildings but must be consumed onsite where it is produced. 
+        However, we cannot distinguish between individual buildings 
+        in this nationally aggregated case study. 
+        Thus, we apply a capacity factor to all heat generation technologies, 
+        so that the usable capacity of these technologies is 
+        seemingly reduced during times of lower heat demand. 
+        By doing so, we can prevent the substitution of heat supply 
+        between buildings without having to model each building individually. 
+
+        As an example, on a late summer day with a heat demand of a quarter of the peak demand, 
+        we reduce the usable capacity of the onsite heat generation technologies to 25%. 
+        Hence, even though not the entire nominal capacity is utilized at that moment, 
+        the capacity cannot be used to substitute the heat generation 
+        in another building but can only supply the heat demand 
+        of the building in which it is installed. 
+        We neglect that some buildings are supplied by two onsite heat sources, 
+        such as a gas boiler and a heat pump. 
+
+        """
+        heat_demand = self._calculate_demand(element)
+        peak_demand = heat_demand.max()
+        max_load = heat_demand/peak_demand
+        max_load.index.name = "time"
+
+        source = SourceInformation(
+            description=(
+                "The maximum load of a heat conversion technology is derived from "
+                "the heat demand, divided by the peak heat demand."
+            ),
+            metadata=self.metadata,
+        )
+        return element.max_load.set_data(
+            source=source,
+            df=max_load,
+            unit="1",
+        )
