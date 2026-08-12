@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from zen_europe.datasets.dataset_collections.lng_availability import LNGAvailability
-from zen_europe.datasets.datasets.carrier.bnef import BNEFFuelPrices
+from zen_europe.datasets.datasets.carrier.bnef_fuelprices import BNEFFuelPrices
 from zen_europe.datasets.datasets.carrier.ipcc_emission_factors import IPCCEmissionFactors
 from zen_europe.datasets.datasets.financial.ECB import ECBInflation,ECBDollar2Euro
 

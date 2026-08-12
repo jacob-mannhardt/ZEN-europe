@@ -75,7 +75,7 @@ class IFA(Dataset[pd.DataFrame]):
         ds = {}
         for y, df in self.data.items():
             d = df[["Country", f"Ammonia production in {y} [1,000 tNH3]"]]
-            d["Country"] = convert_country_names(d["Country"])
+            d.loc[:, "Country"] = convert_country_names(d["Country"])
             d = d.dropna().set_index("Country").squeeze()
             ds[int(y)] = d
         d = pd.concat(ds, axis=1)

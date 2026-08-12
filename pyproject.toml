@@ -17,7 +17,8 @@ dependencies = [
     "zen-creator>=1.2.0",
     "eurostat",
     "requests",
-    "scikit-learn"
+    "scikit-learn",
+    "powerplantmatching",
 ]
 
 [project.scripts]
@@ -72,7 +73,7 @@ ignore = []
 convention = "google"
 
 [tool.ruff.lint.isort]
-known-first-party = ["your_package_name"]
+known-first-party = ["zen_europe"]
 
 [tool.mypy]
 #warn_unused_configs = true

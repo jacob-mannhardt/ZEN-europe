@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, cast
 
 import pandas as pd
 
-from zen_europe.utils.utils import calculate_capacity_addition_from_cumulative, format_existing_capacity
+from zen_europe.utils.utils import calculate_capacity_addition_from_cumulative, format_capacity_existing
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -221,7 +221,7 @@ class HeatDemand(DatasetCollection):
         capacity_existing = heating_share_element.mul(peak_demand, axis=0)
         capacity_addition = calculate_capacity_addition_from_cumulative(
             capacity_existing, element)
-        capacity_addition = format_existing_capacity(capacity_addition)
+        capacity_addition = format_capacity_existing(capacity_addition)
     
         source = SourceInformation(
             description=(

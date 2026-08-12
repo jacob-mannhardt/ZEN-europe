@@ -13,7 +13,7 @@ class InvestmentSettings(SettingsCategory):
     allow_investment: bool = True
     use_retrofit: bool = True  # TODO remove
     use_existing_capacities: bool = True
-    use_battery_existing_capacity: bool = True
+    use_battery_capacity_existing: bool = True
     use_existing_oil_to_x_capacities: bool = False
     keep_existing_capacities: list[str] = Field(default_factory=list)
     use_construction_times: bool = False

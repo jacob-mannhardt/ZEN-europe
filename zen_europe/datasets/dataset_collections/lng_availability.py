@@ -45,7 +45,7 @@ class LNGAvailability(DatasetCollection):
         This function retrieves the LNG import availability data for the specified element.
         """
         scigrid_dataset = cast(SciGridGIE, self.data["scigrid"])
-        lng_terminals = scigrid_dataset._calculate_existing_capacity_lng(
+        lng_terminals = scigrid_dataset._calculate_capacity_existing_lng(
             element=element)
         entsog = cast(ENTSOG, self.data["entsog"])
         entsog_data = entsog.get_availability_natural_gas()
@@ -63,7 +63,7 @@ class LNGAvailability(DatasetCollection):
             lng_terminals.groupby(level=0).sum(numeric_only=True) / 
             lng_terminals.sum())
         lng_availability = pd.DataFrame(
-            index=fraction_lng.index, columns=availability.index)
+            index=fraction_lng.index, columns=availability.index,dtype=float)
         lng_availability.loc[fraction_lng.index] = fraction_lng
         lng_availability *= availability
         

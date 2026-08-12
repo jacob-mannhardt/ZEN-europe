@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
-from zen_europe.datasets.datasets.carrier.bnef import BNEFFuelPrices
+from zen_europe.datasets.datasets.carrier.bnef_fuelprices import BNEFFuelPrices
 
 class NaturalGas(Carrier):
     """Natural gas carrier class.

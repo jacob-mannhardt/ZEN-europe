@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.potential_capacity_renewables import PotentialCapacityRenewables
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.datasets.technology.irena_solar_capacity import IRENASolarCapacity
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -120,3 +121,13 @@ class Photovoltaics(ConversionTechnology):
         pcr = PotentialCapacityRenewables(
             source_path=self.source_path)
         return pcr.get_capacity_limit(self)
+
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity for photovoltaics.
+
+        Returns:
+            Attribute: An Attribute object containing the existing capacity data.
+        """
+        irena = IRENASolarCapacity(source_path=self.source_path)
+        return irena.get_capacity_existing(self)

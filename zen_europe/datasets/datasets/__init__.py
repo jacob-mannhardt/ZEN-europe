@@ -3,7 +3,7 @@ from .carrier.enspreso_biomass import (EnspresoBiomassAvailability,
 from .energy_system.nuts_shp import NUTSshp
 from .energy_system.tyndp_edges import TYNDP_2020_edges
 from .financial.ECB import ECBInflation,ECBDollar2Euro
-from .carrier.bnef import BNEFFuelPrices
+from .carrier.bnef_fuelprices import BNEFFuelPrices
 
 
 __all__ = [

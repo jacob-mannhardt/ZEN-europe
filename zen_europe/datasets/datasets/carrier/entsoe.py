@@ -228,7 +228,7 @@ class ENTSOE(Dataset[pd.DataFrame]):
         generation.index.name = "time"
         return generation
 
-    def get_existing_capacity(self, psr_type: str, year: int | None = None) -> pd.Series:
+    def get_capacity_existing(self, psr_type: str, year: int | None = None) -> pd.Series:
         """Year-ahead installed generation capacity [GW] per country for a
         given production type, indexed by (node, year_construction).
 
@@ -239,7 +239,7 @@ class ENTSOE(Dataset[pd.DataFrame]):
         year = year if year is not None else self.settings.time.reference_year
         capacity = self._cached_query(
             f"capacity_{psr_type}_{year}", 
-            lambda: self._query_existing_capacity(psr_type, year)
+            lambda: self._query_capacity_existing(psr_type, year)
         )
         capacity = capacity.dropna()
         capacity = capacity[capacity != 0]
@@ -281,7 +281,7 @@ class ENTSOE(Dataset[pd.DataFrame]):
         for year in years:
             generation = self.get_generation(
                 NUCLEAR_PSR_TYPE, year=year).dropna(axis=1, how="all")
-            capacity = self.get_existing_capacity(
+            capacity = self.get_capacity_existing(
                 NUCLEAR_PSR_TYPE, year=year).droplevel("year_construction")
             common_nodes = generation.columns.intersection(capacity.index)
             if len(common_nodes) == 0:
@@ -375,7 +375,7 @@ class ENTSOE(Dataset[pd.DataFrame]):
         generation.index.name = "time"
         return generation
 
-    def _query_existing_capacity(self, psr_type: str, year: int) -> pd.Series:
+    def _query_capacity_existing(self, psr_type: str, year: int) -> pd.Series:
         start, end = self._year_bounds(year)
         capacity: dict[str, float] = {}
         for idx, node in enumerate(self.set_nodes):

@@ -207,7 +207,7 @@ class SciGridGIE(Dataset[pd.DataFrame]):
         lng_terminals["name"] = lng_terminals_raw["name"]
         return lng_terminals
     
-    def _calculate_existing_capacity_lng(self,element: Element) -> pd.DataFrame:
+    def _calculate_capacity_existing_lng(self,element: Element) -> pd.DataFrame:
         """
         Calculate the existing capacity of LNG terminals.
 

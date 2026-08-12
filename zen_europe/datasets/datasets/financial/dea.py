@@ -361,6 +361,10 @@ class DEA(Dataset[pd.DataFrame]):
         return self.source_path / "03-technology" / "cost" / "dea"
 
     def _set_data(self) -> pd.DataFrame:
+        cache_path = self.path / "dea_processed.feather"
+        if cache_path.exists():
+            return pd.read_feather(cache_path).set_index(INDEX_NAMES)
+
         financial, technical = self._load("main")
         ih_financial, ih_technical = self._load("ih")
         ccs_financial, ccs_technical = self._load("ccs")
@@ -374,7 +378,9 @@ class DEA(Dataset[pd.DataFrame]):
 
         data = pd.DataFrame(rows, columns=INDEX_NAMES + VALUE_COLUMNS)
         data = data.drop_duplicates(subset=INDEX_NAMES)
-        return data.set_index(INDEX_NAMES).sort_index()
+        data = data.set_index(INDEX_NAMES).sort_index()
+        data.reset_index().to_feather(cache_path)
+        return data
 
     def _load(self, source: str, rf_category_fixup: bool = False) -> tuple[pd.DataFrame, pd.DataFrame]:
         """Load one of DEA's "alldata_flat" workbooks and split it into financial/technical.

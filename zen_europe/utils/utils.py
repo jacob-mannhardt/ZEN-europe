@@ -173,7 +173,7 @@ def account_for_decommissioned_capacity(df: pd.DataFrame, element: Technology) -
     combined_years = df.columns.union(earlier_years).sort_values()
     # allocate the existing units of years before the lifetime to first year of lifetime
     # extended capacity df
-    df_ext = pd.DataFrame(index=df.index,columns=combined_years)
+    df_ext = pd.DataFrame(index=df.index,columns=combined_years,dtype=float)
     df_ext[df.columns] = df
     # divide capacity in first year by lifetime
     df_ext[start_year] /= relevant_lifetime
@@ -193,7 +193,7 @@ def account_for_decommissioned_capacity(df: pd.DataFrame, element: Technology) -
     df_tot = df_tot.mul(df.sum(axis=1)/df_tot.sum(axis=1),axis=0)
     return df_tot
 
-def format_existing_capacity(df: Union[pd.DataFrame, pd.Series]) -> pd.Series:
+def format_capacity_existing(df: Union[pd.DataFrame, pd.Series]) -> pd.Series:
     """Format the existing capacity data to match the expected format.
 
     Args:
@@ -205,5 +205,5 @@ def format_existing_capacity(df: Union[pd.DataFrame, pd.Series]) -> pd.Series:
         df = df.stack()
     df = df[df >= MIN_CAPACITY_ADDITION]
     df.index.names = ["node","year_construction"]
-    df.name = "existing_capacity"
+    df.name = "capacity_existing"
     return df

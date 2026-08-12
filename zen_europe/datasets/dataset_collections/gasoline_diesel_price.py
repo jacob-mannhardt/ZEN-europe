@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 from zen_creator import Attribute, DatasetCollection
 from zen_creator.utils.attribute import SourceInformation
 
-from zen_europe.datasets.datasets.carrier.bnef import BNEFFuelPrices
+from zen_europe.datasets.datasets.carrier.bnef_fuelprices import BNEFFuelPrices
 from zen_europe.datasets.datasets.carrier.gasoline_diesel_spread import GasolineDieselSpread
 
 class GasolineDieselPrice(DatasetCollection):
