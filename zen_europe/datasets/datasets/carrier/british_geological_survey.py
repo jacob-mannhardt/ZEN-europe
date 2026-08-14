@@ -5,11 +5,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from zen_creator.elements.carriers.carrier import Carrier
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
-from zen_creator.utils.attribute import Attribute, SourceInformation
-from zen_europe.utils.utils import convert_country_names, interpolate_missing_years
 
 import pandas as pd
 

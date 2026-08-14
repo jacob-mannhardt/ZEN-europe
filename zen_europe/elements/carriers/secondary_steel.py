@@ -10,7 +10,6 @@ from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 from zen_europe.datasets.dataset_collections.steel_demand import SteelDemand
 
-import numpy as np
 
 class SecondarySteel(Carrier):
     """Secondary steel carrier class.

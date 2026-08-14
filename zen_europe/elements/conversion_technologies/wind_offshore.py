@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.potential_capacity_renewables import PotentialCapacityRenewables
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
-from zen_europe.datasets.datasets.technology.irena_solar_capacity import IRENASolarCapacity
 from zen_europe.datasets.datasets.technology.pan_european_climate_database import PanEuropeanClimateDatabase
+from zen_europe.datasets.datasets.technology.powerplantmatching import PowerPlantMatching
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -13,10 +13,10 @@ if TYPE_CHECKING:
 from zen_creator import Attribute, ConversionTechnology
 
 
-class Photovoltaics(ConversionTechnology):
-    """Class containing all data and assumptions for photovoltaics."""
+class WindOffshore(ConversionTechnology):
+    """Class containing all data and assumptions for wind offshore."""
 
-    name: str = "photovoltaics"
+    name: str = "wind_offshore"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -25,7 +25,7 @@ class Photovoltaics(ConversionTechnology):
 
     def _set_reference_carrier(self) -> Attribute:
         """
-        Sets the reference carrier of photovoltaics to electricity.
+        Sets the reference carrier of wind offshore to electricity.
         """
         return Attribute(
             name="reference_carrier", default_value=["electricity"], element=self
@@ -33,16 +33,16 @@ class Photovoltaics(ConversionTechnology):
 
     def _set_input_carrier(self) -> Attribute:
         """
-        Sets the input carrier of photovoltaics to an empty list.
+        Sets the input carrier of wind offshore to an empty list.
 
-        This is because photovoltaics do not have an input carrier,
-        as they convert solar energy directly into electricity.
+        This is because wind offshore do not have an input carrier,
+        as they convert wind energy directly into electricity.
         """
         return Attribute(name="input_carrier", default_value=[], element=self)
 
     def _set_output_carrier(self) -> Attribute:
         """
-        Set the output carrier of photovoltaics to electricity.
+        Set the output carrier of wind offshore to electricity.
         """
         return Attribute(
             name="output_carrier", default_value=["electricity"], element=self
@@ -52,7 +52,7 @@ class Photovoltaics(ConversionTechnology):
 
     def _set_lifetime(self) -> Attribute:
         """
-        Sets the lifetime of photovoltaics.
+        Sets the lifetime of wind offshore.
 
         """
         tech_db = TechnologyCostDatabase(
@@ -61,7 +61,7 @@ class Photovoltaics(ConversionTechnology):
 
     def _set_construction_time(self) -> Attribute:
         """
-        Sets the construction time of district heating grids.
+        Sets the construction time of wind offshore.
 
         """
         if self.settings.investment.use_construction_times:
@@ -73,7 +73,7 @@ class Photovoltaics(ConversionTechnology):
         
     def _set_conversion_factor(self) -> Attribute:
         """
-        Return the conversion factor of photovoltaics.
+        Return the conversion factor of wind offshore.
 
         """
         attr = self.conversion_factor
@@ -81,7 +81,7 @@ class Photovoltaics(ConversionTechnology):
 
     def _set_capex_specific_conversion(self) -> Attribute:
         """
-        Sets the specific capital expenditure (capex) for photovoltaics.
+        Sets the specific capital expenditure (capex) for wind offshore.
 
         Returns:
             Attribute: An Attribute object containing the specific capex data.
@@ -92,7 +92,7 @@ class Photovoltaics(ConversionTechnology):
     
     def _set_opex_specific_fixed(self) -> Attribute:
         """
-        Sets the specific fixed operational expenditure (opex) for photovoltaics.
+        Sets the specific fixed operational expenditure (opex) for wind offshore.
 
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
@@ -103,7 +103,7 @@ class Photovoltaics(ConversionTechnology):
     
     def _set_opex_specific_variable(self) -> Attribute:
         """
-        Sets the specific variable operational expenditure (opex) for photovoltaics.
+        Sets the specific variable operational expenditure (opex) for wind offshore.
 
         Returns:
             Attribute: An Attribute object containing the specific variable opex data.
@@ -114,7 +114,7 @@ class Photovoltaics(ConversionTechnology):
 
     def _set_capacity_limit(self) -> Attribute:
         """
-        Sets the capacity limit for photovoltaics.
+        Sets the capacity limit for wind offshore.
 
         Returns:
             Attribute: An Attribute object containing the capacity limit data.
@@ -125,17 +125,17 @@ class Photovoltaics(ConversionTechnology):
 
     def _set_capacity_existing(self) -> Attribute:
         """
-        Sets the existing capacity for photovoltaics.
+        Sets the existing capacity for wind offshore.
 
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        irena = IRENASolarCapacity(source_path=self.source_path)
-        return irena.get_capacity_existing(self)
+        powerplantmatching = PowerPlantMatching(source_path=self.source_path)
+        return powerplantmatching.get_capacity_existing(self)
 
     def _set_max_load(self) -> Attribute:
         """
-        Sets the maximum load for photovoltaics.
+        Sets the maximum load for wind offshore.
 
         Returns:
             Attribute: An Attribute object containing the maximum load data.

@@ -5,7 +5,7 @@ import powerplantmatching as ppm
 from pathlib import Path
 
 from zen_creator.datasets.datasets.dataset import Dataset
-from zen_creator.datasets.datasets.metadata import MetaData
+from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
 from zen_europe.utils.utils import convert_country_names, format_capacity_existing
 import pandas as pd
 import logging
@@ -44,7 +44,7 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
         "biomass_plant": {
             "Fueltype": ["Solid Biomass", "Biogas"]
             },
-        "run_of_river_hydro": {
+        "run-of-river_hydro": {
             "Fueltype": ["Hydro"],
             "Technology": ["Run-Of-River"]},
         "reservoir_hydro": {
@@ -128,9 +128,9 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
             data_agg = data_agg.sort_index()
             data_agg.to_frame("capacity_existing").to_feather(self.path / "processed_powerplantmatching_data.feather")
         else:
-            data = pd.read_feather(
+            data_agg = pd.read_feather(
                 self.path / "processed_powerplantmatching_data.feather").squeeze()
-        return data / 1000
+        return data_agg / 1000
 
     # -------- methods ------------------------    
     def get_capacity_existing(self, element) -> pd.Series:
@@ -150,4 +150,14 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
         reference_year = element.settings.time.reference_year
         data = data[data.index.get_level_values("year") < reference_year]
         data = format_capacity_existing(data)
-        return data
+        source = SourceInformation(
+            description=(
+                "The existing capacity data is derived from the PowerPlantMatching dataset."
+            ),
+            metadata=self.metadata,
+        )
+        attr = element.capacity_existing.set_data(
+            df=data,
+            source=source,
+        )
+        return attr

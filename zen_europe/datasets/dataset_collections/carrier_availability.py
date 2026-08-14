@@ -8,7 +8,7 @@ import pandas as pd
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from zen_creator import Dataset, Element
+    from zen_creator import Dataset
 
 
 from zen_creator import Attribute, Carrier, DatasetCollection

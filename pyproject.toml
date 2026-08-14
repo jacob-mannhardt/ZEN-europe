@@ -19,6 +19,7 @@ dependencies = [
     "requests",
     "scikit-learn",
     "powerplantmatching",
+    "cdsapi",
 ]
 
 [project.scripts]
@@ -51,6 +52,10 @@ dev = [
     "types-geopandas",
     "types-docutils",
     "scipy-stubs"
+]
+
+vis = [
+    "matplotlib"
 ]
 
 [tool.pytest.ini_options]

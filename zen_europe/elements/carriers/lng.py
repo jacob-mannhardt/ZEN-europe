@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
 
 from zen_europe.datasets.dataset_collections.lng_availability import LNGAvailability
 from zen_europe.datasets.datasets.carrier.bnef_fuelprices import BNEFFuelPrices

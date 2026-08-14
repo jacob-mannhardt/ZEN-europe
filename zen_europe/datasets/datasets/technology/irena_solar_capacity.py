@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
+from zen_creator import Attribute
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
 from zen_europe.utils.utils import (
@@ -54,7 +54,7 @@ class IRENASolarCapacity(Dataset[pd.DataFrame]):
         return data / 1000
 
     # -------- methods ------------------------    
-    def get_capacity_existing(self, element) -> pd.Series:
+    def get_capacity_existing(self, element) -> Attribute:
         """
         Get the existing capacity for a technology.
 
@@ -62,7 +62,7 @@ class IRENASolarCapacity(Dataset[pd.DataFrame]):
             element: The element for which to get the existing capacity.
 
         Returns:
-            pd.Series: A pandas Series containing the existing capacity data.
+            Attribute: An Attribute object containing the existing capacity data.
         """
         assert element.name == "photovoltaics", (
             f"Existing capacity data for {element.name} is not available in the IRENASolarCapacity dataset."

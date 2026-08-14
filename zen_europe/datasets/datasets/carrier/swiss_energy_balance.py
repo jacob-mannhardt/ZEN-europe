@@ -8,7 +8,6 @@ if TYPE_CHECKING:
 from datetime import datetime
 
 import pandas as pd
-import scipy.stats as stats
 from zen_creator import Carrier, Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 

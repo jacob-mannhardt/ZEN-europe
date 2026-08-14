@@ -31,10 +31,7 @@ class DistrictHeatingGrid(ConversionTechnology):
 
     def _set_input_carrier(self) -> Attribute:
         """
-        Sets the input carrier of district heating grids to an empty list.
-
-        This is because district heating grids do not have an input carrier,
-        as they convert solar energy directly into electricity.
+        Sets the input carrier of district heating grids to district heat.
         """
         return Attribute(
             name="input_carrier", default_value=["district_heat"], element=self)
@@ -71,9 +68,8 @@ class DistrictHeatingGrid(ConversionTechnology):
 
     def _set_conversion_factor(self) -> Attribute:
         """
-        Return the conversion factor of photovoltaics.
+        Return the conversion factor of district heating grids.
 
-        This method currently returns the default value.
         """
         attr = self.conversion_factor
         dea = DEA(source_path=self.source_path)

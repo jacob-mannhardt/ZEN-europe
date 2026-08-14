@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-import ast
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-from zen_creator.elements import Element
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 

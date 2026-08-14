@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, cast
 
-import pandas as pd
 
 
 if TYPE_CHECKING:

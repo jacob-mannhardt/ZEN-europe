@@ -10,7 +10,6 @@ from zen_creator.utils.attribute import Attribute
 from zen_europe.datasets.dataset_collections.truck_mileage_demand import (
     TruckMileageDemand)
 
-import numpy as np
 
 class TruckMileage(Carrier):
     """All data and assumption for truck mileage carrier."""

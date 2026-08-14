@@ -46,12 +46,11 @@ class PotentialCapacityRenewables(DatasetCollection):
         enspreso_dataset = cast(ENSPRESOV1, self.data["enspreso_v1"])
         euro_calliope_dataset = cast(EuroCalliope, self.data["euro_calliope"])
         data = enspreso_dataset.get_capacity_limit(element)
-        common_nodes = pd.Index(
-            element.model.config.system.set_nodes).intersection(data.index)
-        missing_nodes = pd.Index(
-            element.model.config.system.set_nodes).difference(data.index)
-        for node in missing_nodes:
-            data.loc[node] = euro_calliope_dataset.get_capacity_limit(element, node)
+        if not element.name == "wind_offshore":
+            missing_nodes = pd.Index(
+                element.model.config.system.set_nodes).difference(data.index)
+            for node in missing_nodes:
+                data.loc[node] = euro_calliope_dataset.get_capacity_limit(element, node)
         data = data.sort_index()
         data.index.name = "node"
         data.name = "capacity_limit"
@@ -59,12 +58,14 @@ class PotentialCapacityRenewables(DatasetCollection):
             description=(
                 "Potential capacity data for renewable technologies is derived "
                 "from the ENSPRESO v1 dataset."
-                " For missing nodes (CH, NO), the EuroCalliope dataset is used as a fallback."
+                " For missing nodes (CH, NO), the EuroCalliope dataset is used "
+                " for photovolatics and onshore wind as a fallback."
             ),
             metadata=self.metadata,
         )
         return element.capacity_limit.set_data(
             source=source,
             df=data,
+            default_value=0.0,
             unit="GW",
         )

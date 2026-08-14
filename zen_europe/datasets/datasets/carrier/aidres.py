@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from zen_creator.elements.carriers.carrier import Carrier
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
-from zen_europe.utils.utils import convert_country_names, interpolate_missing_years
 
 import pandas as pd
 

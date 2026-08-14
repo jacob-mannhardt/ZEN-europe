@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 
-import numpy as np
 
 class Shipping(Carrier):
     """Shipping carrier class.

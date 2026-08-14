@@ -10,7 +10,6 @@ if TYPE_CHECKING:
 
     from zen_creator import Dataset, Element
 
-import numpy as np
 
 from zen_creator import Attribute, DatasetCollection
 from zen_creator.utils.attribute import SourceInformation

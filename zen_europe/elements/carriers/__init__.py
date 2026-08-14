@@ -52,4 +52,6 @@ __all__ = [
     "LNG",
     "NaturalGas",
     "Heat",
+    "PassengerMileage",
+    "TruckMileage",
 ]

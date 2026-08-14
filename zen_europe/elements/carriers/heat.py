@@ -9,7 +9,6 @@ from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
 
-import numpy as np
 
 class Heat(Carrier):
     """All data and assumption for heat carrier."""

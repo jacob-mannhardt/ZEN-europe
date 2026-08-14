@@ -14,7 +14,6 @@ from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 from zen_creator.utils.settings import Settings
 
-from zen_europe.utils.utils import interpolate_missing_years
 
 logger = logging.getLogger(__name__)
 

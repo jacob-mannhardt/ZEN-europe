@@ -11,7 +11,6 @@ from zen_europe.datasets.dataset_collections.passenger_mileage_demand import (
     PassengerMileageDemand
 )
 
-import numpy as np
 
 class PassengerMileage(Carrier):
     """All data and assumption for passenger mileage carrier."""
