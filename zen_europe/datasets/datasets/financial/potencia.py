@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -7,7 +8,8 @@ if TYPE_CHECKING:
 
 import pandas as pd
 from zen_creator.datasets.datasets.dataset import Dataset
-from zen_creator.datasets.datasets.metadata import MetaData
+from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
+from zen_creator.elements.technology import Technology
 
 from zen_europe.datasets.datasets.financial._cost_schema import INDEX_NAMES, VALUE_COLUMNS, YEARS
 
@@ -106,7 +108,7 @@ class Potencia(Dataset[pd.DataFrame]):
 
     def _set_data(self) -> pd.DataFrame:
         cost_blocks, efficiency_block = self._read_tech_proj_blocks()
-        lifetime, construction_time = self._read_tech_base()
+        lifetime, construction_time, availability = self._read_tech_base()
 
         rows: list[tuple] = []
         for technology, (potencia_type, potencia_tech, fixed_size) in _TECHS.items():
@@ -115,7 +117,8 @@ class Potencia(Dataset[pd.DataFrame]):
                 size = fixed_size if fixed_size is not None else plant_size
                 key = (potencia_type, potencia_tech, cogen, size)
                 rows += self._rows_for(
-                    technology, plant_size, key, cost_blocks, efficiency_block, lifetime, construction_time
+                    technology, plant_size, key, cost_blocks, 
+                    efficiency_block, lifetime, construction_time, availability
                 )
 
         data = pd.DataFrame(rows, columns=INDEX_NAMES + VALUE_COLUMNS)
@@ -131,6 +134,7 @@ class Potencia(Dataset[pd.DataFrame]):
         efficiency_block: pd.DataFrame,
         lifetime: pd.Series,
         construction_time: pd.Series,
+        availability: pd.Series,
     ) -> list[tuple]:
         rows: list[tuple] = []
         for variable, block in cost_blocks.items():
@@ -151,17 +155,43 @@ class Potencia(Dataset[pd.DataFrame]):
                 if pd.isna(value_src):
                     continue
                 rows.append(
-                    (technology, plant_size, "ref", "efficiency", int(year), float(value_src), "-", None, float(value_src), "-")
+                    (technology, 
+                     plant_size, 
+                     "ref", 
+                     "efficiency", 
+                     int(year), 
+                     float(value_src), 
+                     "-", 
+                     None, 
+                     float(value_src), 
+                     "-")
                 )
-        for variable, series in (("lifetime", lifetime), ("construction_time", construction_time)):
+        for variable, series in (
+            ("lifetime", lifetime), 
+            ("construction_time", construction_time), 
+            ("availability", availability)
+            ):
             if key not in series.index:
                 continue
             value_src = series.loc[key]
             if pd.isna(value_src):
                 continue
+            if variable == "availability":
+                unit_str = "1"
+            else:
+                unit_str = "years"
             for year in YEARS:
                 rows.append(
-                    (technology, plant_size, "ref", variable, year, float(value_src), "years", None, float(value_src), "years")
+                    (technology, 
+                     plant_size, 
+                     "ref", 
+                     variable, 
+                     year, 
+                     float(value_src), 
+                     unit_str, 
+                     None, 
+                     float(value_src), 
+                     unit_str)
                 )
         return rows
 
@@ -183,7 +213,8 @@ class Potencia(Dataset[pd.DataFrame]):
 
         def _extract_block(start: int) -> pd.DataFrame:
             pos = header_idx.get_loc(start)
-            end = header_idx[pos + 1] - 1 if pos + 1 < len(header_idx) else raw.index[-1]
+            end = (header_idx[pos + 1] - 1 
+                   if pos + 1 < len(header_idx) else raw.index[-1])
             block = raw.loc[start + 2 : end].copy()
             block = block.rename(
                 columns={
@@ -209,8 +240,8 @@ class Potencia(Dataset[pd.DataFrame]):
                 efficiency_block = _extract_block(idx)
         return cost_blocks, efficiency_block
 
-    def _read_tech_base(self) -> tuple[pd.Series, pd.Series]:
-        """Parse the flat `tech_base` sheet for lifetime and construction time.
+    def _read_tech_base(self) -> tuple[pd.Series, pd.Series, pd.Series]:
+        """Parse the flat `tech_base` sheet for lifetime, construction time, and availability.
 
         One row per (Type, Technology, Co-generation, Size), no year breakdown -- the resulting
         single value is applied across every year in `YEARS` in `_rows_for`, matching how DIW's
@@ -220,10 +251,37 @@ class Potencia(Dataset[pd.DataFrame]):
         for column in ("Type", "Technology", "Co-generation", "Size"):
             raw[column] = raw[column].str.strip()
         raw = raw.set_index(["Type", "Technology", "Co-generation", "Size"])
-        return raw["Technical lifetime (years)"], raw["Construction time"]
+        return (
+            raw["Technical lifetime (years)"], 
+            raw["Construction time"], 
+            raw["Technical availability (%)"])
 
     # -------- methods ------------------------
 
     def get_costs(self) -> pd.DataFrame:
         """Return the parsed, standardized Potencia cost/tech data (see `_cost_schema`)."""
         return self.data.copy()
+
+    def get_max_load(self, element: Technology) -> pd.Series:
+        """Return the technical availability."""
+        availability = self.data.loc[element.name].xs("availability", level="variable")
+        availability = availability["value"]
+        unique_availability = availability.unique()
+        if len(unique_availability) > 1:
+            logging.warning(
+                f"Multiple availability values found for {element.name}: "
+                f"{unique_availability}. Using the first one."
+            )
+        attr = element.max_load
+        source = SourceInformation(
+            description=(
+                "The maximum load (technical availability) data "
+                "is derived from the Potencia dataset."
+            ),
+            metadata=self.metadata,
+        )
+        attr.set_data(
+            default_value=unique_availability[0],
+            source=source,
+        )
+        return attr

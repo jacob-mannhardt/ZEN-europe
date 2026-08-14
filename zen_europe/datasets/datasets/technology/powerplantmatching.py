@@ -111,8 +111,12 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
                 / "03-technology" 
                 / "capacity_existing")
 
-    def _set_data(self) -> pd.Series:
-        if not os.path.exists(self.path / "processed_powerplantmatching_data.feather"):
+    def _set_data(self) -> dict[str, pd.Series | pd.DataFrame]:
+        if (
+            not os.path.exists(self.path / "processed_powerplantmatching_data.feather")
+            or 
+            not os.path.exists(self.path / "processed_powerplantmatching_data_raw.feather")
+        ):
             data = ppm.powerplants(from_url=True)
             data_orig = data.copy()
             logging.info(f"Before filtering: {len(data)} power plants")
@@ -126,11 +130,24 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
             logging.info(f"After assigning technologies: {len(data)} power plants")
             data_agg = data.groupby(["technology","node","year"])["Capacity"].sum()
             data_agg = data_agg.sort_index()
-            data_agg.to_frame("capacity_existing").to_feather(self.path / "processed_powerplantmatching_data.feather")
+            data_agg = data_agg.to_frame("capacity_existing")
+            data_agg.to_feather(
+                self.path / "processed_powerplantmatching_data.feather")
+            data_raw = data[['Name', 'Country', 'Capacity','DateIn', 
+                             'DateRetrofit', 'DateOut', 'lat', 'lon',
+                            'StorageCapacity_MWh',
+                            'year', 'node', 'technology']]
+            data_raw.to_feather(self.path / "processed_powerplantmatching_data_raw.feather")
         else:
             data_agg = pd.read_feather(
-                self.path / "processed_powerplantmatching_data.feather").squeeze()
-        return data_agg / 1000
+                self.path / "processed_powerplantmatching_data.feather")
+            data = pd.read_feather(
+                self.path / "processed_powerplantmatching_data_raw.feather")
+        compiled_data = {
+            "data_agg": data_agg / 1000,
+            "data_raw": data
+        }
+        return compiled_data 
 
     # -------- methods ------------------------    
     def get_capacity_existing(self, element) -> pd.Series:
@@ -143,10 +160,11 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
         Returns:
             pd.Series: A pandas Series containing the existing capacity data.
         """
-        assert element.name in self.data.index.get_level_values(0), (
+        data = self.data["data_agg"].squeeze()
+        assert element.name in data.index.get_level_values(0), (
             f"Existing capacity data for {element.name} is not available in the PowerPlantMatching dataset."
         )
-        data = self.data.loc[element.name]
+        data = data.loc[element.name]
         reference_year = element.settings.time.reference_year
         data = data[data.index.get_level_values("year") < reference_year]
         data = format_capacity_existing(data)
@@ -161,3 +179,29 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
             source=source,
         )
         return attr
+
+    def estimate_lifetime(self, element, threshold=0.25) -> int | None:
+        """ 
+        estimate the lifetime of a technology based on the existing capacity data.
+
+        If less than {threshold} of the plants have been decommissioned, return None.
+
+        Args:
+            element: The element for which to estimate the lifetime.
+            threshold: The minimum proportion of decommissioned plants required to estimate the lifetime.
+
+        Returns:
+            int: The estimated lifetime of the technology in years. 
+        """
+        data = self.data["data_raw"]
+        assert element.name in data["technology"].unique(), (
+            f"Existing capacity data for {element.name} is "
+            "not available in the PowerPlantMatching dataset."
+        )
+        data = data[data["technology"] == element.name]
+        decommissioned = data[data["DateOut"].notna()]
+        if len(decommissioned) < threshold * len(data):
+            return None
+        age = decommissioned["DateOut"] - decommissioned["DateIn"]
+        median_lifetime = int(age.median())
+        return median_lifetime

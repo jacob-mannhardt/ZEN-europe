@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.dataset_collections.lifetime_expectation import LifetimeExpectation
 from zen_europe.datasets.dataset_collections.potential_capacity_renewables import PotentialCapacityRenewables
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
 from zen_europe.datasets.datasets.technology.pan_european_climate_database import PanEuropeanClimateDatabase
@@ -55,9 +56,8 @@ class WindOffshore(ConversionTechnology):
         Sets the lifetime of wind offshore.
 
         """
-        tech_db = TechnologyCostDatabase(
-            settings=self.settings, source_path=self.source_path)
-        return tech_db.get_lifetime(self)
+        lifetime_expectation = LifetimeExpectation(source_path=self.source_path)
+        return lifetime_expectation.get_lifetime(self)
 
     def _set_construction_time(self) -> Attribute:
         """

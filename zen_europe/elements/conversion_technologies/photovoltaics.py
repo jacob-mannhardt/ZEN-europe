@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.dataset_collections.lifetime_expectation import LifetimeExpectation
 from zen_europe.datasets.dataset_collections.potential_capacity_renewables import PotentialCapacityRenewables
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
 from zen_europe.datasets.datasets.technology.irena_solar_capacity import IRENASolarCapacity
@@ -55,9 +56,8 @@ class Photovoltaics(ConversionTechnology):
         Sets the lifetime of photovoltaics.
 
         """
-        tech_db = TechnologyCostDatabase(
-            settings=self.settings, source_path=self.source_path)
-        return tech_db.get_lifetime(self)
+        lifetime_expectation = LifetimeExpectation(source_path=self.source_path)
+        return lifetime_expectation.get_lifetime(self)
 
     def _set_construction_time(self) -> Attribute:
         """
