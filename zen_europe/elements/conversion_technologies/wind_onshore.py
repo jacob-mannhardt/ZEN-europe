@@ -11,7 +11,7 @@ from zen_europe.datasets.datasets.technology.powerplantmatching import PowerPlan
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology
+from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
 
 
 class WindOnshore(ConversionTechnology):
@@ -119,9 +119,22 @@ class WindOnshore(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the capacity limit data.
         """
-        pcr = PotentialCapacityRenewables(
-            source_path=self.source_path)
-        return pcr.get_capacity_limit(self)
+        attr = self.capacity_limit
+        if not self.settings.investment.allow_investment:
+            attr.set_data(
+                default_value=0,
+                source=AssumptionInformation(
+                    description=(
+                        "The capacity limit is set to 0, "
+                        "as investment is not allowed."
+                    ),
+                ),
+            )
+        else:
+            pcr = PotentialCapacityRenewables(
+                source_path=self.source_path)
+            attr = pcr.get_capacity_limit(self)
+        return attr
 
     def _set_capacity_existing(self) -> Attribute:
         """

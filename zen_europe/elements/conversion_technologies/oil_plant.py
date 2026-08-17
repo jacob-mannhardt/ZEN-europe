@@ -2,12 +2,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.hydro_existing_capacity import HydroExistingCapacity
 from zen_europe.datasets.dataset_collections.lifetime_expectation import LifetimeExpectation
-from zen_europe.datasets.dataset_collections.potential_capacity_renewables import PotentialCapacityRenewables
-from zen_europe.datasets.dataset_collections.run_of_river_hydro_max_load import RunOfRiverHydroMaxLoad
+from zen_europe.datasets.datasets.carrier.eurostat import Eurostat
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
-from zen_europe.datasets.datasets.technology.pan_european_climate_database import PanEuropeanClimateDatabase
+from zen_europe.datasets.datasets.financial.potencia import Potencia
+from zen_europe.datasets.datasets.technology.powerplantmatching import PowerPlantMatching
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -15,12 +14,10 @@ if TYPE_CHECKING:
 from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, SourceInformation
 
 
-class RunOfRiverHydro(ConversionTechnology):
-    """Class containing all data and assumptions for run-of-river hydro."""
+class OilPlant(ConversionTechnology):
+    """Class containing all data and assumptions for oil plants."""
 
-    name: str = "run-of-river_hydro"
-
-    ENTSOE_PSR_ROR = "B11"
+    name: str = "oil_plant"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -29,7 +26,7 @@ class RunOfRiverHydro(ConversionTechnology):
 
     def _set_reference_carrier(self) -> Attribute:
         """
-        Sets the reference carrier of run-of-river hydro to electricity.
+        Sets the reference carrier of oil plants to electricity.
         """
         return Attribute(
             name="reference_carrier", default_value=["electricity"], element=self
@@ -37,16 +34,13 @@ class RunOfRiverHydro(ConversionTechnology):
 
     def _set_input_carrier(self) -> Attribute:
         """
-        Sets the input carrier of run-of-river hydro to an empty list.
-
-        This is because run-of-river hydro do not have an input carrier,
-        as they convert solar energy directly into electricity.
+        Sets the input carrier of oil plants to oil.
         """
-        return Attribute(name="input_carrier", default_value=[], element=self)
+        return Attribute(name="input_carrier", default_value=["oil"], element=self)
 
     def _set_output_carrier(self) -> Attribute:
         """
-        Set the output carrier of run-of-river hydro to electricity.
+        Set the output carrier of oil plants to electricity.
         """
         return Attribute(
             name="output_carrier", default_value=["electricity"], element=self
@@ -56,7 +50,7 @@ class RunOfRiverHydro(ConversionTechnology):
 
     def _set_lifetime(self) -> Attribute:
         """
-        Sets the lifetime of run-of-river hydro.
+        Sets the lifetime of oil plants.
 
         """
         lifetime_expectation = LifetimeExpectation(source_path=self.source_path)
@@ -64,7 +58,7 @@ class RunOfRiverHydro(ConversionTechnology):
 
     def _set_construction_time(self) -> Attribute:
         """
-        Sets the construction time of run-of-river hydro.
+        Sets the construction time of oil plants.
 
         """
         if self.settings.investment.use_construction_times:
@@ -76,15 +70,36 @@ class RunOfRiverHydro(ConversionTechnology):
         
     def _set_conversion_factor(self) -> Attribute:
         """
-        Return the conversion factor of run-of-river hydro.
+        Return the conversion factor of oil plants.
 
         """
+        eurostat_db = Eurostat(settings=self.settings, source_path=self.source_path)
+        efficiencies = eurostat_db.get_efficiencies()
+        efficiency = efficiencies.get(self.name, None)
+        if efficiency is None:
+            raise ValueError(
+                f"Efficiency for {self.name} is not available in the Eurostat dataset."
+            )
+        conversion_factor = [{
+            "oil": {"default_value": 1/efficiency, "unit": "GWh/GWh"},
+        }]
         attr = self.conversion_factor
+        attr.set_data(
+            default_value=conversion_factor,
+            source=SourceInformation(
+                description=(
+                    "The conversion factor is derived from the Eurostat dataset as "
+                    "the total consumption of oil divided by "
+                    "the total electricity generation from oil plants."
+                ),
+                metadata=eurostat_db.metadata,
+            ),
+        )
         return attr
 
     def _set_capex_specific_conversion(self) -> Attribute:
         """
-        Sets the specific capital expenditure (capex) for run-of-river hydro.
+        Sets the specific capital expenditure (capex) for oil plants.
 
         Returns:
             Attribute: An Attribute object containing the specific capex data.
@@ -95,7 +110,7 @@ class RunOfRiverHydro(ConversionTechnology):
     
     def _set_opex_specific_fixed(self) -> Attribute:
         """
-        Sets the specific fixed operational expenditure (opex) for run-of-river hydro.
+        Sets the specific fixed operational expenditure (opex) for oil plants.
 
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
@@ -106,7 +121,7 @@ class RunOfRiverHydro(ConversionTechnology):
     
     def _set_opex_specific_variable(self) -> Attribute:
         """
-        Sets the specific variable operational expenditure (opex) for run-of-river hydro.
+        Sets the specific variable operational expenditure (opex) for oil plants.
 
         Returns:
             Attribute: An Attribute object containing the specific variable opex data.
@@ -117,7 +132,7 @@ class RunOfRiverHydro(ConversionTechnology):
 
     def _set_capacity_limit(self) -> Attribute:
         """
-        Sets the capacity limit for run-of-river hydro.
+        Sets the capacity limit for oil plants.
 
         Returns:
             Attribute: An Attribute object containing the capacity limit data.
@@ -133,48 +148,24 @@ class RunOfRiverHydro(ConversionTechnology):
                     ),
                 ),
             )
-        else:
-            data = self.capacity_existing.df
-            capacity_limit = data.groupby(level=0).sum()
-            capacity_limit.name = "capacity_limit"
-            attr.set_data(
-                df=capacity_limit,
-                source=SourceInformation(
-                    description=(
-                        "The capacity limit is set to the sum of the"
-                        "historical capacity additions across all years."
-                    ),
-                    metadata=self.capacity_existing.sources[-1].metadata,
-                ),
-                unit="GW",
-            )
         return attr
 
     def _set_capacity_existing(self) -> Attribute:
         """
-        Sets the existing capacity for run-of-river hydro.
+        Sets the existing capacity for oil plants.
 
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        hydro_capacity = HydroExistingCapacity(
-            settings=self.settings,
-            source_path=self.source_path,
-            set_nodes=self.model.config.system.set_nodes
-        )
-        attr = hydro_capacity.get_capacity_existing(self)
-        return attr
+        powerplantmatching = PowerPlantMatching(source_path=self.source_path)
+        return powerplantmatching.get_capacity_existing(self)
 
     def _set_max_load(self) -> Attribute:
         """
-        Sets the maximum load for run-of-river hydro.
+        Sets the maximum load for oil plants.
 
         Returns:
             Attribute: An Attribute object containing the maximum load data.
         """
-        ror_max_load = RunOfRiverHydroMaxLoad(
-            settings=self.settings,
-            source_path=self.source_path,
-            set_nodes=self.model.config.system.set_nodes
-        )
-        return ror_max_load.get_max_load(self)
+        potencia_db = Potencia(source_path=self.source_path)
+        return potencia_db.get_max_load(self)

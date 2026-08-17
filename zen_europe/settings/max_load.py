@@ -10,5 +10,5 @@ class MaxLoadSettings(SettingsCategory):
 
     use_fuel_substitution: bool = False  # TODO remove
     use_district_heating_fuel_substitution: Literal["full", "mixed", "none"] = "mixed"  # TODO remove
-    use_seasonal_nuclear_max_load: bool = True
-    use_nodal_nuclear_max_load: bool = True
+    use_seasonal_nuclear_max_load: bool = True # NOTE DONE
+    use_nodal_nuclear_max_load: bool = True # NOTE DONE

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, TransportTechnology
+from zen_creator import Attribute, AssumptionInformation, TransportTechnology
 
 
 class PowerLine(TransportTechnology):
@@ -36,4 +36,24 @@ class PowerLine(TransportTechnology):
         customized to return a specific lifetime for power line.
         """
         attr = self.lifetime
+        return attr
+
+    def _set_capacity_limit(self) -> Attribute:
+        """
+        Sets the capacity limit for power line.
+
+        Returns:
+            Attribute: An Attribute object containing the capacity limit data.
+        """
+        attr = self.capacity_limit
+        if not self.settings.investment.allow_investment:
+            attr.set_data(
+                default_value=0,
+                source=AssumptionInformation(
+                    description=(
+                        "The capacity limit is set to 0, "
+                        "as investment is not allowed."
+                    ),
+                ),
+            )
         return attr

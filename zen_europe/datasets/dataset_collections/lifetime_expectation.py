@@ -60,10 +60,11 @@ class LifetimeExpectation(DatasetCollection):
         If less than 25% of the plants are decommissioned, we fall back to the technology database.
         """
         powerplantmatching = self.data["powerplantmatching"]
+        tech_db = self.data["tech_db"]
         lifetime = powerplantmatching.estimate_lifetime(element,threshold=0.25)
-        if lifetime is None:
-            tech_db = self.data["tech_db"]
-            return tech_db.get_lifetime(element)
+        def_attr = tech_db.get_lifetime(element)
+        if lifetime is None or lifetime < def_attr.default_value:
+            return def_attr
         else:
             attr = element.lifetime
             attr.set_data(
@@ -71,7 +72,9 @@ class LifetimeExpectation(DatasetCollection):
                 source=SourceInformation(
                     description=(
                         "The lifetime is estimated based on the decommissioned plants "
-                        "from the PowerPlantMatching dataset."
+                        "from the PowerPlantMatching dataset. If less than 25% of the plants are decommissioned, " \
+                        "or if the estimated lifetime is lower than the default lifetime from the technology database, " \
+                        "the default lifetime from the technology database is used."
                     ),
                     metadata=powerplantmatching.metadata,
                 ),

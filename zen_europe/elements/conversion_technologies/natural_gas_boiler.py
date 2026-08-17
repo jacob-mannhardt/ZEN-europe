@@ -11,10 +11,10 @@ from zen_europe.datasets.dataset_collections.district_heating_data import (
     DistrictHeatingData)
 from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
 
-class DistrictHeatingGrid(ConversionTechnology):
-    """Class containing all data and assumptions for district heating grids."""
+class NaturalGasBoiler(ConversionTechnology):
+    """Class containing all data and assumptions for natural gas boilers."""
 
-    name: str = "district_heating_grid"
+    name: str = "natural_gas_boiler"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -23,7 +23,7 @@ class DistrictHeatingGrid(ConversionTechnology):
 
     def _set_reference_carrier(self) -> Attribute:
         """
-        Sets the reference carrier of district heating grids to heat.
+        Sets the reference carrier of natural gas boilers to heat.
         """
         return Attribute(
             name="reference_carrier", default_value=["heat"], element=self
@@ -31,14 +31,14 @@ class DistrictHeatingGrid(ConversionTechnology):
 
     def _set_input_carrier(self) -> Attribute:
         """
-        Sets the input carrier of district heating grids to district heat.
+        Sets the input carrier of natural gas boilers to natural gas.
         """
         return Attribute(
-            name="input_carrier", default_value=["district_heat"], element=self)
+            name="input_carrier", default_value=["natural_gas"], element=self)
 
     def _set_output_carrier(self) -> Attribute:
         """
-        Set the output carrier of district heating grids to heat.
+        Set the output carrier of natural gas boilers to heat.
         """
         return Attribute(
             name="output_carrier", default_value=["heat"], element=self
@@ -48,7 +48,7 @@ class DistrictHeatingGrid(ConversionTechnology):
 
     def _set_lifetime(self) -> Attribute:
         """
-        Sets the lifetime of district heating grids.
+        Sets the lifetime of natural gas boilers.
 
         """
         attr = self.lifetime
@@ -57,8 +57,8 @@ class DistrictHeatingGrid(ConversionTechnology):
         lifetime = int(data.loc[("suburban","lifetime","ref"),"value"].iloc[0])
         source = SourceInformation(
             description=(
-                "The lifetime of district heating grids is based on data from the DEA dataset, "
-                "which provides information on the distribution of lifetimes for district heating grids. "
+                "The lifetime of natural gas boilers is based on data from the DEA dataset, "
+                "which provides information on the distribution of lifetimes for natural gas boilers. "
                 "The specific value used here is the reference value for suburban district heating grids."
             ),
             metadata=dea.metadata,
@@ -68,23 +68,23 @@ class DistrictHeatingGrid(ConversionTechnology):
 
     def _set_conversion_factor(self) -> Attribute:
         """
-        Return the conversion factor of district heating grids.
+        Return the conversion factor of natural gas boilers.
 
         """
         attr = self.conversion_factor
         dea = DEA(source_path=self.source_path)
         data = dea.get_dh_distribution_data()
         cf = 1 - data.loc[("suburban","energy_losses","ref"),"value"].iloc[0]/100
-        cf = [{"district_heat": {
+        cf = [{"natural_gas": {
             "default_value": 1/cf, "unit": "GW/GW"
             }
             }
         ]
         source = SourceInformation(
             description=(
-                "The conversion factor of district heating grids is based on data from the DEA dataset, "
-                "which provides information on the distribution of energy losses for district heating grids. "
-                "The specific value used here is the reference value for suburban district heating grids."
+                "The conversion factor of natural gas boilers is based on data from the DEA dataset, "
+                "which provides information on the distribution of energy losses for natural gas boilers. "
+                "The specific value used here is the reference value for suburban natural gas boilers."
             ),
             metadata=dea.metadata,
         )
@@ -93,7 +93,7 @@ class DistrictHeatingGrid(ConversionTechnology):
     
     def _set_construction_time(self) -> Attribute:
         """
-        Sets the construction time of district heating grids.
+        Sets the construction time of natural gas boilers.
 
         """
         if self.settings.investment.use_construction_times:
@@ -104,9 +104,9 @@ class DistrictHeatingGrid(ConversionTechnology):
                 data.loc[("suburban","construction_time","ref"),"value"].iloc[0])
             source = SourceInformation(
                 description=(
-                    "The construction time of district heating grids is based on data from the DEA dataset, "
-                    "which provides information on the construction time for district heating grids. "
-                    "The specific value used here is the reference value for suburban district heating grids."
+                    "The construction time of natural gas boilers is based on data from the DEA dataset, "
+                    "which provides information on the construction time for natural gas boilers. "
+                    "The specific value used here is the reference value for suburban natural gas boilers."
                 ),
                 metadata=dea.metadata,
             )
@@ -117,7 +117,7 @@ class DistrictHeatingGrid(ConversionTechnology):
         
     def _set_capex_specific_conversion(self) -> Attribute:
         """
-        Sets the specific capital expenditure (capex) for district heating grids.
+        Sets the specific capital expenditure (capex) for natural gas boilers.
 
         Returns:
             Attribute: An Attribute object containing the specific capex data.
@@ -129,7 +129,7 @@ class DistrictHeatingGrid(ConversionTechnology):
     
     def _set_opex_specific_fixed(self) -> Attribute:
         """
-        Sets the specific fixed operational expenditure (opex) for district heating grids.
+        Sets the specific fixed operational expenditure (opex) for natural gas boilers.
 
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
@@ -141,7 +141,7 @@ class DistrictHeatingGrid(ConversionTechnology):
     
     def _set_opex_specific_variable(self) -> Attribute:
         """
-        Sets the specific variable operational expenditure (opex) for district heating grids.
+        Sets the specific variable operational expenditure (opex) for natural gas boilers.
 
         Returns:
             Attribute: An Attribute object containing the specific variable opex data.
@@ -153,7 +153,7 @@ class DistrictHeatingGrid(ConversionTechnology):
     
     def _set_capacity_limit(self) -> Attribute:
         """
-        Sets the capacity limit for district heating grids.
+        Sets the capacity limit for natural gas boilers.
 
         Returns:
             Attribute: An Attribute object containing the capacity limit data.
@@ -177,7 +177,7 @@ class DistrictHeatingGrid(ConversionTechnology):
     
     def _set_capacity_existing(self) -> Attribute:
         """
-        Sets the existing capacity for district heating grids.
+        Sets the existing capacity for natural gas boilers.
 
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
@@ -189,7 +189,7 @@ class DistrictHeatingGrid(ConversionTechnology):
     
     def _set_max_load(self) -> Attribute:
         """
-        Sets the maximum load for district heating grids.
+        Sets the maximum load for natural gas boilers.
 
         Returns:
             Attribute: An Attribute object containing the maximum load data.

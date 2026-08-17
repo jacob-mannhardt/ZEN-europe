@@ -81,7 +81,7 @@ def _country_level_neighbours() -> dict[str, set[str]]:
 
 
 _NEIGHBOURS = _country_level_neighbours()
-NUCLEAR_PSR_TYPE = "B14"
+
 
 # Errors that mean "this particular country/query has no data" rather than a
 # transient failure; safe to log and skip.
@@ -264,49 +264,6 @@ class ENTSOE(Dataset[pd.DataFrame]):
             names=["edge", "year_construction"]
         )
         return capacity.rename("capacity_existing").to_frame()
-
-    def get_nuclear_capacity_factor(self, num_past_years: int = 4) -> pd.DataFrame:
-        """Historic hourly nuclear capacity factor, averaged over the
-        `num_past_years` years up to and including `settings.time.reference_year`.
-
-        Returns nodal capacity factors (one column per country) if
-        `settings.max_load.use_nodal_nuclear_max_load` is set, otherwise a
-        single fleet-wide "EU_average" column. Both are clipped to 1.
-        """
-        reference_year = self.settings.time.reference_year
-        years = range(reference_year - num_past_years, reference_year + 1)
-
-        nodal_by_year: dict[int, pd.DataFrame] = {}
-        fleet_by_year: dict[int, pd.Series] = {}
-        for year in years:
-            generation = self.get_generation(
-                NUCLEAR_PSR_TYPE, year=year).dropna(axis=1, how="all")
-            capacity = self.get_capacity_existing(
-                NUCLEAR_PSR_TYPE, year=year).droplevel("year_construction")
-            common_nodes = generation.columns.intersection(capacity.index)
-            if len(common_nodes) == 0:
-                continue
-            generation = generation[common_nodes]
-            capacity = capacity[common_nodes]
-            if calendar.isleap(year):
-                # drop 29 Feb so every year aligns to the same 8760 hours
-                leap_day_hours = range((31 + 28) * 24, (31 + 29) * 24)
-                generation = generation.loc[~generation.index.isin(
-                    leap_day_hours)].reset_index(drop=True)
-            nodal_by_year[year] = generation.div(capacity).clip(upper=1)
-            fleet_by_year[year] = (
-                generation.sum(axis=1) / capacity.sum()).clip(upper=1)
-
-        nodal = pd.concat(nodal_by_year, axis=1).T.groupby(level=1).mean().T
-        nodal = nodal.loc[:, ~nodal.isna().all(axis=0)]
-        fleet = pd.concat(fleet_by_year, axis=1).mean(axis=1)
-
-        if self.settings.max_load.use_nodal_nuclear_max_load:
-            result = nodal
-        else:
-            result = fleet.to_frame("EU_average")
-        result.index.name = "time"
-        return result
 
     # -------- per-country query loops ------------------
 

@@ -7,6 +7,9 @@ from .hard_coal_plant import HardCoalPlant
 from .lignite_coal_plant import LigniteCoalPlant
 from .natural_gas_turbine import NaturalGasTurbine
 from .nuclear import Nuclear
+from .oil_plant import OilPlant
+from .biomass_plant import BiomassPlant
+from .waste_plant import WastePlant
 
 __all__ = [
     "Photovoltaics",
@@ -18,4 +21,7 @@ __all__ = [
     "LigniteCoalPlant",
     "NaturalGasTurbine",
     "Nuclear",
+    "OilPlant",
+    "BiomassPlant",
+    "WastePlant",
 ]

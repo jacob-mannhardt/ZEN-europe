@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import calendar
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.lifetime_expectation import LifetimeExpectation
+from zen_europe.datasets.dataset_collections.nuclear_max_load import NuclearMaxLoad
+from zen_europe.datasets.dataset_collections.potential_capacity_renewables import PotentialCapacityRenewables
+from zen_europe.datasets.datasets.carrier.entsoe import ENTSOE
 from zen_europe.datasets.datasets.carrier.eurostat import Eurostat
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
 from zen_europe.datasets.datasets.financial.potencia import Potencia
@@ -11,13 +15,15 @@ from zen_europe.datasets.datasets.technology.powerplantmatching import PowerPlan
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology, SourceInformation
+from zen_creator import Attribute, ConversionTechnology, SourceInformation, AssumptionInformation
 
 
 class Nuclear(ConversionTechnology):
     """Class containing all data and assumptions for nuclear power plants."""
 
     name: str = "nuclear"
+
+    NUCLEAR_PSR_TYPE = "B14"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -140,6 +146,51 @@ class Nuclear(ConversionTechnology):
         powerplantmatching = PowerPlantMatching(source_path=self.source_path)
         return powerplantmatching.get_capacity_existing(self)
 
+    def _set_capacity_limit(self) -> Attribute:
+        """
+        Sets the capacity limit for nuclear.
+
+        Returns:
+            Attribute: An Attribute object containing the capacity limit data.
+        """
+        attr = self.capacity_limit
+        if not self.settings.investment.allow_investment:
+            attr.set_data(
+                default_value=0,
+                source=AssumptionInformation(
+                    description=(
+                        "The capacity limit is set to 0, "
+                        "as investment is not allowed."
+                    ),
+                ),
+            )
+        elif self.settings.investment.use_nuclear_phase_out:
+            attr.set_data(
+                default_value=0,
+                source=AssumptionInformation(
+                    description=(
+                        "The capacity limit is set to 0, "
+                        "as the nuclear phase-out is considered."
+                    ),
+                ),
+            )
+        elif self.settings.investment.cap_nuclear_capacity_to_past_investments:
+            cap_ex = self.capacity_existing.df
+            cap_lim = cap_ex.groupby("node").sum()
+            cap_lim.name = "capacity_limit"
+            attr.set_data(
+                df=cap_lim,
+                source=SourceInformation(
+                    description=(
+                        "The capacity limit is set to the sum of the"
+                        "historical capacity additions across all years."
+                    ),
+                    metadata=self.capacity_existing.sources[-1].metadata,
+                ),
+                unit="GW",
+            )
+        return attr
+    
     def _set_max_load(self) -> Attribute:
         """
         Sets the maximum load for nuclear.
@@ -147,8 +198,29 @@ class Nuclear(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the maximum load data.
         """
-        raise NotImplementedError(
-            "The maximum load for nuclear is currently based on the Potencia dataset, not the actual availability data, e.g., entsoe."
-        )
         potencia_db = Potencia(source_path=self.source_path)
-        return potencia_db.get_max_load(self)
+        attr = potencia_db.get_max_load(self)
+        if self.settings.max_load.use_seasonal_nuclear_max_load:
+            nuclear_max_load = NuclearMaxLoad(
+                settings=self.settings, 
+                set_nodes=self.model.config.system.set_nodes,
+                source_path=self.source_path)
+            nodal_ml_df, total_ml_df = nuclear_max_load.get_max_load(self)
+            if self.settings.max_load.use_nodal_nuclear_max_load:
+                data = nodal_ml_df
+            else:
+                data = total_ml_df
+                data.name = "max_load"
+            data.index.name = "time"
+            attr.add_data(
+                df=data,
+                source=SourceInformation(
+                    description=(
+                        f"The seasonal maximum load for nuclear is derived from the ENTSO-E "
+                        f"generation and capacity data."
+                    ),
+                    metadata=nuclear_max_load.metadata,
+                ),
+                unit="GW",
+            )
+        return attr
