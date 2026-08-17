@@ -2,20 +2,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.technology_cost_database import (
-    TechnologyCostDatabase)
-from zen_europe.datasets.datasets.carrier.when2heat import When2Heat
+from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.datasets.technology.rollout_hydrogen_ganter import HydrogenRolloutGanter
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator import Attribute, ConversionTechnology, SourceInformation
 from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
+from zen_europe.utils.utils import account_for_decommissioned_capacity
 
-class HeatPumpDH(ConversionTechnology):
-    """Class containing all data and assumptions for district heating heat pumps."""
+class SMR(ConversionTechnology):
+    """Class containing all data and assumptions for Steam Methane Reforming (SMR).
+    
+    Note that this is not a small modular reactor, but a steam methane reformer for hydrogen production.
+    """
 
-    name: str = "heat_pump_DH"
+    name: str = "SMR"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -24,32 +27,35 @@ class HeatPumpDH(ConversionTechnology):
 
     def _set_reference_carrier(self) -> Attribute:
         """
-        Sets the reference carrier of district heating heat pumps to district_heat.
+        Sets the reference carrier of SMR to hydrogen.
         """
         return Attribute(
-            name="reference_carrier", default_value=["district_heat"], element=self
+            name="reference_carrier", default_value=["hydrogen"], element=self
         )
 
     def _set_input_carrier(self) -> Attribute:
         """
-        Sets the input carrier of district heating heat pumps to electricity.
+        Sets the input carrier of SMR to natural gas.
         """
         return Attribute(
-            name="input_carrier", default_value=["electricity"], element=self)
+            name="input_carrier", default_value=["natural_gas"], element=self)
 
     def _set_output_carrier(self) -> Attribute:
         """
-        Set the output carrier of district heating heat pumps to district_heat.
+        Set the output carrier of SMR to hydrogen.
         """
         return Attribute(
-            name="output_carrier", default_value=["district_heat"], element=self
+            name="output_carrier"
+            , default_value=[
+                "hydrogen","electricity"]
+            , element=self
         )
 
     # ---------- Required methods that are called during object build ----------
 
     def _set_lifetime(self) -> Attribute:
         """
-        Sets the lifetime of district heating heat pumps.
+        Sets the lifetime of SMR.
 
         """
         tech_db = TechnologyCostDatabase(
@@ -59,37 +65,24 @@ class HeatPumpDH(ConversionTechnology):
 
     def _set_conversion_factor(self) -> Attribute:
         """
-        Return the conversion factor of district heating heat pumps.
+        Return the conversion factor of SMR.
 
         """
         attr = self.conversion_factor
-        when2heat_dataset = When2Heat(
-            settings=self.settings, 
-            source_path=self.source_path)
-        cop_data = when2heat_dataset.get_COP()
-        cop = cop_data.xs("radiator",level=1,axis=1)
-        cop.index.name = "time"
-        cf = [{"electricity": {
-            "default_value": 1/cop.mean().mean(), "unit": "GW/GW"
-            }
-            }
-        ]
+        ganter_dataset = HydrogenRolloutGanter(source_path=self.source_path)
+        cf = ganter_dataset.get_conversion_factor_SMR()
         source = SourceInformation(
             description=(
-                f"The conversion factor of heat pumps is based on data from "
-                "When2Heat. We assume that the DH heat pump shows the COP of a radiator heat pump."
+                f"The conversion factor of SMR is based on data from Ganter et al. (2024). "
             ),
-            metadata=when2heat_dataset.metadata,
+            metadata=ganter_dataset.metadata,
         )
-        attr.set_data(
-            default_value=cf, 
-            df=cop,
-            source=source)
+        attr.set_data(default_value=cf, source=source)
         return attr
     
     def _set_construction_time(self) -> Attribute:
         """
-        Sets the construction time of district heating oil boilers.
+        Sets the construction time of SMR.
 
         """
         if self.settings.investment.use_construction_times:
@@ -101,7 +94,7 @@ class HeatPumpDH(ConversionTechnology):
         
     def _set_capex_specific_conversion(self) -> Attribute:
         """
-        Sets the specific capital expenditure (capex) for district heating heat pumps.
+        Sets the specific capital expenditure (capex) for SMR.
 
         Returns:
             Attribute: An Attribute object containing the specific capex data.
@@ -112,7 +105,7 @@ class HeatPumpDH(ConversionTechnology):
     
     def _set_opex_specific_fixed(self) -> Attribute:
         """
-        Sets the specific fixed operational expenditure (opex) for district heating heat pumps.
+        Sets the specific fixed operational expenditure (opex) for SMR.
 
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
@@ -123,7 +116,7 @@ class HeatPumpDH(ConversionTechnology):
     
     def _set_opex_specific_variable(self) -> Attribute:
         """
-        Sets the specific variable operational expenditure (opex) for district heating heat pumps.
+        Sets the specific variable operational expenditure (opex) for SMR.
 
         Returns:
             Attribute: An Attribute object containing the specific variable opex data.
@@ -134,11 +127,26 @@ class HeatPumpDH(ConversionTechnology):
     
     def _set_capacity_existing(self) -> Attribute:
         """
-        Sets the existing capacity for district heating heat pumps.
+        Sets the existing capacity for SMR.
 
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        heat_demand_dataset = HeatDemand(
-            settings=self.settings, source_path=self.source_path)
-        return heat_demand_dataset.get_capacity_existing(self,is_dh=True)
+        ganter_dataset = HydrogenRolloutGanter(source_path=self.source_path)
+        capacity_existing = ganter_dataset.get_capacity_existing_SMR()
+        capacity_existing = capacity_existing.to_frame(
+            name=self.settings.time.reference_year - 1)
+        capacity_existing = account_for_decommissioned_capacity(
+            capacity_existing, self)
+        capacity_existing.index.name = "node"
+        attr = self.capacity_existing
+        source = SourceInformation(
+            description=(
+                f"The existing capacity of SMR is based on data from Ganter et al. (2024). "
+                "It is assumed that all current ammonia and refinery plants are "
+                "using SMR technology for hydrogen production."
+            ),
+            metadata=ganter_dataset.metadata,
+        )
+        attr.set_data(df=capacity_existing, source=source)
+        return attr

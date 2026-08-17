@@ -24,6 +24,8 @@ from .electrode_boiler_DH import ElectrodeBoilerDH
 from .waste_boiler_DH import WasteBoilerDH
 from .heat_pump_DH import HeatPumpDH
 
+from .SMR import SMR
+
 
 __all__ = [
     "Photovoltaics",
@@ -49,5 +51,6 @@ __all__ = [
     "BiomassBoilerDH",
     "ElectrodeBoilerDH",
     "WasteBoilerDH",
-    "HeatPumpDH"
+    "HeatPumpDH",
+    "SMR"
 ]

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.datasets.carrier.when2heat import When2Heat
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -64,23 +65,28 @@ class HeatPump(ConversionTechnology):
 
         """
         attr = self.conversion_factor
-        tech_db = TechnologyCostDatabase(
+        when2heat_dataset = When2Heat(
             settings=self.settings, 
             source_path=self.source_path)
-        eff, agencies = tech_db.get_efficiency(self)
-        eff = eff.loc[self.settings.time.reference_year]
+        cop_data = when2heat_dataset.get_COP()
+        cop = cop_data.xs("floor",level=1,axis=1)
+        cop.index.name = "time"
         cf = [{"electricity": {
-            "default_value": 1/eff, "unit": "GW/GW"
+            "default_value": 1/cop.mean().mean(), "unit": "GW/GW"
             }
             }
         ]
         source = SourceInformation(
             description=(
-                f"The conversion factor of heat pumps is based on data from {', '.join(agencies)}. "
+                f"The conversion factor of heat pumps is based on data from "
+                "When2Heat. We assume that the heat pump shows the COP of a floor heat pump."
             ),
-            metadata=tech_db.metadata,
+            metadata=when2heat_dataset.metadata,
         )
-        attr.set_data(default_value=cf, source=source)
+        attr.set_data(
+            default_value=cf, 
+            df=cop,
+            source=source)
         return attr
     
     def _set_construction_time(self) -> Attribute:
