@@ -753,5 +753,12 @@ class DEA(Dataset[pd.DataFrame]):
         not extracted here (see `_DH_DISTRIBUTION_SHEETS`).
         """
         return self._dh_distribution_data.copy()
-    
+
+    def get_conversion_factor_electrolysis(self):
+        """ returns the conversion factor for electrolysis.
+        
+        Hydrogen production via PEMEC electrolysis for 100 MW plant, 
+        https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
+        """
+        return [{"electricity": {"default_value": 1/0.526,"unit":"GW/GW"}}] 
     

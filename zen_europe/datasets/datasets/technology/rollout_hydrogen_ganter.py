@@ -11,7 +11,8 @@ from zen_europe.utils.utils import convert_country_names
 
 class HydrogenRolloutGanter(Dataset[pd.DataFrame]):
     """
-    EuroCalliope dataset class for potential capacity
+    Dataset class for the near-term infrastructure rollout and investment strategies 
+    for net-zero hydrogen supply chains, based on the work of Alissa Ganter et al. (2024).
 
     """
 
