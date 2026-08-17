@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -10,10 +11,10 @@ if TYPE_CHECKING:
 from zen_creator import Attribute, ConversionTechnology, SourceInformation
 from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
 
-class BiomassBoiler(ConversionTechnology):
-    """Class containing all data and assumptions for biomass boilers."""
+class HardCoalBoilerDH(ConversionTechnology):
+    """Class containing all data and assumptions for district heating hard coal boilers."""
 
-    name: str = "biomass_boiler"
+    name: str = "hard_coal_boiler_DH"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -22,32 +23,32 @@ class BiomassBoiler(ConversionTechnology):
 
     def _set_reference_carrier(self) -> Attribute:
         """
-        Sets the reference carrier of biomass boilers to heat.
+        Sets the reference carrier of district heating hard coal boilers to district_heat.
         """
         return Attribute(
-            name="reference_carrier", default_value=["heat"], element=self
+            name="reference_carrier", default_value=["district_heat"], element=self
         )
 
     def _set_input_carrier(self) -> Attribute:
         """
-        Sets the input carrier of biomass boilers to biomass.
+        Sets the input carrier of district heating hard coal boilers to hard_coal.
         """
         return Attribute(
-            name="input_carrier", default_value=["biomass"], element=self)
+            name="input_carrier", default_value=["hard_coal"], element=self)
 
     def _set_output_carrier(self) -> Attribute:
         """
-        Set the output carrier of biomass boilers to heat.
+        Set the output carrier of district heating hard coal boilers to district_heat.
         """
         return Attribute(
-            name="output_carrier", default_value=["heat"], element=self
+            name="output_carrier", default_value=["district_heat"], element=self
         )
 
     # ---------- Required methods that are called during object build ----------
 
     def _set_lifetime(self) -> Attribute:
         """
-        Sets the lifetime of biomass boilers.
+        Sets the lifetime of district heating hard coal boilers.
 
         """
         tech_db = TechnologyCostDatabase(
@@ -57,7 +58,7 @@ class BiomassBoiler(ConversionTechnology):
 
     def _set_conversion_factor(self) -> Attribute:
         """
-        Return the conversion factor of biomass boilers.
+        Return the conversion factor of district heating hard coal boilers.
 
         """
         attr = self.conversion_factor
@@ -66,14 +67,14 @@ class BiomassBoiler(ConversionTechnology):
             source_path=self.source_path)
         eff, agencies = tech_db.get_efficiency(self)
         eff = eff.loc[self.settings.time.reference_year]
-        cf = [{"biomass": {
+        cf = [{"hard_coal": {
             "default_value": 1/eff, "unit": "GW/GW"
             }
             }
         ]
         source = SourceInformation(
             description=(
-                f"The conversion factor of biomass boilers is based on data from {', '.join(agencies)}. "
+                f"The conversion factor of district heating hard coal boilers is based on data from {', '.join(agencies)}. "
             ),
             metadata=tech_db.metadata,
         )
@@ -82,7 +83,7 @@ class BiomassBoiler(ConversionTechnology):
     
     def _set_construction_time(self) -> Attribute:
         """
-        Sets the construction time of biomass boilers.
+        Sets the construction time of district heating hard coal boilers.
 
         """
         if self.settings.investment.use_construction_times:
@@ -94,7 +95,7 @@ class BiomassBoiler(ConversionTechnology):
         
     def _set_capex_specific_conversion(self) -> Attribute:
         """
-        Sets the specific capital expenditure (capex) for biomass boilers.
+        Sets the specific capital expenditure (capex) for district heating hard coal boilers.
 
         Returns:
             Attribute: An Attribute object containing the specific capex data.
@@ -105,7 +106,7 @@ class BiomassBoiler(ConversionTechnology):
     
     def _set_opex_specific_fixed(self) -> Attribute:
         """
-        Sets the specific fixed operational expenditure (opex) for biomass boilers.
+        Sets the specific fixed operational expenditure (opex) for district heating waste boilers.
 
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
@@ -116,7 +117,7 @@ class BiomassBoiler(ConversionTechnology):
     
     def _set_opex_specific_variable(self) -> Attribute:
         """
-        Sets the specific variable operational expenditure (opex) for biomass boilers.
+        Sets the specific variable operational expenditure (opex) for district heating waste boilers.
 
         Returns:
             Attribute: An Attribute object containing the specific variable opex data.
@@ -127,23 +128,11 @@ class BiomassBoiler(ConversionTechnology):
     
     def _set_capacity_existing(self) -> Attribute:
         """
-        Sets the existing capacity for biomass boilers.
+        Sets the existing capacity for district heating waste boilers.
 
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
         heat_demand_dataset = HeatDemand(
             settings=self.settings, source_path=self.source_path)
-        return heat_demand_dataset.get_capacity_existing(self)
-    
-    def _set_max_load(self) -> Attribute:
-        """
-        Sets the maximum load for biomass boilers.
-
-        Returns:
-            Attribute: An Attribute object containing the maximum load data.
-        """
-        heat_demand_dataset = HeatDemand(
-            settings=self.settings, source_path=self.source_path)
-
-        return heat_demand_dataset.get_max_load(self)
+        return heat_demand_dataset.get_capacity_existing(self,is_dh=True)

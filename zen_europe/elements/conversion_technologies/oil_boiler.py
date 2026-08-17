@@ -125,16 +125,6 @@ class OilBoiler(ConversionTechnology):
             settings=self.settings, source_path=self.source_path)
         return tech_db.get_opex_specific_variable(self)
     
-    def _set_capacity_limit(self) -> Attribute:
-        """
-        Sets the capacity limit for oil boilers.
-
-        Returns:
-            Attribute: An Attribute object containing the capacity limit data.
-        """
-        attr = self.capacity_limit
-        return attr
-    
     def _set_capacity_existing(self) -> Attribute:
         """
         Sets the existing capacity for oil boilers.

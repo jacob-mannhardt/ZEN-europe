@@ -212,7 +212,7 @@ class Nuclear(ConversionTechnology):
                 data = total_ml_df
                 data.name = "max_load"
             data.index.name = "time"
-            attr.add_data(
+            attr.set_data(
                 df=data,
                 source=SourceInformation(
                     description=(

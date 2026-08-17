@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, cast
 
 import pandas as pd
 
+from zen_europe.datasets.datasets.carrier.energieschweiz import EnergieSchweiz
 from zen_europe.utils.utils import calculate_capacity_addition_from_cumulative, format_capacity_existing
 
 if TYPE_CHECKING:
@@ -46,6 +47,7 @@ class HeatDemand(DatasetCollection):
             "desnz": DESNZ(self.source_path),
             "bfe": BFE(self.source_path),
             "energifaktanorge": Energifaktanorge(self.source_path),
+            "energieschweiz": EnergieSchweiz(self.source_path),
         }
 
     def get_demand(self, element: Carrier) -> Attribute:
@@ -157,6 +159,7 @@ class HeatDemand(DatasetCollection):
         household_heat = pd.concat([household_heat, electricity_eb]).sort_index()
         household_heat = household_heat.drop("electricity")
         household_heat = household_heat.rename(index={"heat": "district_heating_grid"})
+        household_heat.index.names = ["technology", "node"]
         share_household_heat = household_heat.div(
             household_heat.groupby(level=1).sum(), axis=1)
         share_household_heat.columns = share_household_heat.columns.astype(int)
@@ -191,19 +194,62 @@ class HeatDemand(DatasetCollection):
         electricity_eb_dh = electricity_eb_dh.clip(lower=0)
         district_heat = pd.concat([district_heat, electricity_eb_dh]).sort_index()
         district_heat = district_heat.drop("electricity_DH")
+        district_heat.index.names = ["technology", "node"]
         share_district_heat = district_heat.div(
             district_heat.groupby(level=1).sum(), axis=1)
-        raise NotImplementedError("This method is not yet implemented for CH values.")        
+        share_district_heat.columns = share_district_heat.columns.astype(int)
+
+        energieschweiz_dataset = cast(EnergieSchweiz, self.data["energieschweiz"])
+
+        share_district_heat = share_district_heat.drop("CH",level=1)
+        share_CH = energieschweiz_dataset.get_share_DH()
+        share_CH_df = pd.DataFrame(
+            index=share_district_heat.index.get_level_values(0).unique(), 
+            columns=share_district_heat.columns,
+            dtype=float
+        )
+        share_CH_df.loc[share_CH.index,share_district_heat.columns[0]] = share_CH.values
+        share_CH_df = share_CH_df.ffill(axis=1).fillna(0)
+        share_CH_df = pd.concat([share_CH_df],keys=["CH"], names=["node"])
+        share_CH_df = share_CH_df.swaplevel(0, 1).sort_index()
+
+        share_district_heat = pd.concat([share_district_heat, share_CH_df])
+        share_district_heat = share_district_heat.sort_index().sort_index(axis=1)
+        share_district_heat = share_district_heat.bfill(axis=1)
+
         return share_district_heat
 
-    def get_capacity_existing(self, element: ConversionTechnology) -> Attribute:
+    def get_capacity_existing(
+            self, 
+            element: ConversionTechnology,
+            is_dh:bool = False) -> Attribute:
         """
         Get the existing capacity of a heat conversion technology.
 
+        Args:
+            element (ConversionTechnology): The heat conversion technology element for which to get the existing capacity.
+            is_dh (bool): A boolean indicating whether the technology is district heating or not.
+
+        Returns:
+            Attribute: An Attribute object containing the existing capacity data.
         """
         heat_demand = self._calculate_demand(element)
         peak_demand = heat_demand.max()
         heating_share = self._calculate_heating_share_household()
+        add_description = ""
+        if is_dh:
+            heating_share_dh = self._calculate_heating_share_DH()
+            heating_share_dh_grid = heating_share.loc["district_heating_grid"]
+            heating_share = heating_share_dh * heating_share_dh_grid
+            heating_share = heating_share.loc[:,~heating_share.isna().all(axis=0)]
+            heating_share = heating_share.fillna(0)
+            # apply district heating conversion factor to the heating share
+            dhg = element.model.conversion_technologies["district_heating_grid"]
+            dhg_cf = dhg.conversion_factor.default_value[0][
+                "district_heat"]["default_value"]
+            heating_share *= dhg_cf
+            add_description = ("The heating share for district heating is adjusted by the conversion factor "
+                              "of the district heating grid.")
         assert element.name in heating_share.index.get_level_values(0), (
             f"Element {element.name} not found in heating share data."
         )
@@ -229,6 +275,7 @@ class HeatDemand(DatasetCollection):
                 "based on the peak heat demand and the heating share of the technology. "
                 "The peak heat demand is derived from the heat demand time series, "
                 "while the heating share is obtained mainly from the Eurostat dataset. "
+                f"{add_description}"
             ),
             metadata=self.metadata,
         )
