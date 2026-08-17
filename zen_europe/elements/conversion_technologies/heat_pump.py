@@ -13,10 +13,10 @@ from zen_europe.datasets.dataset_collections.district_heating_data import (
     DistrictHeatingData)
 from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
 
-class NaturalGasBoiler(ConversionTechnology):
-    """Class containing all data and assumptions for natural gas boilers."""
+class HeatPump(ConversionTechnology):
+    """Class containing all data and assumptions for heat pumps."""
 
-    name: str = "natural_gas_boiler"
+    name: str = "heat_pump"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -25,7 +25,7 @@ class NaturalGasBoiler(ConversionTechnology):
 
     def _set_reference_carrier(self) -> Attribute:
         """
-        Sets the reference carrier of natural gas boilers to heat.
+        Sets the reference carrier of heat pumps to heat.
         """
         return Attribute(
             name="reference_carrier", default_value=["heat"], element=self
@@ -33,14 +33,14 @@ class NaturalGasBoiler(ConversionTechnology):
 
     def _set_input_carrier(self) -> Attribute:
         """
-        Sets the input carrier of natural gas boilers to natural gas.
+        Sets the input carrier of heat pumps to electricity.
         """
         return Attribute(
-            name="input_carrier", default_value=["natural_gas"], element=self)
+            name="input_carrier", default_value=["electricity"], element=self)
 
     def _set_output_carrier(self) -> Attribute:
         """
-        Set the output carrier of natural gas boilers to heat.
+        Set the output carrier of heat pumps to heat.
         """
         return Attribute(
             name="output_carrier", default_value=["heat"], element=self
@@ -50,7 +50,7 @@ class NaturalGasBoiler(ConversionTechnology):
 
     def _set_lifetime(self) -> Attribute:
         """
-        Sets the lifetime of natural gas boilers.
+        Sets the lifetime of heat pumps.
 
         """
         tech_db = TechnologyCostDatabase(
@@ -60,7 +60,7 @@ class NaturalGasBoiler(ConversionTechnology):
 
     def _set_conversion_factor(self) -> Attribute:
         """
-        Return the conversion factor of natural gas boilers.
+        Return the conversion factor of heat pumps.
 
         """
         attr = self.conversion_factor
@@ -69,14 +69,14 @@ class NaturalGasBoiler(ConversionTechnology):
             source_path=self.source_path)
         eff, agencies = tech_db.get_efficiency(self)
         eff = eff.loc[self.settings.time.reference_year]
-        cf = [{"natural_gas": {
+        cf = [{"electricity": {
             "default_value": 1/eff, "unit": "GW/GW"
             }
             }
         ]
         source = SourceInformation(
             description=(
-                f"The conversion factor of natural gas boilers is based on data from {', '.join(agencies)}. "
+                f"The conversion factor of heat pumps is based on data from {', '.join(agencies)}. "
             ),
             metadata=tech_db.metadata,
         )
@@ -85,7 +85,7 @@ class NaturalGasBoiler(ConversionTechnology):
     
     def _set_construction_time(self) -> Attribute:
         """
-        Sets the construction time of natural gas boilers.
+        Sets the construction time of heat pumps.
 
         """
         if self.settings.investment.use_construction_times:
@@ -97,7 +97,7 @@ class NaturalGasBoiler(ConversionTechnology):
         
     def _set_capex_specific_conversion(self) -> Attribute:
         """
-        Sets the specific capital expenditure (capex) for natural gas boilers.
+        Sets the specific capital expenditure (capex) for heat pumps.
 
         Returns:
             Attribute: An Attribute object containing the specific capex data.
@@ -108,7 +108,7 @@ class NaturalGasBoiler(ConversionTechnology):
     
     def _set_opex_specific_fixed(self) -> Attribute:
         """
-        Sets the specific fixed operational expenditure (opex) for natural gas boilers.
+        Sets the specific fixed operational expenditure (opex) for heat pumps.
 
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
@@ -119,7 +119,7 @@ class NaturalGasBoiler(ConversionTechnology):
     
     def _set_opex_specific_variable(self) -> Attribute:
         """
-        Sets the specific variable operational expenditure (opex) for natural gas boilers.
+        Sets the specific variable operational expenditure (opex) for heat pumps.
 
         Returns:
             Attribute: An Attribute object containing the specific variable opex data.
@@ -130,7 +130,7 @@ class NaturalGasBoiler(ConversionTechnology):
     
     def _set_capacity_limit(self) -> Attribute:
         """
-        Sets the capacity limit for natural gas boilers.
+        Sets the capacity limit for heat pumps.
 
         Returns:
             Attribute: An Attribute object containing the capacity limit data.
@@ -140,7 +140,7 @@ class NaturalGasBoiler(ConversionTechnology):
     
     def _set_capacity_existing(self) -> Attribute:
         """
-        Sets the existing capacity for natural gas boilers.
+        Sets the existing capacity for heat pumps.
 
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
@@ -151,7 +151,7 @@ class NaturalGasBoiler(ConversionTechnology):
     
     def _set_max_load(self) -> Attribute:
         """
-        Sets the maximum load for natural gas boilers.
+        Sets the maximum load for heat pumps.
 
         Returns:
             Attribute: An Attribute object containing the maximum load data.

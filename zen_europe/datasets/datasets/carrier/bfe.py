@@ -14,7 +14,7 @@ import pandas as pd
 
 _MAP_TECHNOLOGY = {
     "Heizöl": "oil_boiler",
-    "Erdgas": "gas_boiler",
+    "Erdgas": "natural_gas_boiler",
     "Holz": "biomass_boiler",
     "El. Widerstandsheizungen": "electrode_boiler",
     "Fernwärme": "district_heating_grid",

@@ -134,9 +134,9 @@ class TechnologyCostDatabase(DatasetCollection):
                 )
 
     def get_efficiency(
-        self, technology: str, plant_size: str = "M", metric: str = "mean",
+        self, element: Element, plant_size: str = "M", metric: str = "mean",
         reference_year: int | None = None,
-    ) -> pd.Series:
+    ) -> tuple[pd.Series, list[str]]:
         """Conversion efficiency [-] for `technology`, indexed by year.
 
         Returned directly as a `pd.Series` rather than an `Attribute`, since
@@ -144,11 +144,19 @@ class TechnologyCostDatabase(DatasetCollection):
         computation together with carrier-specific heating values) and has no
         single common attribute to populate across all conversion technologies.
         """
-        return self._aggregate(
-            technology, "efficiency", 
+        data = self._aggregate(
+            element.name, "efficiency", 
             plant_size, metric, 
             reference_year or self.settings.time.reference_year
         )
+        optimization_years = pd.Index(element.settings.time.get_optimization_years())
+        data = self._reindex_to_years(data, optimization_years)
+        agencies = self._extract_agencies(element.name, "efficiency", plant_size)
+        assert not data.empty, (
+            f"No efficiency data found for technology '{element.name}' "
+            f"at plant size '{plant_size}' in any agency dataset."
+        )
+        return data, agencies
 
     def check_if_available(self, technology: str, variable: str | None = None) -> bool:
         """Whether any agency reports data for `technology` (optionally `variable`)."""

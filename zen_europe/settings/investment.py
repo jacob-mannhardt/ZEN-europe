@@ -16,7 +16,7 @@ class InvestmentSettings(SettingsCategory):
     use_existing_capacities: bool = True
     use_battery_capacity_existing: bool = True
     use_existing_oil_to_x_capacities: bool = False
-    use_construction_times: bool = False # NOTE: DONE
+    use_construction_times: bool = True # NOTE: DONE
     use_nuclear_phase_out: bool = True # takes precedence over cap_nuclear_capacity_to_past_investments # NOTE DONE
     cap_nuclear_capacity_to_past_investments: bool = True # NOTE DONE
     use_power_line_capacity_limit: bool = True
