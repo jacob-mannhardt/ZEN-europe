@@ -1,0 +1,123 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from zen_europe.datasets.dataset_collections.hydro_existing_capacity import HydroExistingCapacity
+
+if TYPE_CHECKING:
+    from zen_creator.model import Model
+
+from zen_creator.datasets.datasets.metadata import AssumptionInformation, MetaData
+from zen_creator.elements import StorageTechnology
+from zen_creator.utils.attribute import Attribute, SourceInformation
+
+
+class ReservoirHydro(StorageTechnology):
+    """Class containing all data and assumptions for reservoir hydro storage technology."""
+
+    name: str = "reservoir_hydro"
+
+    ENTSOE_PSR_RESERVOIR = "B12"
+    def __init__(self, model: Model, power_unit: str = "MW"):
+        super().__init__(model=model, power_unit=power_unit)
+
+    # ---------- Required methods that are called during object construction ----------
+
+    def _set_reference_carrier(self) -> Attribute:
+        """
+        Sets the reference carrier of reservoir hydro to electricity.
+        """
+        return Attribute(
+            name="reference_carrier", default_value=["electricity"], element=self
+        )
+
+    # ---------- Required methods that are called during object build ----------
+
+    def _set_lifetime(self) -> Attribute:
+        """
+        Return the lifetime of pumped hydro.
+
+        Currently returns the default value. This method can be
+        customized to return a specific lifetime for pumped hydro,
+        either as a constant value or as a time series if the lifetime
+        varies over time.
+        """
+        attr = self.lifetime
+
+        return attr.set_data(
+            default_value=25,
+            source=SourceInformation(
+                description="Assumption for default pumped hydro lifetime.",
+                metadata=MetaData(
+                    name="assumption",
+                    title="Modeling assumption",
+                    author=["ZEN Europe"],
+                    publication="ZEN Europe",
+                    publication_year=2026,
+                    url=None,
+                ),
+            ),
+        )
+
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of reservoir hydro.
+
+        Returns:
+            Attribute: An Attribute object containing the existing capacity data.
+        """
+        if self.settings.investment.use_existing_capacities:
+            hydro_dataset = HydroExistingCapacity(source_path=self.source_path)
+            return hydro_dataset.get_capacity_existing(element=self, power=True)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
+
+    def _set_capacity_limit(self) -> Attribute:
+        """
+        Sets the capacity limit for pumped hydro.
+
+        Returns:
+            Attribute: An Attribute object containing the capacity limit data.
+        """
+        attr = self.capacity_limit
+        if not self.settings.investment.allow_investment:
+            attr.set_data(
+                default_value=0,
+                source=AssumptionInformation(
+                    description=(
+                        "The capacity limit is set to 0, "
+                        "as investment is not allowed."
+                    ),
+                ),
+            )
+        return attr
+
+    def _set_capacity_limit_energy(self) -> Attribute:
+        """
+        Sets the energy capacity limit for reservoir hydro.
+
+        Returns:
+            Attribute: An Attribute object containing the energy capacity limit data.
+        """
+        attr = self.capacity_limit_energy
+        if not self.settings.investment.allow_investment:
+            attr.set_data(
+                default_value=0,
+                source=AssumptionInformation(
+                    description=(
+                        "The capacity limit is set to 0, "
+                        "as investment is not allowed."
+                    ),
+                ),
+            )
+        return attr

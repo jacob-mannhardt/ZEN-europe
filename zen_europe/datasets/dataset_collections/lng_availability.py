@@ -13,7 +13,7 @@ import numpy as np
 
 from zen_creator import Attribute, DatasetCollection
 from zen_creator.utils.attribute import SourceInformation
-from zen_europe.datasets.datasets.technology.scigrid import SciGridGIE
+from zen_europe.datasets.datasets.technology.gie_lng_map import GIELNGMap
 from zen_europe.datasets.datasets.carrier.entsog import ENTSOG
 from zen_europe.datasets.datasets.carrier.import_increase_gas import ImportIncreaseGas
 from zen_europe.utils.utils import link_lng_countries, interpolate_missing_years
@@ -33,7 +33,7 @@ class LNGAvailability(DatasetCollection):
             raise ValueError("source_path must be set to load the dataset collection.")
 
         return {
-            "scigrid": SciGridGIE(self.source_path),
+            "gie_lng_map": GIELNGMap(self.source_path),
             "entsog": ENTSOG(self.source_path),
             "import_increase_gas": ImportIncreaseGas(self.source_path),
         }
@@ -44,8 +44,8 @@ class LNGAvailability(DatasetCollection):
 
         This function retrieves the LNG import availability data for the specified element.
         """
-        scigrid_dataset = cast(SciGridGIE, self.data["scigrid"])
-        lng_terminals = scigrid_dataset._calculate_capacity_existing_lng(
+        gie_lng_map = cast(GIELNGMap, self.data["gie_lng_map"])
+        lng_terminals = gie_lng_map._calculate_capacity_existing_lng(
             element=element)
         entsog = cast(ENTSOG, self.data["entsog"])
         entsog_data = entsog.get_availability_natural_gas()

@@ -2,7 +2,7 @@ data/
 test.py
 tests/end_to_end/outputs
 IMPLEMENTATION_TODO.md
-
+*.ipynb
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

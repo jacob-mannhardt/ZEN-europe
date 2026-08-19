@@ -117,11 +117,26 @@ class LUW(Dataset[pd.DataFrame]):
     def _set_metadata(self) -> MetaData:
         return MetaData(
             name=self.name,
-            title="Global Energy System based on 100% Renewable Energy",
-            author=["Christian Breyer", "Dmitrii Bogdanov", "et al."],
-            publication="LUT University / Energy Watch Group",
-            publication_year=2019,
-            url="https://www.energywatchgroup.org/global-energy-system-based-100-renewable-energy",
+            title="Reflecting the energy transition from a European perspective and in the global context—Relevance of solar photovoltaics benchmarking two ambitious scenarios",
+            author=[
+                "Christian Breyer", 
+                "Dmitrii Bogdanov", 
+                "Manish Ram",
+                "Siavash Khalili",
+                "Eero Vartiainen",
+                "David Moser",
+                "Eduardo Román Medina",
+                "Gaetan Masson",
+                "Arman Aghahosseini",
+                "Theophilus N. O. Mensah"
+                "Gabriel Lopez",
+                "Michael Schmela",
+                "Raffaele Rossi",
+                "Walburga Hemetsberger",
+                "Arnulf Jaeger-Waldau"],
+            publication="Progress in Photovoltaics",
+            publication_year=2022,
+            url="https://onlinelibrary.wiley.com/doi/10.1002/pip.3659",
         )
 
     def _set_path(self) -> Path | None:

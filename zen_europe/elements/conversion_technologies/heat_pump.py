@@ -95,9 +95,15 @@ class HeatPump(ConversionTechnology):
 
         """
         if self.settings.investment.use_construction_times:
-            tech_db = TechnologyCostDatabase(
-                    settings=self.settings, source_path=self.source_path)
-            return tech_db.get_construction_time(self)
+            attr = self.construction_time
+            source = AssumptionInformation(
+                description=(
+                    "The construction time of heat pumps is assumed to be 0 years, "
+                    "as they can be installed quickly and do not require extensive construction work."
+                )
+            )
+            attr.set_data(default_value=0, source=source)
+            return attr
         else:
             return self.construction_time
         
@@ -141,10 +147,23 @@ class HeatPump(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        heat_demand_dataset = HeatDemand(
-            settings=self.settings, source_path=self.source_path)
-        return heat_demand_dataset.get_capacity_existing(self)
-    
+        if self.settings.investment.use_existing_capacities:
+            heat_demand_dataset = HeatDemand(
+                settings=self.settings, source_path=self.source_path)
+            return heat_demand_dataset.get_capacity_existing(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
+
     def _set_max_load(self) -> Attribute:
         """
         Sets the maximum load for heat pumps.

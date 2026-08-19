@@ -46,6 +46,43 @@ def convert_country_names(series: pd.Series):
         lambda el: country_names[el] if el in country_names.keys() else None)
     return series_new
 
+def convert_ISO3_to_ISO2(series: pd.Series):
+    """ this method converts a series of ISO3 country codes into ISO2 country codes """
+    iso3_to_iso2 = {
+        "AUT": "AT",
+        "BEL": "BE",
+        "BGR": "BG",
+        "CHE": "CH",
+        "CZE": "CZ",
+        "DEU": "DE",
+        "DNK": "DK",
+        "EST": "EE",
+        "GRC": "EL",
+        "ESP": "ES",
+        "FIN": "FI",
+        "FRA": "FR",
+        "HRV": "HR",
+        "HUN": "HU",
+        "IRL": "IE",
+        "ITA": "IT",
+        "LTU": "LT",
+        "LUX": "LU",
+        "LVA": "LV",
+        "NLD": "NL",
+        "NOR": "NO",
+        "POL": "PL",
+        "PRT": "PT",
+        "ROU": "RO",
+        "SWE": "SE",
+        "SVN": "SI",
+        "SVK": "SK", 
+        "GBR": "UK",
+        "ISL": "IS", 
+    }
+    series_new = series.apply(
+        lambda el: iso3_to_iso2[el] if el in iso3_to_iso2.keys() else None)
+    return series_new
+
 def link_lng_countries() -> dict:
     lng_link = {"lng_russia": ["LNG Russia"],
                 "lng": ["LNG Middle East", "LNG North Africa", "LNG North America", "LNG Others"]}

@@ -73,13 +73,7 @@ class DistrictHeatingGrid(ConversionTechnology):
         """
         attr = self.conversion_factor
         dea = DEA(source_path=self.source_path)
-        data = dea.get_dh_distribution_data()
-        cf = 1 - data.loc[("suburban","energy_losses","ref"),"value"].iloc[0]/100
-        cf = [{"district_heat": {
-            "default_value": 1/cf, "unit": "GW/GW"
-            }
-            }
-        ]
+        cf = dea.get_conversion_factor_district_heating_grid()
         source = SourceInformation(
             description=(
                 "The conversion factor of district heating grids is based on data from the DEA dataset, "
@@ -182,11 +176,23 @@ class DistrictHeatingGrid(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        heat_demand_dataset = HeatDemand(
-            settings=self.settings, source_path=self.source_path)
-        return heat_demand_dataset.get_capacity_existing(self)
-        
-    
+        if self.settings.investment.use_existing_capacities:
+            heat_demand_dataset = HeatDemand(
+                settings=self.settings, source_path=self.source_path)
+            return heat_demand_dataset.get_capacity_existing(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
+
     def _set_max_load(self) -> Attribute:
         """
         Sets the maximum load for district heating grids.

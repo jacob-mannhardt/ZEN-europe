@@ -15,6 +15,8 @@ class PumpedHydro(StorageTechnology):
 
     name: str = "pumped_hydro"
 
+    ENTSOE_PSR = "B10"
+    
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
 

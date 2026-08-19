@@ -9,7 +9,7 @@ from zen_europe.datasets.datasets.carrier.when2heat import When2Heat
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology, SourceInformation
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
 from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
 
 class HeatPumpDH(ConversionTechnology):
@@ -89,13 +89,19 @@ class HeatPumpDH(ConversionTechnology):
     
     def _set_construction_time(self) -> Attribute:
         """
-        Sets the construction time of district heating oil boilers.
+        Sets the construction time of district heating heat pumps.
 
         """
         if self.settings.investment.use_construction_times:
-            tech_db = TechnologyCostDatabase(
-                    settings=self.settings, source_path=self.source_path)
-            return tech_db.get_construction_time(self)
+            attr = self.construction_time
+            source = AssumptionInformation(
+                description=(
+                    "The construction time of DH heat pumps is assumed to be 0 years, "
+                    "as they can be installed quickly and do not require extensive construction work."
+                )
+            )
+            attr.set_data(default_value=0, source=source)
+            return attr
         else:
             return self.construction_time
         
@@ -139,6 +145,19 @@ class HeatPumpDH(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        heat_demand_dataset = HeatDemand(
-            settings=self.settings, source_path=self.source_path)
-        return heat_demand_dataset.get_capacity_existing(self,is_dh=True)
+        if self.settings.investment.use_existing_capacities:
+            heat_demand_dataset = HeatDemand(
+                settings=self.settings, source_path=self.source_path)
+            return heat_demand_dataset.get_capacity_existing(self,is_dh=True)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr

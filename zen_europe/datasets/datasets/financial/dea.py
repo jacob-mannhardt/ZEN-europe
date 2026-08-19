@@ -761,4 +761,184 @@ class DEA(Dataset[pd.DataFrame]):
         https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
         """
         return [{"electricity": {"default_value": 1/0.526,"unit":"GW/GW"}}] 
+
+    def get_conversion_factor_anaerobic_digestion(self):
+        """ returns the conversion factor for anaerobic digestion.
+        
+        Values from the DEA technology catalogue for renewable fuels (Biogas
+        plant, Basic plant, large [~6,000 Nm3 CH4/h]), assuming a straw
+        feedstock.
+        https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
+        """
+        return [
+            {"wet_biomass": {"default_value": 1 / 0.55, "unit": "GWh/GWh"}},
+            {"electricity": {"default_value": 0.0211, "unit": "GWh/GWh"}},
+            {"heat": {"default_value": 0.0505, "unit": "GWh/GWh"}},
+        ]
     
+    def get_conversion_factor_biomethane_conversion(self):
+        """ returns the conversion factor for biomethane conversion.
+        
+        Values from the DEA technology catalogue for renewable fuels (Biogas
+        upgrading - Amine scrubber [~6,000 Nm3 CH4/h]).
+        https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
+        """
+        return [
+            {"biomethane": {"default_value": 1 / 0.9905, "unit": "GWh/GWh"}},
+            {"heat": {"default_value": 0.1032 / 0.9905, "unit": "GWh/GWh"}},
+        ]
+
+    def get_conversion_factor_gasification(self):
+        """ returns the conversion factor for gasification.
+        
+        Values from the DEA technology catalogue for renewable fuels 
+        (Gasifier, biomass, bio-SNG, medium - large scale), assuming a bio-SNG
+        conversion efficiency of 60% and heat co-generation of 20% (2020 values).
+        https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
+        """
+        efficiency = 0.6
+        return [
+            {"biomass": {"default_value": 1 / efficiency, "unit": "GWh/GWh"}},
+            {"heat": {"default_value": 0.2 / efficiency, "unit": "GWh/GWh"}},
+        ]
+
+    def get_conversion_factor_fischer_tropsch(self):
+        """ returns the conversion factor for fischer-tropsch.
+
+        Values from the DEA technology catalogue for renewable fuels
+        (Hydrogen to Jet Fuel), normalized to the oil reference carrier,
+        assuming all output is kerosene-equivalent oil.
+        https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
+        """
+        oil_per_input = 0.65  # MWh oil / MWh input
+        # DEA tonFTtoGWh = 44 GWh / 3.6 (GJ->GWh not applicable, ton basis) / 1000
+        ton_ft_to_gwh = 44 / 3600  # GWh/ton
+        return [
+            {"hydrogen": {"default_value": 0.995 / oil_per_input, "unit": "GWh/GWh"}},
+            {"carbon": {
+                "default_value": (4.3 / ton_ft_to_gwh / 1000) / oil_per_input,
+                "unit": "ktCO2/GWh"}},
+            {"electricity": {
+                "default_value": 0.005 / oil_per_input, "unit": "GWh/GWh"}},
+            {"district_heat": {
+                "default_value": 0.25 / oil_per_input, "unit": "GWh/GWh"}},
+        ]
+
+    def get_conversion_factor_pyrolysis(self):
+        """ returns the conversion factor for pyrolysis.
+
+        Values from the DEA technology catalogue for renewable fuels (Large
+        scale slow pyrolysis (20 MW), straw feedstock), normalized to the
+        oil reference carrier (biochar/pyrolysis-oil producing process:
+        0.99 MWh biomass input, 0.04 MWh electricity, 0.22 MWh oil and
+        0.05 MWh district heat, plus 0.4 MWh-equivalent hard coal/biochar
+        output, all per MWh of biomass processed).
+        https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
+        """
+        oil_output = 0.22  # MWh oil / MWh biomass processed (reference carrier)
+        return [
+            {"biomass": {"default_value": 0.99 / oil_output, "unit": "GWh/GWh"}},
+            {"electricity": {"default_value": 0.04 / oil_output, "unit": "GWh/GWh"}},
+            {"district_heat": {"default_value": 0.05 / oil_output, "unit": "GWh/GWh"}},
+            {"hard_coal": {"default_value": 0.4 / oil_output, "unit": "GWh/GWh"}},
+        ]
+
+    def get_conversion_factor_haber_bosch(self):
+        """ returns the conversion factor for the Haber-Bosch process.
+
+        Values from the DEA technology catalogue for renewable fuels (Green
+        Ammonia plant: Hydrogen to ammonia, excl. electrolyzer and excl.
+        air-separation unit).
+        https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
+        """
+        return [
+            {"hydrogen": {"default_value": 0.95, "unit": "GWh/GWh"}},
+            {"electricity": {"default_value": 0.05, "unit": "GWh/GWh"}},
+        ]
+
+    def get_conversion_factor_methanol_from_hydrogen(self):
+        """ returns the conversion factor for methanol from hydrogen.
+
+        Values from the DEA technology catalogue for renewable fuels
+        (Methanol from hydrogen and carbon dioxide).
+        https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
+        """
+        ton_meoh_to_mwh = 20.1 / 3.6
+        return [
+            {"hydrogen": {
+                "default_value": 6.4 / ton_meoh_to_mwh, "unit": "GWh/GWh"}},
+            {"carbon": {
+                "default_value": 1.4 / ton_meoh_to_mwh, "unit": "kilotons/GWh"}},
+            {"electricity": {
+                "default_value": 0.1 / ton_meoh_to_mwh, "unit": "GWh/GWh"}},
+        ]
+
+    def get_conversion_factor_methanol_from_biomass(self):
+        """ returns the conversion factor for methanol from biomass.
+
+        Values from the DEA technology catalogue for renewable fuels (Bio
+        Methanol).
+        https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
+        """
+        methanol_production_biomass = 0.58
+        return [
+            {"biomass": {
+                "default_value": 1 / methanol_production_biomass, "unit": "GWh/GWh"}},
+            {"district_heat": {
+                "default_value": 0.22 / methanol_production_biomass, "unit": "GWh/GWh"}},
+            {"electricity": {
+                "default_value": 0.02 / methanol_production_biomass, "unit": "GWh/GWh"}},
+        ]
+
+    def get_conversion_factor_DAC(self):
+        """ returns the conversion factor for DAC.
+
+        Values from the DEA technology catalogue for carbon capture,
+        transport and storage (Solid Adsorption Direct Air Capture Plant,
+        p. 81).
+        https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage
+        """
+        return [
+            {"electricity": {"default_value": 0.8, "unit": "GWh/kilotons"}},
+            {"heat": {"default_value": 9.5 / 3.6, "unit": "GWh/kilotons"}},
+        ]
+
+    def get_conversion_factor_cement_post_comb(self):
+        """ returns the conversion factor for cement post-combustion capture.
+
+        Values from the DEA technology catalogue for carbon capture,
+        transport and storage (Post-combustion carbon capture in a cement
+        plant), assuming the fuel-for-cement input is directly converted
+        into heat for the capture process.
+        https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage
+        """
+        return [
+            {"electricity": {"default_value": 0.025, "unit": "GWh/kilotons"}},
+            {"fuel_for_cement": {"default_value": 0.833, "unit": "GWh/kilotons"}},
+            {"district_heat": {"default_value": 1.65, "unit": "GWh/kilotons"}},
+        ]
+
+    def get_conversion_factor_SMR_CCS(self):
+        """ returns the conversion factor for SMR CCS.
+
+        Values from the DEA technology catalogue for carbon capture,
+        transport and storage (Post-combustion carbon capture retrofit -
+        100 MW(th) WtE or biomass CHP plant, used as a proxy entry),
+        assuming all heat demand for the capture process is supplied from
+        natural gas.
+        https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage
+        """
+        return [
+            {"natural_gas": {"default_value": 0.833, "unit": "GWh/kilotons"}},
+            {"electricity": {"default_value": 0.03, "unit": "GWh/kilotons"}},
+        ]
+
+    def get_conversion_factor_district_heating_grid(self):
+        """ returns the conversion factor for district heating grids.
+
+        Based on DEA district-heating distribution-network energy losses
+        (reference scenario, suburban network).
+        """
+        data = self.get_dh_distribution_data()
+        cf = 1 - data.loc[("suburban", "energy_losses", "ref"), "value"].iloc[0] / 100
+        return [{"district_heat": {"default_value": 1 / cf, "unit": "GW/GW"}}]

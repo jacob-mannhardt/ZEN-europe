@@ -159,6 +159,11 @@ class SciGridIGGIELGNC1(Dataset[pd.DataFrame]):
         import_gas_RU.index.name = "node"
         return import_gas, import_gas_RU
 
+# NOTE deprecated: The SciGrid GIE dataset is no longer used in the LNG availability calculations, 
+# as it has been replaced by the GIE LNG Map dataset. 
+# The SciGrid GIE dataset is retained here for reference and potential future use, 
+# but it is not actively utilized in the current implementation of LNG availability calculations.
+# The reason is that the data is outdated and the GIE LNG Map dataset provides more accurate and up-to-date information on LNG terminals.
 class SciGridGIE(Dataset[pd.DataFrame]):
     """
     SciGrid GIE dataset class for LNG.

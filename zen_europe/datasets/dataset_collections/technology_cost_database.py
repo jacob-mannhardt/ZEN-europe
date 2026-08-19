@@ -222,8 +222,11 @@ class TechnologyCostDatabase(DatasetCollection):
             metadata=self.metadata,
         )
         if series.empty:
-            return attribute.set_data(source=source)
-
+            raise ValueError(
+                f"No {description} data found for technology '{element.name}' "
+                f"at plant size '{plant_size}' in any agency dataset."
+            )
+        
         optimization_years = pd.Index(element.settings.time.get_optimization_years())
         if annual_values:
             df = self._reindex_to_years(series, optimization_years)

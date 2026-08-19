@@ -159,8 +159,21 @@ class HardCoalPlant(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        powerplantmatching = PowerPlantMatching(source_path=self.source_path)
-        return powerplantmatching.get_capacity_existing(self)
+        if self.settings.investment.use_existing_capacities:
+            powerplantmatching = PowerPlantMatching(source_path=self.source_path)
+            return powerplantmatching.get_capacity_existing(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
 
     def _set_max_load(self) -> Attribute:
         """

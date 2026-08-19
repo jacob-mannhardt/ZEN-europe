@@ -53,11 +53,45 @@ class HydroExistingCapacity(DatasetCollection):
             "glohydrores": GloHydroRes(self.source_path),
         }
 
-    def get_capacity_existing(self, element: Element) -> Attribute:
+    def get_capacity_existing_entsoe_data(self, element: Element) -> Attribute:
         """
-        Get the existing capacity for hydro technologies.
+        Get the existing capacity for hydro technologies based on ENTSOE data.
+
+        This function retrieves the existing capacity data for the specified element from the ENTSOE dataset.
+        Args:
+            element (Element): The element for which to retrieve the existing capacity.
+        """
+        entsoe_dataset = cast(ENTSOE, self.data["entsoe"])
+        data_entsoe = entsoe_dataset.get_capacity_existing(
+            psr_type=element.ENTSOE_PSR, 
+            year=element.settings.time.year_time_series)
+        data_entsoe = data_entsoe.droplevel(1)
+        data_entsoe.name = "capacity_existing"
+
+        source = SourceInformation(
+            description=(
+                "The existing capacity data is derived from the ENTSOE dataset."
+            ),
+            metadata=self.metadata,
+        )
+        attr = element.capacity_existing.set_data(
+            df=data_entsoe,
+            source=source,
+            unit="GW",
+        )
+        return attr
+    
+    def get_capacity_existing_plant_level_data(
+            self, 
+            element: Element,
+            power: bool = True) -> Attribute:
+        """
+        Get the existing capacity for hydro technologies based on plant-level data from the PowerPlantMatching and GloHydroRes datasets.
 
         This function retrieves the existing capacity data for the specified element.
+        Args:
+            element (Element): The element for which to retrieve the existing capacity.
+            power (bool): If True, returns the power capacity; if False, returns the energy capacity.
         """
         ppm_dataset = cast(PowerPlantMatching, self.data["powerplantmatching"])
         glohydrores_dataset = cast(GloHydroRes, self.data["glohydrores"])
@@ -86,6 +120,7 @@ class HydroExistingCapacity(DatasetCollection):
         )
         return attr
 
+    # TODO remove this once we have aligned on a datasource
     def plot_capacity_comparison(self, element: Element):
         """
         Plot a comparison of existing capacity data from different sources.
@@ -101,7 +136,7 @@ class HydroExistingCapacity(DatasetCollection):
         data_ppm = ppm_dataset.get_capacity_existing(element).df
         total_capacity_ppm = data_ppm.groupby(level=0).sum()
         data_entsoe = entsoe_dataset.get_capacity_existing(
-            psr_type=element.ENTSOE_PSR_ROR, 
+            psr_type=element.ENTSOE_PSR, 
             year=element.settings.time.year_time_series)
         data_entsoe = data_entsoe.droplevel(1)
         data_glohydrores = glohydrores_dataset.get_capacity_existing(element)

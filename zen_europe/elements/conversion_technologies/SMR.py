@@ -8,7 +8,7 @@ from zen_europe.datasets.datasets.technology.rollout_hydrogen_ganter import Hydr
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology, SourceInformation
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
 from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
 from zen_europe.utils.utils import account_for_decommissioned_capacity
 
@@ -86,9 +86,18 @@ class SMR(ConversionTechnology):
 
         """
         if self.settings.investment.use_construction_times:
-            tech_db = TechnologyCostDatabase(
-                    settings=self.settings, source_path=self.source_path)
-            return tech_db.get_construction_time(self)
+            # assume that the construction time of SMR is the same as for methanation, as both are chemical conversion technologies
+            methanation = self.model.conversion_technologies["methanation"]
+            construction_time = methanation.construction_time.default_value
+            attr = self.construction_time
+            source = AssumptionInformation(
+                description=(
+                    f"The construction time of SMR is assumed to be the same as for methanation, "
+                    f"as both are chemical conversion technologies."
+                )
+            )   
+            attr.set_data(default_value=construction_time, source=source)
+            return attr
         else:
             return self.construction_time
         
@@ -132,21 +141,34 @@ class SMR(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        ganter_dataset = HydrogenRolloutGanter(source_path=self.source_path)
-        capacity_existing = ganter_dataset.get_capacity_existing_SMR()
-        capacity_existing = capacity_existing.to_frame(
-            name=self.settings.time.reference_year - 1)
-        capacity_existing = account_for_decommissioned_capacity(
-            capacity_existing, self)
-        capacity_existing.index.name = "node"
-        attr = self.capacity_existing
-        source = SourceInformation(
-            description=(
-                f"The existing capacity of SMR is based on data from Ganter et al. (2024). "
-                "It is assumed that all current ammonia and refinery plants are "
-                "using SMR technology for hydrogen production."
-            ),
-            metadata=ganter_dataset.metadata,
-        )
-        attr.set_data(df=capacity_existing, source=source)
-        return attr
+        if self.settings.investment.use_existing_capacities:
+            ganter_dataset = HydrogenRolloutGanter(source_path=self.source_path)
+            capacity_existing = ganter_dataset.get_capacity_existing_SMR()
+            capacity_existing = capacity_existing.to_frame(
+                name=self.settings.time.reference_year - 1)
+            capacity_existing = account_for_decommissioned_capacity(
+                capacity_existing, self)
+            capacity_existing.index.name = "node"
+            attr = self.capacity_existing
+            source = SourceInformation(
+                description=(
+                    f"The existing capacity of SMR is based on data from Ganter et al. (2024). "
+                    "It is assumed that all current ammonia and refinery plants are "
+                    "using SMR technology for hydrogen production."
+                ),
+                metadata=ganter_dataset.metadata,
+            )
+            attr.set_data(df=capacity_existing, source=source)
+            return attr
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr

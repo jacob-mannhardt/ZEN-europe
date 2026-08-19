@@ -50,7 +50,10 @@ class GloHydroRes(Dataset[pd.DataFrame]):
                 / "capacity_existing")
 
     def _set_data(self) -> pd.DataFrame:
-        if not os.path.exists(self.path / "glohydrores_data.feather"):
+        if not (
+            os.path.exists(self.path / "glohydrores_data.feather")
+            and os.path.exists(self.path / "glohydrores_data_raw.feather")
+        ):
             data = pd.read_excel(self.path / "GloHydroRes_vs1.xlsx",sheet_name="Data")
             logging.info(f"Before filtering: {len(data)} power plants")
             data["country_code"] = convert_country_names(data["country"])
@@ -67,6 +70,7 @@ class GloHydroRes(Dataset[pd.DataFrame]):
             data_agg.index.names = ["technology", "node", "year"]
             data_agg.to_frame("capacity_existing").to_feather(
                 self.path / "glohydrores_data.feather")
+            data.to_feather(self.path / "glohydrores_data_raw.feather")
         else:
             data_agg = pd.read_feather(
                 self.path / "glohydrores_data.feather").squeeze()

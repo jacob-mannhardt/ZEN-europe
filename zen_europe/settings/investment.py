@@ -25,7 +25,7 @@ class InvestmentSettings(SettingsCategory):
     force_ice_phase_out: bool = False
     use_battery_e2p_ratio: bool = False
     storage_charge_discharge_binary: Optional[bool] = None
-    use_200y_lifetime_hydro: bool = False
+    use_200y_lifetime_hydro: bool = True
     use_diffusion_rates: bool = False
     use_varying_diffusion_rates: bool = False
     use_inf_spillover_rate: bool = True

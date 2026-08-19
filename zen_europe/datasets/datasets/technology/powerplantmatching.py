@@ -50,6 +50,9 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
         "reservoir_hydro": {
             "Fueltype": ["Hydro"],
             "Technology": ["Reservoir"]},
+        "pumped_hydro": {
+            "Fueltype": ["Hydro"],
+            "Technology": ["Pumped Storage"]},
         "wind_onshore": {
             "Fueltype": ["Wind"],
             "Technology": ["Onshore",np.nan]},

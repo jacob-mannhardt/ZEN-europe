@@ -20,7 +20,7 @@ class RunOfRiverHydro(ConversionTechnology):
 
     name: str = "run-of-river_hydro"
 
-    ENTSOE_PSR_ROR = "B11"
+    ENTSOE_PSR = "B11"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -57,10 +57,28 @@ class RunOfRiverHydro(ConversionTechnology):
     def _set_lifetime(self) -> Attribute:
         """
         Sets the lifetime of run-of-river hydro.
+        
+        Per default, we assume a lifetime of 200 years to keep 
+        the existing capacities in the model. Otherwise, we use the real
+        lifetime of the technology. 
 
         """
-        lifetime_expectation = LifetimeExpectation(source_path=self.source_path)
-        return lifetime_expectation.get_lifetime(self)
+        if self.settings.investment.use_200y_lifetime_hydro:
+            lifetime = Attribute(
+                name="lifetime",
+                default_value=200,
+                source=AssumptionInformation(
+                    description=(
+                        "The lifetime of run-of-river hydro is set to 200 years, "
+                        "as specified in the investment settings."
+                    ),
+                ),
+                element=self,
+            )
+            return lifetime
+        else:
+            lifetime_expectation = LifetimeExpectation(source_path=self.source_path)
+            return lifetime_expectation.get_lifetime(self)
 
     def _set_construction_time(self) -> Attribute:
         """
@@ -157,13 +175,29 @@ class RunOfRiverHydro(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        hydro_capacity = HydroExistingCapacity(
-            settings=self.settings,
-            source_path=self.source_path,
-            set_nodes=self.model.config.system.set_nodes
-        )
-        attr = hydro_capacity.get_capacity_existing(self)
-        return attr
+        if self.settings.investment.use_existing_capacities:
+            hydro_capacity = HydroExistingCapacity(
+                settings=self.settings,
+                source_path=self.source_path,
+                set_nodes=self.model.config.system.set_nodes
+            )
+            if self.settings.data_source.use_plant_level_hydro_capacity:
+                attr = hydro_capacity.get_capacity_existing_plant_level_data(self)
+            else:
+                attr = hydro_capacity.get_capacity_existing_entsoe_data(self)
+            return attr
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
 
     def _set_max_load(self) -> Attribute:
         """

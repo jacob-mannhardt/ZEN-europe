@@ -9,7 +9,7 @@ from zen_europe.datasets.datasets.technology.hydrogen_europe import HydrogenEuro
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology, SourceInformation
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
 from zen_europe.utils.utils import account_for_decommissioned_capacity
 
 class Electrolysis(ConversionTechnology):
@@ -101,10 +101,10 @@ class Electrolysis(ConversionTechnology):
         """
         tech_db = TechnologyCostDatabase(
                     settings=self.settings, source_path=self.source_path)
-        cf = self.conversion_factor.default_value["electricity"]["default_value"]
+        cf = self.conversion_factor.default_value[0]["electricity"]["default_value"]
         attr = tech_db.get_capex_specific_conversion(self)
         data = attr.df * cf
-        attr.set_data(df=data, source=attr.source)
+        attr.set_data(df=data,source=attr.sources[-1])
         return attr
     
     def _set_opex_specific_fixed(self) -> Attribute:
@@ -116,10 +116,10 @@ class Electrolysis(ConversionTechnology):
         """
         tech_db = TechnologyCostDatabase(
             settings=self.settings, source_path=self.source_path)
-        cf = self.conversion_factor.default_value["electricity"]["default_value"]
+        cf = self.conversion_factor.default_value[0]["electricity"]["default_value"]
         attr = tech_db.get_opex_specific_fixed(self)
         data = attr.df * cf
-        attr.set_data(df=data, source=attr.source)
+        attr.set_data(df=data,source=attr.sources[-1])
         return attr
     
     def _set_opex_specific_variable(self) -> Attribute:
@@ -131,10 +131,10 @@ class Electrolysis(ConversionTechnology):
         """
         tech_db = TechnologyCostDatabase(
             settings=self.settings, source_path=self.source_path)
-        cf = self.conversion_factor.default_value["electricity"]["default_value"]
+        cf = self.conversion_factor.default_value[0]["electricity"]["default_value"]
         attr = tech_db.get_opex_specific_variable(self)
-        data = attr.df * cf
-        attr.set_data(df=data, source=attr.source)
+        data = attr.default_value * cf
+        attr.set_data(default_value=data,source=attr.sources[-1])
         return attr
 
     def _set_capacity_existing(self) -> Attribute:
@@ -144,18 +144,31 @@ class Electrolysis(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        hydrogen_europe_dataset = HydrogenEurope(source_path=self.source_path)
-        capacity_existing = hydrogen_europe_dataset.get_capacity_existing()
-        cf = self.conversion_factor.default_value["electricity"]["default_value"]
-        capacity_existing = capacity_existing / cf 
-        attr = self.capacity_existing
-        source = SourceInformation(
-            description=(
-                f"The existing capacity of electrolysis is based on data from Hydrogen Europe (2024). "
-                "The data is reported in electricity units, so we convert it to H2 "
-                "quantities."
-            ),
-            metadata=hydrogen_europe_dataset.metadata,
-        )
-        attr.set_data(df=capacity_existing, source=source,unit="MW")
-        return attr
+        if self.settings.investment.use_existing_capacities:
+            hydrogen_europe_dataset = HydrogenEurope(source_path=self.source_path)
+            capacity_existing = hydrogen_europe_dataset.get_capacity_existing()
+            cf = self.conversion_factor.default_value[0]["electricity"]["default_value"]
+            capacity_existing = capacity_existing / cf
+            attr = self.capacity_existing
+            source = SourceInformation(
+                description=(
+                    f"The existing capacity of electrolysis is based on data from Hydrogen Europe (2024). "
+                    "The data is reported in electricity units, so we convert it to H2 "
+                    "quantities."
+                ),
+                metadata=hydrogen_europe_dataset.metadata,
+            )
+            attr.set_data(df=capacity_existing, source=source,unit="MW")
+            return attr
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
