@@ -8,7 +8,7 @@
     "unit": "kilotCO2eq/hour"
   },
   "capacity_addition_unbounded": {
-    "default_value": 0.01,
+    "default_value": 0.011415525114155252,
     "unit": "kilotCO2eq/hour"
   },
   "capacity_existing": {
@@ -52,7 +52,7 @@
     "unit": "Euro/tCO2eq*hour"
   },
   "max_diffusion_rate": {
-    "default_value": "inf",
+    "default_value": 0.13,
     "unit": "1"
   },
   "transport_loss_factor_linear": {

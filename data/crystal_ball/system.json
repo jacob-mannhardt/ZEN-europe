@@ -125,6 +125,6 @@
   "optimized_years": 15,
   "interval_between_years": 2,
   "use_rolling_horizon": false,
-  "aggregated_time_steps_per_year": 10,
+  "aggregated_time_steps_per_year": 30,
   "conduct_time_series_aggregation": true
 }

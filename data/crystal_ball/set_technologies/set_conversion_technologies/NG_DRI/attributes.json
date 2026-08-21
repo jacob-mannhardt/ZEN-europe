@@ -78,14 +78,14 @@
   },
   "conversion_factor": [
     {
-      "hard_coal": {
-        "default_value": 1.9444444444444445e-05,
+      "natural_gas": {
+        "default_value": 0.002916666666666667,
         "unit": "GW/(tonproduct/hour)"
       }
     },
     {
-      "natural_gas": {
-        "default_value": 0.002916666666666667,
+      "hard_coal": {
+        "default_value": 1.9444444444444445e-05,
         "unit": "GW/((tonproduct/hour))"
       }
     },
@@ -95,9 +95,5 @@
         "unit": "GW/(((tonproduct/hour)))"
       }
     }
-  ],
-  "min_full_load_hours_fraction": {
-    "default_value": 0,
-    "unit": "1"
-  }
+  ]
 }

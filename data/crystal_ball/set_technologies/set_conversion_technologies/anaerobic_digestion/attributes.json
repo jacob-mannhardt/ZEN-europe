@@ -52,7 +52,7 @@
     "unit": "Euro/kW"
   },
   "max_diffusion_rate": {
-    "default_value": 0.13,
+    "default_value": "inf",
     "unit": "1"
   },
   "capex_specific_conversion": {
@@ -78,12 +78,6 @@
   },
   "conversion_factor": [
     {
-      "wet_biomass": {
-        "default_value": 1.8181818181818181,
-        "unit": "GW/GW"
-      }
-    },
-    {
       "heat": {
         "default_value": 0.0505,
         "unit": "GW/GW"
@@ -94,10 +88,12 @@
         "default_value": 0.0211,
         "unit": "GW/GW"
       }
+    },
+    {
+      "wet_biomass": {
+        "default_value": 1.8181818181818181,
+        "unit": "GW/GW"
+      }
     }
-  ],
-  "min_full_load_hours_fraction": {
-    "default_value": 0,
-    "unit": "1"
-  }
+  ]
 }

@@ -139,7 +139,7 @@ class DIW(Dataset[pd.DataFrame]):
                 rows.append(
                     (
                         technology, "M", "ref", "lifetime", int(year),
-                        float(value_src), "years", None, float(value_src), "years",
+                        float(value_src), "1", None, float(value_src), "years",
                     )
                 )
         data = pd.DataFrame(rows, columns=INDEX_NAMES + VALUE_COLUMNS)

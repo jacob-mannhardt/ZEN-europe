@@ -7,10 +7,10 @@ from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 if TYPE_CHECKING:
     from pathlib import Path
 
-import attr
 from zen_creator import Attribute, ConversionTechnology, SourceInformation
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
+from zen_europe.utils.constants import Constants
 
 import pandas as pd
 
@@ -202,10 +202,10 @@ class ShippingTechnologiesKorberg(Dataset[pd.DataFrame]):
             An Attribute object representing the maximum load of the specified technology.
         """
         max_loads = {
-            "diesel_ICE_ship": 0.75 * 5280 / 8760,
-            "hydrogen_FC_ship": 0.75 * 5280 / 8760,
-            "methanol_ICE_ship": 0.75 * 5280 / 8760,
-            "ammonia_ICE_ship": 0.75 * 5280 / 8760,
+            "diesel_ICE_ship": 0.75 * 5280 / Constants.HOURS_PER_YEAR,
+            "hydrogen_FC_ship": 0.75 * 5280 / Constants.HOURS_PER_YEAR,
+            "methanol_ICE_ship": 0.75 * 5280 / Constants.HOURS_PER_YEAR,
+            "ammonia_ICE_ship": 0.75 * 5280 / Constants.HOURS_PER_YEAR,
         }
         if technology.name not in max_loads:
             raise ValueError(

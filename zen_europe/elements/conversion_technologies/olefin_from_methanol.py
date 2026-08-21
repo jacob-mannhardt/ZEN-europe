@@ -7,7 +7,7 @@ from zen_europe.datasets.datasets.carrier.aidres import Aidres
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, SourceInformation
+from zen_creator import Attribute, ConversionTechnology, SourceInformation
 
 
 class OlefinFromMethanol(ConversionTechnology):
@@ -16,7 +16,7 @@ class OlefinFromMethanol(ConversionTechnology):
 
     name: str = "olefin_from_methanol"
 
-    def __init__(self, model: Model, power_unit: str = "MW"):
+    def __init__(self, model: Model, power_unit: str = "tproduct/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ---------- Required methods that are called during object construction ----------
@@ -54,14 +54,17 @@ class OlefinFromMethanol(ConversionTechnology):
 
         """
         attr = self.lifetime
+        m_ng = self.model.conversion_technologies["methanol_from_natural_gas"]
+        lifetime_methanol = m_ng.lifetime.default_value
         attr.set_data(
-            default_value=25,
-            source=AssumptionInformation(
+            default_value=lifetime_methanol,
+            source=SourceInformation(
                 description=(
                     "The lifetime of olefin from methanol is manually set "
-                    "to 25 years, assuming a standard industrial technology "
-                    "lifetime."
+                    "to the lifetime of methanol from natural gas, "
+                    "assuming a standard industrial technology lifetime."
                 ),
+                metadata=m_ng.lifetime.sources[-1].metadata
             ),
         )
         return attr
@@ -73,14 +76,18 @@ class OlefinFromMethanol(ConversionTechnology):
         """
         if self.settings.investment.use_construction_times:
             attr = self.construction_time
+            m_ng = self.model.conversion_technologies["methanol_from_natural_gas"]
+            construction_time_methanol = m_ng.construction_time.default_value
             attr.set_data(
-                default_value=3,
-                source=AssumptionInformation(
+                default_value=construction_time_methanol,
+                source=SourceInformation(
                     description=(
                         "The construction time of olefin from methanol is "
-                        "manually set to 3 years, assuming a standard "
+                        "manually set to the construction time of methanol "
+                        "from natural gas, assuming a standard "
                         "industrial construction timeline."
                     ),
+                    metadata=m_ng.construction_time.sources[-1].metadata
                 ),
             )
             return attr
@@ -96,8 +103,8 @@ class OlefinFromMethanol(ConversionTechnology):
         aidres_dataset = Aidres(source_path=self.source_path)
         cf_dict = aidres_dataset.get_conversion_factors_aidres(self.name)
         cf = [
-            {carrier: {"default_value": value, "unit": "GWh/tonproduct"}}
-            for carrier, value in cf_dict.items()
+            {carrier: {"default_value": value, "unit": "GWh/tonproduct"}
+            for carrier, value in cf_dict.items()}
         ]
         source = SourceInformation(
             description=(
@@ -109,11 +116,10 @@ class OlefinFromMethanol(ConversionTechnology):
         attr.set_data(default_value=cf, source=source)
         return attr
 
-    # TODO: capex_specific_conversion/opex_specific_fixed should be sourced
-    # from the curated "costs_additional_technologies.xlsx" (AddTech)
-    # dataset, which is not yet implemented in zen_europe; framework
-    # defaults apply.
+    def _set_capex_specific_conversion(self) -> Attribute:
+        """
+        Sets the specific capital expenditure (capex) of olefin from methanol.
 
-    # TODO: capacity_existing has no ported data source for olefin from
-    # methanol (legacy pipeline also leaves it at 0); framework default
-    # applies.
+        """
+        aidres_dataset = Aidres(source_path=self.source_path)
+        return aidres_dataset.get_capex_specific_olefin(self)

@@ -15,6 +15,10 @@
     "default_value": 10000,
     "unit": "Euro/pkm"
   },
+  "max_shed_demand": {
+    "default_value": "inf",
+    "unit": "1"
+  },
   "availability_import": {
     "default_value": 0,
     "unit": "megapkm/hour"

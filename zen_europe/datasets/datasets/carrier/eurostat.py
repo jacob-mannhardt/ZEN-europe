@@ -13,6 +13,7 @@ import pandas as pd
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 from zen_creator.utils.settings import Settings
+from zen_europe.utils.constants import Constants
 
 
 logger = logging.getLogger(__name__)
@@ -381,7 +382,7 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
             heat_data, _HEAT_HOUSEHOLD_SIEC_TOTAL, cutoff_year=self.eurostat_year_time_series)
         heat_data = heat_data.rename(index=_HEAT_HOUSEHOLD_NRG_BAL, level=0)
         heat_data = heat_data.swaplevel(0, 1).sort_index(level=0)
-        return heat_data / 3.6  # convert from TJ to GWh
+        return heat_data / Constants.GJ_PER_MWH  # convert from TJ to GWh
 
     def _query_heat_household_technology(self) -> pd.DataFrame:
         """Load Eurostat household heat data."""
@@ -398,7 +399,7 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         heat_data = heat_data.rename(index=_HEAT_HOUSEHOLD_SIEC, level=2)
         heat_data = heat_data.groupby(level=[1,2]).sum(numeric_only=True)
         heat_data = heat_data.swaplevel(0, 1).sort_index()
-        return heat_data / 3.6  # convert from TJ to GWh
+        return heat_data / Constants.GJ_PER_MWH  # convert from TJ to GWh
 
     def _query_heat_dh_technology(self) -> pd.DataFrame:
         """Load Eurostat district heat data."""
@@ -414,7 +415,7 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         heat_data = heat_data.rename(index=_HEAT_DH_SIEC, level=2)
         heat_data = heat_data.groupby(level=[1,2]).sum(numeric_only=True)
         heat_data = heat_data.swaplevel(0, 1).sort_index()
-        return heat_data / 3.6  # convert from TJ to GWh
+        return heat_data / Constants.GJ_PER_MWH  # convert from TJ to GWh
     
     def _query_coal_availability(self) -> pd.Series:
         """Calculate coal availability, scaled from imports and production

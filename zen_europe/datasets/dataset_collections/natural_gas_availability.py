@@ -18,6 +18,7 @@ from zen_europe.datasets.datasets.technology.scigrid import SciGridIGGIELGNC1
 from zen_europe.datasets.datasets.carrier.entsog import ENTSOG, ENTSOGTransmissionCapacityMap
 from zen_europe.datasets.datasets.carrier.import_increase_gas import ImportIncreaseGas
 from zen_europe.datasets.datasets.carrier.eurostat import Eurostat
+from zen_europe.utils.constants import Constants
 from zen_europe.utils.utils import link_natural_gas_countries, interpolate_missing_years
 
 class NaturalGasAvailability(DatasetCollection):
@@ -112,7 +113,7 @@ class NaturalGasAvailability(DatasetCollection):
         availability_yearly_variation.index.names = ["node", "year"]
         # add domestic production from Eurostat
         eurostat_dataset = cast(Eurostat, self.data["eurostat"])
-        domestic_production = eurostat_dataset.get_natural_gas_production()/8760
+        domestic_production = eurostat_dataset.get_natural_gas_production()/Constants.HOURS_PER_YEAR
         missing_countries = pd.Index(element.model.config.system.set_nodes).difference(
             domestic_production.index)
         common_countries = pd.Index(element.model.config.system.set_nodes).difference(

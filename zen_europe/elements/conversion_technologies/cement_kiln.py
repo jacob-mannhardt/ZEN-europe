@@ -2,10 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.dataset_collections.clinker_data import ClinkerData
+from zen_europe.datasets.datasets.carrier.aidres import Aidres
+from zen_europe.datasets.datasets.carrier.material_economics import MaterialEconomics
+from zen_europe.datasets.datasets.technology.cement_production_gardarsdottir import CementProductionGardarsdottir
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
+from zen_europe.utils.constants import Constants
 
 
 class CementKiln(ConversionTechnology):
@@ -14,8 +20,6 @@ class CementKiln(ConversionTechnology):
 
     name: str = "cement_kiln"
 
-    # tClinker/tCO2eq, https://materialeconomics.com/publications/publication/industrial-transformation-2050
-    CLINKER_CARBON_INTENSITY = 0.54
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -53,68 +57,28 @@ class CementKiln(ConversionTechnology):
         """
         Sets the lifetime of cement kilns.
 
-        TODO: No lifetime data source has been identified/ported for cement
-        kilns; framework default (NaN) is kept.
         """
-        attr = self.lifetime
-        return attr
+        cement_dataset = CementProductionGardarsdottir(source_path=self.source_path)
+        return cement_dataset.get_lifetime(self)
 
+    def _set_construction_time(self) -> Attribute:
+        """
+        Sets the construction time of cement kilns.
+
+        """
+        if self.settings.investment.use_construction_times:
+            cement_dataset = CementProductionGardarsdottir(source_path=self.source_path)
+            return cement_dataset.get_construction_time(self)
+        else:
+            return self.construction_time
+        
     def _set_conversion_factor(self) -> Attribute:
         """
         Return the conversion factor of cement kilns.
 
-        Values based on a fuel consumption of 3.7 GJ per ton of clinker
-        (AIDRES / Material Economics) and 0.29 GJ of electricity per ton of
-        cement, rescaled from cement to clinker basis using the AIDRES
-        clinker-to-cement ratio of 0.70.
         """
-        attr = self.conversion_factor
-        cement_to_clinker = 0.70  # tClinker/tCement, AIDRES
-        fuel_consumption_kiln = 3.7  # GJ/ton clinker
-        cf = [
-            {"electricity": {
-                "default_value": 0.29 / 3600 / cement_to_clinker, "unit": "GWh/tonproduct"}},
-            {"fuel_for_cement": {
-                "default_value": fuel_consumption_kiln / 3600, "unit": "GWh/tonproduct"}},
-        ]
-        attr.set_data(
-            default_value=cf,
-            source=AssumptionInformation(
-                description=(
-                    "The conversion factor of cement kilns is manually "
-                    "derived from a fuel consumption of 3.7 GJ per ton of "
-                    "clinker (AIDRES / Material Economics) and an "
-                    "electricity consumption of 0.29 GJ per ton of cement, "
-                    "rescaled to a clinker basis via the AIDRES "
-                    "clinker-to-cement ratio of 0.70."
-                ),
-            ),
-        )
-        return attr
-
-    def _set_opex_specific_variable(self) -> Attribute:
-        """
-        Sets the specific variable operational expenditure (opex) for
-        cement kilns.
-
-        Returns:
-            Attribute: An Attribute object containing the specific variable opex data.
-        """
-        attr = self.opex_specific_variable
-        attr.set_data(
-            default_value=21.5,
-            unit="Euro/tonproduct",
-            source=AssumptionInformation(
-                description=(
-                    "The variable opex of cement kilns is manually set to "
-                    "21.5 Euro/ton clinker, based on the ECRA (European "
-                    "Cement Research Academy) reference plant "
-                    "(https://www.ecra-online.org/research/technology-papers, "
-                    "Annex II, p. 185)."
-                ),
-            ),
-        )
-        return attr
+        clinker_demand_dataset = ClinkerData(source_path=self.source_path)
+        return clinker_demand_dataset.get_conversion_factor_cement_kiln(self)
 
     def _set_carbon_intensity_technology(self) -> Attribute:
         """
@@ -123,24 +87,38 @@ class CementKiln(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the carbon intensity data.
         """
-        attr = self.carbon_intensity_technology
-        attr.set_data(
-            default_value=self.CLINKER_CARBON_INTENSITY,
-            unit="ton/tonproduct",
-            source=AssumptionInformation(
-                description=(
-                    "The carbon intensity of cement kilns is manually set "
-                    "to the process carbon intensity of clinker production "
-                    "(0.54 tCO2/tClinker), based on Material Economics "
-                    "(2019), 'Industrial Transformation 2050' "
-                    "(https://materialeconomics.com/publications/publication/"
-                    "industrial-transformation-2050)."
-                ),
-            ),
-        )
-        return attr
+        material_economics_dataset = MaterialEconomics(source_path=self.source_path)
+        return material_economics_dataset.get_clinker_carbon_intensity(self)
 
-    # TODO: capex_specific_conversion/opex_specific_fixed should be sourced
-    # from the curated "costs_additional_technologies.xlsx" (AddTech)
-    # dataset, which is not yet implemented in zen_europe; framework
-    # defaults apply.
+    def _set_capex_specific_conversion(self) -> Attribute:
+        """
+        Sets the specific conversion capital expenditure (capex) for cement
+        kilns.
+
+        Returns:
+            Attribute: An Attribute object containing the specific conversion capex data.
+        """
+        cement_dataset = CementProductionGardarsdottir(source_path=self.source_path)
+        return cement_dataset.get_capex_specific(self)
+
+    def _set_opex_specific_fixed(self) -> Attribute:
+        """
+        Sets the specific fixed operational expenditure (opex) for cement
+        kilns.
+
+        Returns:
+            Attribute: An Attribute object containing the specific fixed opex data.
+        """
+        cement_dataset = CementProductionGardarsdottir(source_path=self.source_path)
+        return cement_dataset.get_opex_specific_fixed(self)
+
+    def _set_opex_specific_variable(self) -> Attribute:
+        """
+        Sets the specific variable operational expenditure (opex) for cement
+        kilns.
+
+        Returns:
+            Attribute: An Attribute object containing the specific variable opex data.
+        """
+        cement_dataset = CementProductionGardarsdottir(source_path=self.source_path)
+        return cement_dataset.get_opex_specific_variable(self)

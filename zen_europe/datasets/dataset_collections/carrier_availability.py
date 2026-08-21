@@ -20,6 +20,7 @@ from zen_europe.datasets.datasets.carrier.swiss_energy_balance import (
     SwissEnergyBalance, SwissOilBalance)
 from zen_europe.datasets.datasets.technology.shipping_technologies_korberg import (
     ShippingTechnologiesKorberg)
+from zen_europe.utils.constants import Constants
 
 
 class CarrierAvailability(DatasetCollection):
@@ -80,7 +81,7 @@ class CarrierAvailability(DatasetCollection):
                     "Please provide the necessary data for this country."
                 )    
         
-        data = data.sort_index() / 8760 # from GWh/year to GW
+        data = data.sort_index() / Constants.HOURS_PER_YEAR # from GWh/year to GW
         
         data.index.name = "node"
         data.name = "availability_import"
@@ -134,7 +135,7 @@ class CarrierAvailability(DatasetCollection):
                     "Please provide the necessary data for this country."
                 )    
         
-        data = data.sort_index() / 8760 # from GWh/year to GW
+        data = data.sort_index() / Constants.HOURS_PER_YEAR # from GWh/year to GW
         
         data.index.name = "node"
         data.name = "availability_import"
@@ -186,7 +187,7 @@ class CarrierAvailability(DatasetCollection):
                     "Please provide the necessary data for this country."
                 )    
         
-        data = data.sort_index() / 8760 # from GWh/year to GW
+        data = data.sort_index() / Constants.HOURS_PER_YEAR # from GWh/year to GW
         
         data.index.name = "node"
         data.name = "availability_import"
@@ -236,7 +237,7 @@ class CarrierAvailability(DatasetCollection):
                     "Please provide the necessary data for this country."
                 )    
         
-        data = data.sort_index() / 8760 # from GWh/year to GW
+        data = data.sort_index() / Constants.HOURS_PER_YEAR # from GWh/year to GW
         
         data.index.name = "node"
         data.name = "demand"
@@ -283,7 +284,7 @@ class CarrierAvailability(DatasetCollection):
                     "Please provide the necessary data for this country."
                 )    
         
-        data = data.sort_index() / 8760 # from GWh/year to GW
+        data = data.sort_index() / Constants.HOURS_PER_YEAR # from GWh/year to GW
 
         diesel2shipping = (
             shipping_technologies_korberg_dataset.get_shipping_conversion_factors(

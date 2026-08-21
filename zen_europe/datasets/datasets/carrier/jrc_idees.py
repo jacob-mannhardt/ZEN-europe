@@ -15,6 +15,8 @@ from zen_creator.datasets.datasets.metadata import MetaData
 import pandas as pd
 import requests
 
+from zen_europe.utils.constants import Constants
+
 logger = logging.getLogger(__name__)
 
 # JRC-IDEES only covers the EU27; countries are identified by the same
@@ -36,7 +38,7 @@ _JRC_IDEES_TES_ROWS = {
     "Water heating": "water_heating",
     "Hot water": "water_heating",
 }
-_KTOE2GWH = 1 / 0.0859845  # ktoe (useful energy) -> GWh
+_KTOE2GWH = 1 / Constants.TOE_PER_MWH  # ktoe (useful energy) -> GWh
 
 class JRCIDEES(Dataset[pd.DataFrame]):
     """

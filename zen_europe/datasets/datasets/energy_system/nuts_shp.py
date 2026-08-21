@@ -75,25 +75,20 @@ class NUTSshp(Dataset[pd.DataFrame]):
         set_edges = set_edges.reset_index().set_index("edge")
 
         # create attribute
-        attr = Attribute(
-            "set_edges",
-            element=element,
+        attr = element.set_edges
+        return attr.set_data(
             default_value=None,
             df=set_edges,
-            sources=[
-                SourceInformation(
-                    description=(
-                        "Creates a set of edges based on adjacency between NUTS0 "
-                        "regions. Any two regions that are touching each other are "
-                        "considered adjacent and therefore an edge is created "
-                        "between them."
-                    ),
-                    metadata=self.metadata,
-                )
-            ],
+            source=SourceInformation(
+                description=(
+                    "Creates a set of edges based on adjacency between NUTS0 "
+                    "regions. Any two regions that are touching each other are "
+                    "considered adjacent and therefore an edge is created "
+                    "between them."
+                ),
+                metadata=self.metadata,
+            ),
         )
-
-        return attr
 
     def get_set_nodes(self, element: Element) -> Attribute:
         """
@@ -134,22 +129,17 @@ class NUTSshp(Dataset[pd.DataFrame]):
             {"lon": centroids.x, "lat": centroids.y}, index=centroids.index
         )
 
-        attr = Attribute(
-            "set_nodes",
-            element=element,
+        attr = element.set_nodes
+        return attr.set_data(
             default_value=None,
             df=set_nodes,
-            sources=[
-                SourceInformation(
-                    description=(
-                        "For each node specified in the config, the centroid "
-                        "of the node is added as the location of the node. "
-                        "The centroids are computed in the WGS84 projection and the "
-                        "final coordinates are provided in longitude and latitude."
-                    ),
-                    metadata=self.metadata,
-                )
-            ],
+            source=SourceInformation(
+                description=(
+                    "For each node specified in the config, the centroid "
+                    "of the node is added as the location of the node. "
+                    "The centroids are computed in the WGS84 projection and the "
+                    "final coordinates are provided in longitude and latitude."
+                ),
+                metadata=self.metadata,
+            ),
         )
-
-        return attr

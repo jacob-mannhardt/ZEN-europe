@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from zen_creator import Attribute, SourceInformation
+from zen_creator import Attribute, ConversionTechnology, SourceInformation
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
 import pandas as pd
 
-from zen_europe.utils.utils import convert_country_names
+from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 
 class CO2StorageCostsZEP(Dataset[pd.DataFrame]):
     """
@@ -48,12 +48,12 @@ class CO2StorageCostsZEP(Dataset[pd.DataFrame]):
         return data
 
     # -------- methods ------------------------    
-    def get_lifetime(self) -> Attribute:
+    def get_lifetime(self, element: ConversionTechnology) -> Attribute:
         """
         Returns the lifetime from the ZEP carbon storage report.
         """
-        return Attribute(
-            name="lifetime",
+        attr = element.lifetime
+        return attr.set_data(
             default_value=40,
             unit="1",
             source=SourceInformation(
@@ -66,13 +66,20 @@ class CO2StorageCostsZEP(Dataset[pd.DataFrame]):
             )
         )
 
-    def get_opex_specific_variable(self) -> Attribute:
+    def get_opex_specific_variable(self, element: ConversionTechnology) -> Attribute:
         """
         Returns the specific variable operational expenditure (opex) from the ZEP carbon storage report.
         """
-        return Attribute(
-            name="opex_specific_variable",
-            default_value=4,
+        attr = element.opex_specific_variable
+        opex = 4
+        ecb_inflation = ECBInflation(source_path=self.source_path)
+        inflation = ecb_inflation.get_inflation_rate(
+            base_year=self.MONEY_YEAR,
+            target_year=element.settings.time.reference_year,
+        )
+        opex_data = opex * inflation
+        return attr.set_data(
+            default_value=opex_data,
             unit="Euro/tCO2",
             source=SourceInformation(
                 description=(

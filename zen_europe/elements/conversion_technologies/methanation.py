@@ -8,7 +8,7 @@ from zen_europe.datasets.datasets.technology.methanation_goetz import Methanatio
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
+from zen_creator import Attribute, ConversionTechnology
 
 
 class Methanation(ConversionTechnology):

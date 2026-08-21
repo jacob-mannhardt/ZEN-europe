@@ -113,19 +113,14 @@ class TYNDP_2020_edges(Dataset[Dict[str, pd.DataFrame]]):
         set_edges = set_edges.set_index("edge")
 
         # Create attribute
-        attr = Attribute(
-            name="set_edges",
-            element=element,
+        attr = element.set_edges
+        return attr.set_data(
             default_value=None,
             df=set_edges,
-            sources=[
-                SourceInformation(
-                    description="Edges area added between all All NUTS0 regions "
-                    "that are have transmission lines connecting them in the "
-                    "ENTSO-E TYNDP 2020 data",
-                    metadata=self.metadata,
-                )
-            ],
+            source=SourceInformation(
+                description="Edges area added between all All NUTS0 regions "
+                "that are have transmission lines connecting them in the "
+                "ENTSO-E TYNDP 2020 data",
+                metadata=self.metadata,
+            ),
         )
-
-        return attr

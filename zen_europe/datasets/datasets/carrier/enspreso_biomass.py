@@ -12,6 +12,7 @@ from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 from zen_creator.utils.attribute import Attribute, SourceInformation
 
+from zen_europe.utils.constants import Constants
 from zen_europe.utils.utils import interpolate_missing_years
 
 class EnspresoBiomass(Dataset[pd.DataFrame]):
@@ -84,7 +85,7 @@ class EnspresoBiomassAvailability(EnspresoBiomass):
             biomass_types=biomass_types, 
             scenario=scenario)
         potential = potential.groupby(["NUTS0", "Year"]).sum()["Value"].unstack()
-        potential = potential / 3.6 * 1000 / 8760  # PJ/a -> GW
+        potential = potential / Constants.GJ_PER_MWH * 1000 / Constants.HOURS_PER_YEAR  # PJ/a -> GW
         potential = interpolate_missing_years(potential)
 
         nodes = pd.Index(element.model.config.system.set_nodes)
@@ -140,7 +141,7 @@ class EnspresoBiomassAvailability(EnspresoBiomass):
             biomass_types=biomass_types, 
             scenario=scenario)
         potential = potential.groupby(["NUTS0", "Year"]).sum()["Value"].unstack()
-        potential = potential / 3.6 * 1000  # PJ/a -> GWh
+        potential = potential / Constants.GJ_PER_MWH * 1000  # PJ/a -> GWh
         potential = interpolate_missing_years(potential)
 
         nodes = pd.Index(element.model.config.system.set_nodes)
@@ -271,7 +272,7 @@ class EnspresoBiomassPrice(EnspresoBiomass):
             price = price.unstack(level=0).T
 
         # convert from 2010 Euro/GJ to Euro/MWh in reference year
-        price = price * 3.6
+        price = price * Constants.GJ_PER_MWH
         inflation_rate = element.get_inflation_rate(
             base_year=2010, target_year=element.settings.time.reference_year
         )

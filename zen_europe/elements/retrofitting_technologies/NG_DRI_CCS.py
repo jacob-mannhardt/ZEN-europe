@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator import Attribute, RetrofittingTechnology, SourceInformation
+from zen_europe.utils.constants import Constants
 
 
 class NG_DRI_CCS(RetrofittingTechnology):
@@ -93,7 +94,7 @@ class NG_DRI_CCS(RetrofittingTechnology):
         """
         attr = self.conversion_factor
         cf = [{"electricity": {
-            "default_value": 0.23 / 3.6 / self.CARBON_CAPTURE_NG_DRI,
+            "default_value": 0.23 / Constants.GJ_PER_MWH / self.CARBON_CAPTURE_NG_DRI,
             "unit": "GWh/kilotons"}}]
         dea_dataset = DEA(source_path=self.source_path)
         source = SourceInformation(

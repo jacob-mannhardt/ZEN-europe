@@ -4,10 +4,8 @@ from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.hydro_existing_capacity import HydroExistingCapacity
 from zen_europe.datasets.dataset_collections.lifetime_expectation import LifetimeExpectation
-from zen_europe.datasets.dataset_collections.potential_capacity_renewables import PotentialCapacityRenewables
 from zen_europe.datasets.dataset_collections.run_of_river_hydro_max_load import RunOfRiverHydroMaxLoad
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
-from zen_europe.datasets.datasets.technology.pan_european_climate_database import PanEuropeanClimateDatabase
 
 if TYPE_CHECKING:
     from zen_creator.model import Model

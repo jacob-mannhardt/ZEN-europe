@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, cast
+from typing import TYPE_CHECKING, Any, Dict
 
 import pandas as pd
 
@@ -10,14 +10,13 @@ if TYPE_CHECKING:
     from zen_creator import Dataset, Element
 
 
-from zen_creator import Attribute, DatasetCollection
+from zen_creator import DatasetCollection
     
 from zen_europe.datasets.datasets.carrier.entsoe import ENTSOE
 
 from zen_creator.utils.settings import Settings
 
 import calendar
-import logging
 import pandas as pd
 
 class NuclearMaxLoad(DatasetCollection):

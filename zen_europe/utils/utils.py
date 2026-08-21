@@ -5,7 +5,7 @@ from zen_creator import Technology
 MIN_CAPACITY_ADDITION = 1e-5
 
 # maps the country names used in the raw source file to NUTS0 node codes,
-def convert_country_names(series: pd.Series):
+def convert_country_names(series: pd.Series) -> pd.Series:
     """ this method converts a series of country names into the node names used here """
     country_names = {
         "Austria": "AT",

@@ -1,6 +1,5 @@
 from typing import Optional
 
-from scipy.odr import Model
 from zen_creator.utils.settings import SettingsCategory
 
 

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import ast
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -11,6 +10,8 @@ from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
 import pandas as pd
+
+from zen_europe.utils.constants import Constants
 
 class GIELNGMap(Dataset[pd.DataFrame]):
     """
@@ -29,7 +30,7 @@ class GIELNGMap(Dataset[pd.DataFrame]):
 
     name = "gie_lng_map"
     
-    _GCV_LNG = 11.65 # most common value in the scigrid database, in kWh/m3
+    _GCV_LNG = Constants.LNG_GCV_KWH_PER_M3 # most common value in the scigrid database, in kWh/m3
     def __init__(self, source_path: Path | str | None = None):
         super().__init__(source_path=source_path)
 
@@ -59,7 +60,7 @@ class GIELNGMap(Dataset[pd.DataFrame]):
         lng_terminals_raw["GWh_hourly"] = (
             lng_terminals_raw["send_out_cm_per_h"] * self._GCV_LNG / 1e6)
         lng_terminals_raw["capacity_existing"] = pd.concat([lng_terminals_raw["GWh_hourly"].fillna(0), 
-            lng_terminals_raw["GWh_annual"] / 8760],axis=1).max(axis=1)
+            lng_terminals_raw["GWh_annual"] / Constants.HOURS_PER_YEAR],axis=1).max(axis=1)
         lng_terminals = lng_terminals_raw["capacity_existing"]
         return lng_terminals
 

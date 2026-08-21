@@ -2,14 +2,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.datasets.financial.ECB import ECBInflation
+
 if TYPE_CHECKING:
     from pathlib import Path
 
     from zen_creator.elements.carriers.carrier import Carrier
+from zen_creator import Attribute, ConversionTechnology
 from zen_creator.datasets.datasets.dataset import Dataset
-from zen_creator.datasets.datasets.metadata import MetaData
+from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
 
 import pandas as pd
+
+from zen_europe.utils.constants import Constants
 
 class Aidres(Dataset[pd.DataFrame]):
     """
@@ -103,7 +108,7 @@ class Aidres(Dataset[pd.DataFrame]):
         Returns:
             A float representing the energy density of methanol in MWh/t.
         """
-        return 20.1/3.6
+        return 20.1 / Constants.GJ_PER_MWH
     
     def get_conversion_factors_aidres(self,technology: str) -> dict[str, float]:
         """
@@ -118,15 +123,113 @@ class Aidres(Dataset[pd.DataFrame]):
         """
         conversion_factors = {
             "olefin_from_methanol": {
-                "methanol": 49.01 / 3600, # GWh/t, Table 32 (MeOH) O
-                "electricity": 0.66 / 3600, # GWh/t, Table 32 (MeOH) O
+                "methanol": 49.01 / (Constants.GJ_PER_MWH * 1000), # GWh/t, Table 32 (MeOH) O
+                "electricity": 0.66 / (Constants.GJ_PER_MWH * 1000), # GWh/t, Table 32 (MeOH) O
             },
             "olefin_from_naphtha": {
-                "naphtha": 60.52 / 3600, # GWh/t, Table 32 (LN) O (REF)
-                "electricity": 1.06 / 3600, # GWh/t, Table 32 (LN) O (REF)
+                "naphtha": 60.52 / (Constants.GJ_PER_MWH * 1000), # GWh/t, Table 32 (LN) O (REF)
+                "electricity": 1.06 / (Constants.GJ_PER_MWH * 1000), # GWh/t, Table 32 (LN) O (REF)
             },
         }
         if technology not in conversion_factors:
             raise ValueError(f"Conversion factors for technology {technology} "
                              f"are not available in the Aidres dataset.")
         return conversion_factors[technology]
+
+    def get_capex_specific_olefin(self,element: ConversionTechnology) -> Attribute:
+        """
+        Get the specific capital expenditure (capex) for olefin from methanol technologies.
+
+        The total capex comes from page 69
+        Returns:
+            Attribute: An Attribute object containing the specific capex data.
+        """
+        capex_total = {
+            "olefin_from_methanol": 173.4 * 1e6, # Euro, MTO
+            "olefin_from_naphtha": 1042.8 * 1e6, # Euro, NTO
+        }
+        capacity = {
+            "olefin_from_methanol": 33120, # kg/h, MTO
+            "olefin_from_naphtha": 125000, # kg/h, NTO
+        }
+        money_year = {
+            "olefin_from_methanol": 2013, # MTO
+            "olefin_from_naphtha": 2017, # NTO
+        }
+        if element.name not in capex_total:
+            raise ValueError(f"Capex data for technology {element.name} "
+                             f"are not available in the Aidres dataset.")
+        capex_total_value = capex_total[element.name]
+        capacity_value = capacity[element.name]
+        capex_specific_value = capex_total_value / capacity_value * 1000 # Euro/(t/h)
+        inflation = ECBInflation(source_path=self.source_path).get_inflation_rate(
+            base_year=money_year[element.name],
+            target_year=element.settings.time.reference_year
+        )
+        capex_specific_value *= inflation
+        attr = element.capex_specific_conversion
+        attr.set_data(
+            default_value=capex_specific_value,
+            unit="Euro/(tproduct/h)",
+            source=SourceInformation(
+                description=(
+                    f"The specific capital expenditure (capex) for {element.name} "
+                    "technologies is based on the work of Aidres et al. (2023)."
+                ),
+                metadata=self.metadata,
+            ),
+        )
+        return attr
+
+    def get_conversion_factor_cement_fuel(
+            self, element: ConversionTechnology) -> Attribute:
+        """
+        Get the conversion factor for cement fuel technologies from the Aidres dataset.
+
+        This method retrieves the conversion factor for cement fuel technologies 
+        from the Aidres dataset and returns it as an Attribute object.
+
+        Returns:
+            An Attribute object containing the conversion factor for cement fuel technologies.
+        """
+        attr = element.conversion_factor
+        consumption_hard_coal = 2.13 # GJ/ton, 
+        cf = {"hydrogen_to_cement_fuel": 2.46/consumption_hard_coal, # alternative fuel mix
+            "biomass_to_cement_fuel": 2.77/consumption_hard_coal, # biomass
+            "waste_to_cement_fuel": 2.46/consumption_hard_coal, # waste
+            "coal_to_cement_fuel": 1, # coal
+            }
+        assert element.name in cf, f"Conversion factor for {element.name} not found."
+
+        attr.set_data(
+            default_value=cf[element.name],
+            unit="GW/GW",
+            source=SourceInformation(
+                description=(
+                    f"The conversion factor for cement fuel technologies is based"
+                    " on the work of Aidres et al. (2023)."
+                ),
+                metadata=self.metadata,
+            ),
+        )
+        return attr
+
+    def get_share_capacity_existing_cement_fuel(self) -> float:
+        """
+        Get the share of existing capacity for cement fuel technologies from the Aidres dataset.
+
+        This method retrieves the share of existing capacity for cement fuel technologies 
+        from the Aidres dataset and returns it as a float.
+
+        p. 47
+
+        Returns:
+            A float representing the share of existing capacity for cement fuel technologies.
+        """
+        existing_capacity_share = {
+            "hydrogen_to_cement_fuel": 0.0, # no existing capacity
+            "biomass_to_cement_fuel": 0.16, # 16% of existing capacity
+            "waste_to_cement_fuel": 0.3, # 30% of existing capacity
+            "coal_to_cement_fuel": 0.54, # 54% of existing capacity
+        }
+        return existing_capacity_share

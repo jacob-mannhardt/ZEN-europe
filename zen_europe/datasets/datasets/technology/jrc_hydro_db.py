@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from zen_creator.datasets.datasets.dataset import Dataset
-from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
-from zen_europe.utils.utils import convert_country_names, format_capacity_existing
+from zen_creator.datasets.datasets.metadata import MetaData
 import pandas as pd
-import logging
 
 class JRCHydroPowerDatabase(Dataset[pd.DataFrame]):
     """

@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Dict, cast
+from typing import TYPE_CHECKING, Any, Dict
 
-import pandas as pd
 
-from zen_europe.datasets.dataset_collections.hydro_existing_capacity import HydroExistingCapacity
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
 from zen_europe.datasets.datasets.technology.powerplantmatching import PowerPlantMatching
 
@@ -19,11 +17,7 @@ if TYPE_CHECKING:
 from zen_creator import Attribute, DatasetCollection
 from zen_creator.utils.attribute import SourceInformation
 
-from zen_europe.datasets.datasets.technology.pan_european_climate_database import (
-    PanEuropeanClimateDatabase)
-from zen_europe.datasets.datasets.carrier.entsoe import ENTSOE
 
-from zen_creator.utils.settings import Settings
 
 
 class LifetimeExpectation(DatasetCollection):

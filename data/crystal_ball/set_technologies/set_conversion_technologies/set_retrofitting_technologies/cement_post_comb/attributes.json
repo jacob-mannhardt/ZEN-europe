@@ -88,26 +88,22 @@
   },
   "conversion_factor": [
     {
+      "fuel_for_cement": {
+        "default_value": 0.833,
+        "unit": "GW/(kilotCO2eq/hour)"
+      }
+    },
+    {
       "district_heat": {
         "default_value": 1.65,
-        "unit": "GW/(kilotCO2eq/hour)"
+        "unit": "GW/((kilotCO2eq/hour))"
       }
     },
     {
       "electricity": {
         "default_value": 0.025,
-        "unit": "GW/((kilotCO2eq/hour))"
-      }
-    },
-    {
-      "fuel_for_cement": {
-        "default_value": 0.833,
         "unit": "GW/(((kilotCO2eq/hour)))"
       }
     }
-  ],
-  "min_full_load_hours_fraction": {
-    "default_value": 0,
-    "unit": "1"
-  }
+  ]
 }

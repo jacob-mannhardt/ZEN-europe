@@ -12,7 +12,9 @@ from zen_creator.utils.attribute import Attribute
 
 import pandas as pd
 
-_KTOE2GWH = 1 / 0.0859845  # ktoe (useful energy) -> GWh
+from zen_europe.utils.constants import Constants
+
+_KTOE2GWH = 1 / Constants.TOE_PER_MWH  # ktoe (useful energy) -> GWh
 
 class DESNZ(Dataset[pd.DataFrame]):
     """

@@ -77,20 +77,16 @@
   },
   "conversion_factor": [
     {
-      "electricity": {
-        "default_value": 0.00029444444444444445,
+      "naphtha": {
+        "default_value": 0.016811111111111113,
         "unit": "GW/(tonproduct/hour)"
       }
     },
     {
-      "naphtha": {
-        "default_value": 0.016811111111111113,
+      "electricity": {
+        "default_value": 0.00029444444444444445,
         "unit": "GW/((tonproduct/hour))"
       }
     }
-  ],
-  "min_full_load_hours_fraction": {
-    "default_value": 0,
-    "unit": "1"
-  }
+  ]
 }

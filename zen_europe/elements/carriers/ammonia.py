@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 from zen_europe.datasets.datasets.carrier.ifa import IFA
+from zen_europe.utils.constants import Constants
 
 class Ammonia(Carrier):
     """Ammonia carrier class.
@@ -15,13 +16,9 @@ class Ammonia(Carrier):
     """
 
     name: str = "ammonia"
-    
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
-        # GWh per ton NH3, Danish Energy Agency "Technology Data for Renewable Fuels"
-        # https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
-        self._TON_NH3_TO_GWH = 18.9 / 3600
 
     # ----Example of optional methods for overriding default attributes ------
 

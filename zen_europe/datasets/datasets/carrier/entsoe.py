@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import calendar
 import json
 import logging
 import os

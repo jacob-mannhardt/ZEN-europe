@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
 from zen_creator import Attribute
+from zen_europe.utils.constants import Constants
 
 
 class PanEuropeanClimateDatabase(Dataset[pd.DataFrame]):
@@ -376,7 +377,7 @@ class PanEuropeanClimateDatabase(Dataset[pd.DataFrame]):
         data = data[common_nodes]
         data = data.reset_index(drop=True)
         data.index = data.index*7*24 # convert from weekly to hourly time series
-        data = data.reindex(range(8760), method="ffill") # fill missing hours
+        data = data.reindex(range(int(Constants.HOURS_PER_YEAR)), method="ffill") # fill missing hours
         data = data/(7*24) # convert from weekly to hourly outflow
         data = data/1000 # convert from MWh to GWh
         data.index.name = "time"

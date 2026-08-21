@@ -63,9 +63,6 @@ class MethanolFromHydrogen(ConversionTechnology):
         """
         Return the conversion factor of methanol from hydrogen.
 
-        Values from the DEA technology catalogue for renewable fuels
-        (Methanol from hydrogen and carbon dioxide).
-        https://ens.dk/en/our-services/projections-and-models/technology-data/technology-data-renewable-fuels
         """
         attr = self.conversion_factor
         dea_dataset = DEA(source_path=self.source_path)

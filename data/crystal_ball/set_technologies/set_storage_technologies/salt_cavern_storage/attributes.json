@@ -119,6 +119,10 @@
     "default_value": 0,
     "unit": "GW"
   },
+  "initial_storage_level": {
+    "default_value": "inf",
+    "unit": "1"
+  },
   "reference_carrier": {
     "default_value": [
       "hydrogen"

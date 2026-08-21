@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
-from zen_europe.datasets.dataset_collections.clinker_demand import ClinkerDemand
+from zen_europe.datasets.dataset_collections.clinker_data import ClinkerData
 
 class Clinker(Carrier):
     """Clinker carrier class.
@@ -40,5 +40,5 @@ class Clinker(Carrier):
         Return the demand of clinker.
 
         """
-        clinker_demand = ClinkerDemand(source_path=self.source_path)
-        return clinker_demand.get_clinker_demand(element=self)
+        clinker_data = ClinkerData(source_path=self.source_path)
+        return clinker_data.get_clinker_demand(element=self)

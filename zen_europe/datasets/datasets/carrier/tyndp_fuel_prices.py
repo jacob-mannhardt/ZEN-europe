@@ -11,6 +11,8 @@ from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
 
 import pandas as pd
 
+from zen_europe.utils.constants import Constants
+
 
 class TYNDPFuelPrices(Dataset[pd.DataFrame]):
     """
@@ -63,7 +65,7 @@ class TYNDPFuelPrices(Dataset[pd.DataFrame]):
         if element.name not in self.data.index:
             raise ValueError(f"Fuel price for {element.name}" 
                              "is not available in the TYNDP 2020 dataset.")
-        default_value = self.data.loc[element.name] * 3.6  # convert from €/GJ to €/MWh
+        default_value = self.data.loc[element.name] * Constants.GJ_PER_MWH  # convert from €/GJ to €/MWh
         inflation = element.get_inflation_rate(
             base_year=2020, target_year=element.model.config.system.reference_year)
         source = SourceInformation(

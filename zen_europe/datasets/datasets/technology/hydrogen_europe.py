@@ -7,7 +7,6 @@ from zen_creator.datasets.datasets.metadata import MetaData
 
 import pandas as pd
 
-from zen_europe.utils.utils import convert_country_names
 
 class HydrogenEurope(Dataset[pd.DataFrame]):
     """

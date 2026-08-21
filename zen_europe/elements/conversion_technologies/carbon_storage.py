@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 from zen_europe.datasets.datasets.technology.CO2_storage_costs_ZEP import CO2StorageCostsZEP
 from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import IOGPCarbonStorageProjects
-from zen_europe.datasets.datasets.technology.energyinst_carbon_storage_limit import OGExtractionCarbonStorageLimit
+from zen_europe.datasets.datasets.technology.energyinst_world_energy_review import EnergyInstituteWorldEnergyReview
 from zen_europe.datasets.datasets.technology.northern_lights_costs import NorthernLightsCosts
 
 if TYPE_CHECKING:
@@ -55,7 +54,7 @@ class CarbonStorage(ConversionTechnology):
 
         """
         zep_costs = CO2StorageCostsZEP(source_path=self.source_path)
-        return zep_costs.get_lifetime()
+        return zep_costs.get_lifetime(self)
 
     def _set_construction_time(self) -> Attribute:
         """
@@ -64,7 +63,7 @@ class CarbonStorage(ConversionTechnology):
         """
         if self.settings.investment.use_construction_times:
             nl_costs = NorthernLightsCosts(source_path=self.source_path)
-            return nl_costs.get_construction_time()
+            return nl_costs.get_construction_time(self)
         else:
             return self.construction_time
 
@@ -98,26 +97,8 @@ class CarbonStorage(ConversionTechnology):
             Attribute: An Attribute object containing the specific conversion capex data.
         """
         nl_costs = NorthernLightsCosts(source_path=self.source_path)
-        specific_capex = nl_costs.get_capex_specific()
-        ecb_inflation = ECBInflation(source_path=self.source_path)
-        inflation = ecb_inflation.get_inflation_rate(
-            base_year=NorthernLightsCosts.MONEY_YEAR,
-            target_year=self.settings.time.reference_year,
-        )
-        specific_capex = specific_capex * inflation
-        attr = self.capex_specific_conversion
-        attr.set_data(
-            default_value=specific_capex,
-            unit="Euro/tCO2",
-            source=SourceInformation(
-                description=(
-                    "The specific conversion capex of carbon storage is "
-                    "obtained from the Northern Lights costs dataset."
-                ),
-                metadata=nl_costs.metadata,
-            ),
-        )
-        return attr
+        
+        return nl_costs.get_capex_specific(self)
     
     def _set_opex_specific_variable(self) -> Attribute:
         """
@@ -128,17 +109,7 @@ class CarbonStorage(ConversionTechnology):
             Attribute: An Attribute object containing the specific variable opex data.
         """
         zep_costs = CO2StorageCostsZEP(source_path=self.source_path)
-        opex = zep_costs.get_opex_specific_variable()
-        ecb_inflation = ECBInflation(source_path=self.source_path)
-        inflation = ecb_inflation.get_inflation_rate(
-            base_year=CO2StorageCostsZEP.MONEY_YEAR,
-            target_year=self.settings.time.reference_year,
-        )
-        opex_data = opex.default_value * inflation
-        opex.set_data(
-            default_value=opex_data,
-            source=opex.sources[-1])
-        return opex
+        return zep_costs.get_opex_specific_variable(self)
 
     def _set_carbon_intensity_technology(self) -> Attribute:
         """
@@ -170,7 +141,7 @@ class CarbonStorage(ConversionTechnology):
         """
         if self.settings.investment.use_existing_capacities:
             igop_projects = IOGPCarbonStorageProjects(source_path=self.source_path)
-            return igop_projects.get_capacity_existing()
+            return igop_projects.get_capacity_existing(self)
         else:
             attr = self.capacity_existing
             attr.set_data(
@@ -193,9 +164,9 @@ class CarbonStorage(ConversionTechnology):
         """
         if self.settings.investment.allow_investment:
             if self.settings.data_source.use_OG_carbon_storage_limit:
-                OG_extraction_db = OGExtractionCarbonStorageLimit(
+                OG_extraction_db = EnergyInstituteWorldEnergyReview(
                     source_path=self.source_path)
-                return OG_extraction_db.get_capacity_limit()
+                return OG_extraction_db.get_capacity_limit_carbon_storage(self)
             else:
                 data = self.capacity_existing.df.groupby("node").sum()
                 data.name = "capacity_limit"

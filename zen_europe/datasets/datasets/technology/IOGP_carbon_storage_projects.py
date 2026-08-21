@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from zen_creator import Attribute, SourceInformation
+from zen_creator import Attribute, ConversionTechnology, SourceInformation
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
 import pandas as pd
 
+from zen_europe.utils.constants import Constants
 from zen_europe.utils.utils import convert_country_names, format_capacity_existing
 
 class IOGPCarbonStorageProjects(Dataset[pd.DataFrame]):
@@ -62,15 +63,15 @@ class IOGPCarbonStorageProjects(Dataset[pd.DataFrame]):
         return data
 
     # -------- methods ------------------------    
-    def get_capacity_existing(self) -> Attribute:
+    def get_capacity_existing(self, element: ConversionTechnology) -> Attribute:
         """
         Returns the existing carbon storage capacity from the IOGP report.
         """
+        attr = element.capacity_existing
         data = self.data["co2_storage_injection_capacity_mtpa"]
-        data = data/8760*1e6 # convert from Mtpa to tCO2/h
+        data = data/Constants.HOURS_PER_YEAR*1e6 # convert from Mtpa to tCO2/h
         data = format_capacity_existing(data)
-        return Attribute(
-            name="capacity_existing",
+        return attr.set_data(
             default_value=0,
             df=data,
             unit="tCO2/h",

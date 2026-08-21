@@ -12,6 +12,8 @@ from zen_creator.utils.attribute import Attribute
 
 import pandas as pd
 
+from zen_europe.utils.constants import Constants
+
 _MAP_TECHNOLOGY = {
     "Heizöl": "oil_boiler",
     "Erdgas": "natural_gas_boiler",
@@ -62,10 +64,10 @@ class BFE(Dataset[pd.DataFrame]):
         data_res_water_split = pd.read_excel(
             self.path, sheet_name="Tabelle22",
             skiprows=5,usecols="B:AA")
-        data_res = data_res.set_index("Verwendungszweck") / 3.6 * 1000 # from PJ to GWh
-        data_ser = data_ser.set_index("Verwendungszweck") / 3.6 * 1000 # from PJ to GWh
-        data_res_space_split = data_res_space_split.set_index("Anlagensystem") / 3.6 * 1000 # from PJ to GWh
-        data_res_water_split = data_res_water_split.set_index("Anlagensystem") / 3.6 * 1000 # from PJ to GWh
+        data_res = data_res.set_index("Verwendungszweck") / Constants.GJ_PER_MWH * 1000 # from PJ to GWh
+        data_ser = data_ser.set_index("Verwendungszweck") / Constants.GJ_PER_MWH * 1000 # from PJ to GWh
+        data_res_space_split = data_res_space_split.set_index("Anlagensystem") / Constants.GJ_PER_MWH * 1000 # from PJ to GWh
+        data_res_water_split = data_res_water_split.set_index("Anlagensystem") / Constants.GJ_PER_MWH * 1000 # from PJ to GWh
         return {
             "residential": data_res.sort_index(), 
             "service": data_ser.sort_index(),

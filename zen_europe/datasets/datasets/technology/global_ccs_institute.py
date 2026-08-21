@@ -7,6 +7,7 @@ from zen_creator.datasets.datasets.metadata import MetaData
 
 import pandas as pd
 
+from zen_europe.utils.constants import Constants
 from zen_europe.utils.utils import convert_country_names
 
 class GlobalCCSInstitute(Dataset[pd.DataFrame]):
@@ -18,7 +19,7 @@ class GlobalCCSInstitute(Dataset[pd.DataFrame]):
 
     name = "global_ccs_institute"
 
-    KGH2TOGWH = 33/1e6
+    KGH2TOGWH = Constants.HYDROGEN_GWH_PER_KG
 
     def __init__(self, source_path: Path | str | None = None):
         super().__init__(source_path=source_path)

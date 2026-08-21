@@ -4,7 +4,7 @@
     "unit": "Euro/tons"
   },
   "carbon_emissions_budget": {
-    "default_value": 23.152036605496253,
+    "default_value": 23.15203660549625,
     "unit": "gigatons"
   },
   "carbon_emissions_annual_limit": {

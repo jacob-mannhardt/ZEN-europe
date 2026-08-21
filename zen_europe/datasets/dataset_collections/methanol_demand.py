@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Any, Dict, cast
 
 import pandas as pd
 
+from zen_europe.utils.utils import calculate_capacity_addition_from_cumulative, format_capacity_existing
+
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -18,6 +20,7 @@ from zen_europe.datasets.datasets.carrier.aidres import Aidres
 from zen_europe.datasets.datasets.carrier.manual_methanol_demand import (WITS,
                                                                          Equinor,
                                                                          ChemAnalyst)
+from zen_europe.utils.constants import Constants
 
 class MethanolDemand(DatasetCollection):
     """Extracting methanol demand data."""
@@ -40,11 +43,12 @@ class MethanolDemand(DatasetCollection):
             "chem_analyst": ChemAnalyst(self.source_path),
         }
 
-    def get_methanol_demand(self, element: Element) -> Attribute:
+    def _calculate_methanol_demand(self, element: Element) -> Attribute:
         """
-        Get the demand for methanol.
+        Calculate the methanol demand for the specified element.
 
-        This function retrieves the methanol demand data for the specified element.
+        This function retrieves the methanol demand data for the specified element
+        and returns it as an Attribute object.
         """
         aidres_dataset = cast(Aidres, self.data["aidres"])
         data = aidres_dataset.get_demand(element)
@@ -55,7 +59,7 @@ class MethanolDemand(DatasetCollection):
         missing_countries = pd.Index(element.model.config.system.set_nodes).difference(
             data.index)
         
-        data = data * 1000 / 3.6 # from PJ/year to GWh/year
+        data = data * 1000 / Constants.GJ_PER_MWH # from PJ/year to GWh/year
     
         for country in missing_countries:
             if country == "CH":
@@ -84,9 +88,18 @@ class MethanolDemand(DatasetCollection):
 
         total_european_demand = (
             chem_analyst_dataset.get_total_european_demand() 
-            * aidres_dataset.get_energy_density_methanol() / 8760)
+            * aidres_dataset.get_energy_density_methanol() / Constants.HOURS_PER_YEAR)
 
         data = data / data.sum() * total_european_demand
+        return data
+    
+    def get_methanol_demand(self, element: Element) -> Attribute:
+        """
+        Get the demand for methanol.
+
+        This function retrieves the methanol demand data for the specified element.
+        """
+        data = self._calculate_methanol_demand(element)
 
         source = SourceInformation(
             description=(
@@ -107,3 +120,28 @@ class MethanolDemand(DatasetCollection):
             df=data,
             unit="GW",
         )
+
+    def get_capacity_existing(self, element: Element) -> Attribute:
+        """
+        Get the existing capacity for methanol from natural gas. We assume that all
+        current methanol plants use natural gas as feedstock.
+
+        This function retrieves the existing capacity data for the specified element.
+        """
+        methanol_element = element.model.carriers["methanol"]
+        data = self._calculate_methanol_demand(methanol_element).squeeze()
+        data = data.to_frame(name=element.settings.time.reference_year-1) * 1000
+        capacity_existing = calculate_capacity_addition_from_cumulative(data,element)
+        capacity_existing = format_capacity_existing(capacity_existing)
+
+        source = SourceInformation(
+            description=(
+                "The existing capacity for methanol from natural gas is derived from the "
+                "methanol demand data. We assume that all current methanol plants use natural gas as feedstock. "
+            ),
+            metadata=self.metadata,
+        )
+        return element.capacity_existing.set_data(
+            source=source,
+            df=capacity_existing,
+            unit="MW")

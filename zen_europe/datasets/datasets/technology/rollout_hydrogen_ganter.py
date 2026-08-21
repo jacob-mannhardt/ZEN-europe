@@ -7,6 +7,7 @@ from zen_creator.datasets.datasets.metadata import MetaData
 
 import pandas as pd
 
+from zen_europe.utils.constants import Constants
 from zen_europe.utils.utils import convert_country_names
 
 class HydrogenRolloutGanter(Dataset[pd.DataFrame]):
@@ -17,8 +18,6 @@ class HydrogenRolloutGanter(Dataset[pd.DataFrame]):
     """
 
     name = "hydrogen_rollout_ganter"
-
-    KGH2TOGWH = 33/1e6
 
     def __init__(self, source_path: Path | str | None = None):
         super().__init__(source_path=source_path)
@@ -91,5 +90,5 @@ class HydrogenRolloutGanter(Dataset[pd.DataFrame]):
         capacity_existing_amm = capacity_existing_amm["Capacity (kg/h)"]
         # sum capacities
         capacity_existing = capacity_existing_ref.add(capacity_existing_amm,fill_value=0)
-        capacity_existing = capacity_existing * self.KGH2TOGWH
+        capacity_existing = capacity_existing * Constants.HYDROGEN_GWH_PER_KG
         return capacity_existing

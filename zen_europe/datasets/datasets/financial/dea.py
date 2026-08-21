@@ -16,6 +16,7 @@ from zen_europe.datasets.datasets.financial._cost_schema import (
     INDEX_NAMES,
     VALUE_COLUMNS,
 )
+from zen_europe.utils.constants import Constants
 
 # internal technology name -> DEA (Technology, category, input, size) row key.
 # `size=None` means the technology varies by plant_size in the source data
@@ -242,7 +243,7 @@ _RF_COST_PARS: dict[str, dict[str, tuple[str, float]]] = {
             "excl. electricity and heat [k€/MW output/year]",
             1.0,
         ),
-        "vopex": ("Variable O&M [€/GJ output]", 3.6),
+        "vopex": ("Variable O&M [€/GJ output]", Constants.GJ_PER_MWH),
     },
 }
 _RF_SCENARIOS_DEFAULT = {"min": "Lower", "max": "Upper", "ref": "ctrl"}
@@ -489,7 +490,8 @@ class DEA(Dataset[pd.DataFrame]):
             "lifetime": ["Technical lifetime [years]"],
             "construction_time": ["Construction time [years]"],
         }
-        schema_units = {"efficiency": "-", "lifetime": "years", "construction_time": "years"}
+        schema_units = {"efficiency": "-", "lifetime": "1", "construction_time": "1"}
+        source_units = {"efficiency": "-", "lifetime": "years", "construction_time": "years"}
         for variable, candidate_pars in tech_pars.items():
             for par in candidate_pars:
                 sel = tech_rows[tech_rows["par"] == par]
@@ -502,7 +504,7 @@ class DEA(Dataset[pd.DataFrame]):
                             (
                                 technology, plant_size, scenario, variable, int(row["year"]),
                                 float(row["val"]), schema_units[variable],
-                                None, float(row["val"]), schema_units[variable],
+                                None, float(row["val"]), source_units[variable],
                             )
                         )
                 break
@@ -591,7 +593,8 @@ class DEA(Dataset[pd.DataFrame]):
             "efficiency": "Heat efficiency (annual average, net) [p.u.]",
             "lifetime": "Technical economic lifetime [years]",
         }
-        schema_units = {"efficiency": "-", "lifetime": "years"}
+        schema_units = {"efficiency": "-", "lifetime": "1"}
+        source_units = {"efficiency": "-", "lifetime": "years"}
         for variable, par in tech_pars.items():
             sel = tech_rows[(tech_rows["par"] == par) & (tech_rows["est"] == "ctrl")]
             for _, row in sel.iterrows():
@@ -600,7 +603,7 @@ class DEA(Dataset[pd.DataFrame]):
                         (
                             technology, plant_size, scenario, variable, int(row["year"]),
                             float(row["val"]), schema_units[variable],
-                            None, float(row["val"]), schema_units[variable],
+                            None, float(row["val"]), source_units[variable],
                         )
                     )
         return rows
@@ -679,7 +682,7 @@ class DEA(Dataset[pd.DataFrame]):
                     rows.append(
                         (
                             technology, plant_size, scenario, variable, int(row["year"]),
-                            float(row["val"]), "years", None, float(row["val"]), "years",
+                            float(row["val"]), "1", None, float(row["val"]), "years",
                         )
                     )
         return rows
@@ -812,7 +815,7 @@ class DEA(Dataset[pd.DataFrame]):
         """
         oil_per_input = 0.65  # MWh oil / MWh input
         # DEA tonFTtoGWh = 44 GWh / 3.6 (GJ->GWh not applicable, ton basis) / 1000
-        ton_ft_to_gwh = 44 / 3600  # GWh/ton
+        ton_ft_to_gwh = 44 / (Constants.GJ_PER_MWH * 1000)  # GWh/ton
         return [
             {"hydrogen": {"default_value": 0.995 / oil_per_input, "unit": "GWh/GWh"}},
             {"carbon": {
@@ -863,12 +866,12 @@ class DEA(Dataset[pd.DataFrame]):
         (Methanol from hydrogen and carbon dioxide).
         https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
         """
-        ton_meoh_to_mwh = 20.1 / 3.6
+        ton_meoh_to_mwh = Constants.METHANOL_KWH_PER_KG
         return [
             {"hydrogen": {
                 "default_value": 6.4 / ton_meoh_to_mwh, "unit": "GWh/GWh"}},
             {"carbon": {
-                "default_value": 1.4 / ton_meoh_to_mwh, "unit": "kilotons/GWh"}},
+                "default_value": 1.4 / ton_meoh_to_mwh, "unit": "kilotCO2/GWh"}},
             {"electricity": {
                 "default_value": 0.1 / ton_meoh_to_mwh, "unit": "GWh/GWh"}},
         ]
@@ -899,8 +902,8 @@ class DEA(Dataset[pd.DataFrame]):
         https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage
         """
         return [
-            {"electricity": {"default_value": 0.8, "unit": "GWh/kilotons"}},
-            {"heat": {"default_value": 9.5 / 3.6, "unit": "GWh/kilotons"}},
+            {"electricity": {"default_value": 0.8, "unit": "GWh/kilotCO2"}},
+            {"heat": {"default_value": 9.5 / Constants.GJ_PER_MWH, "unit": "GWh/kilotCO2"}},
         ]
 
     def get_conversion_factor_cement_post_comb(self):
@@ -913,9 +916,9 @@ class DEA(Dataset[pd.DataFrame]):
         https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage
         """
         return [
-            {"electricity": {"default_value": 0.025, "unit": "GWh/kilotons"}},
-            {"fuel_for_cement": {"default_value": 0.833, "unit": "GWh/kilotons"}},
-            {"district_heat": {"default_value": 1.65, "unit": "GWh/kilotons"}},
+            {"electricity": {"default_value": 0.025, "unit": "GWh/kilotCO2"}},
+            {"fuel_for_cement": {"default_value": 0.833, "unit": "GWh/kilotCO2"}},
+            {"district_heat": {"default_value": 1.65, "unit": "GWh/kilotCO2"}},
         ]
 
     def get_conversion_factor_SMR_CCS(self):
@@ -929,8 +932,8 @@ class DEA(Dataset[pd.DataFrame]):
         https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage
         """
         return [
-            {"natural_gas": {"default_value": 0.833, "unit": "GWh/kilotons"}},
-            {"electricity": {"default_value": 0.03, "unit": "GWh/kilotons"}},
+            {"natural_gas": {"default_value": 0.833, "unit": "GWh/kilotCO2"}},
+            {"electricity": {"default_value": 0.03, "unit": "GWh/kilotCO2"}},
         ]
 
     def get_conversion_factor_district_heating_grid(self):

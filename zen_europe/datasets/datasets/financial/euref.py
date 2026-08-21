@@ -127,7 +127,7 @@ class EUREF(Dataset[pd.DataFrame]):
                 variable = _TECH_VARIABLE_SEGMENTS[segment_idx]
                 # efficiency/lifetime have a single value per technology (no year breakdown)
                 values = raw.iloc[2:, segment_start].reset_index(drop=True)
-                schema_unit = "-" if variable == "efficiency" else "years"
+                schema_unit = "-" if variable == "efficiency" else "1"
                 for tech_row, value_src in zip(techs, values):
                     value_src = pd.to_numeric(value_src, errors="coerce")
                     if pd.isna(value_src):

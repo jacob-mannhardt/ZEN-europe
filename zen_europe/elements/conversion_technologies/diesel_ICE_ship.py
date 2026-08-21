@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
+from zen_europe.utils.constants import Constants
 
 
 class DieselICEShip(ConversionTechnology):
@@ -92,7 +93,7 @@ class DieselICEShip(ConversionTechnology):
         korberg_dataset = ShippingTechnologiesKorberg(source_path=self.source_path)
         cf_dict = korberg_dataset.get_shipping_conversion_factors(self)
         fuel_per_service = cf_dict["diesel"]
-        gj_to_mwh = 3.6
+        gj_to_mwh = Constants.GJ_PER_MWH
         vopex = (korberg_dataset.get_fuel_distribution_cost(self) * 
                  gj_to_mwh * fuel_per_service)
         attr.set_data(
@@ -140,7 +141,7 @@ class DieselICEShip(ConversionTechnology):
             shipping_fuel_demand = eurostat_dataset.get_shipping_fuel_demand()
             common_nodes = shipping_fuel_demand.index.intersection(
                 self.model.config.system.set_nodes)
-            demand = shipping_fuel_demand.loc[common_nodes] / 8760
+            demand = shipping_fuel_demand.loc[common_nodes] / Constants.HOURS_PER_YEAR
             cf_dict = self.conversion_factor.default_value
             diesel_cf = next(
                 entry["diesel"]["default_value"] for entry in cf_dict if "diesel" in entry)

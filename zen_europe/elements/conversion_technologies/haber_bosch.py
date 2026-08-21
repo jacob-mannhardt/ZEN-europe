@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.datasets.carrier.ifa import IFA
 from zen_europe.datasets.datasets.financial.dea import DEA
 
 if TYPE_CHECKING:
@@ -62,10 +63,6 @@ class HaberBosch(ConversionTechnology):
         """
         Return the conversion factor of the Haber-Bosch process.
 
-        Values from the DEA technology catalogue for renewable fuels (Green
-        Ammonia plant: Hydrogen to ammonia, excl. electrolyzer and excl.
-        air-separation unit).
-        https://ens.dk/en/our-services/projections-and-models/technology-data/technology-data-renewable-fuels
         """
         attr = self.conversion_factor
         dea_dataset = DEA(source_path=self.source_path)
@@ -131,7 +128,15 @@ class HaberBosch(ConversionTechnology):
             settings=self.settings, source_path=self.source_path)
         return tech_db.get_opex_specific_variable(self)
 
-    # TODO: capacity_existing should be sourced from ammonia demand
-    # (cd.ammonia_demand in the legacy pipeline). There is no AmmoniaDemand
-    # dataset collection implemented yet in zen_europe (unlike clinker,
-    # steel, methanol and olefin demand); framework default applies.
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of the Haber-Bosch process.
+
+        Returns:
+            Attribute: An Attribute object containing the existing capacity data.
+        """
+        if self.settings.investment.use_existing_capacities:
+            ifa_dataset = IFA(source_path=self.source_path)
+            return ifa_dataset.get_capacity_existing(self)
+        else:
+            return self.capacity_existing

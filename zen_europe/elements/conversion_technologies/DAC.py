@@ -3,7 +3,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
-from zen_europe.datasets.datasets.financial import dea
 from zen_europe.datasets.datasets.financial.dea import DEA
 from zen_europe.datasets.datasets.technology.DAC_capacities_zurbriggen import DACCapacitiesZurbriggen
 
@@ -130,7 +129,7 @@ class DAC(ConversionTechnology):
             Attribute: An Attribute object containing the existing capacity data.
         """
         dac_db = DACCapacitiesZurbriggen(source_path=self.source_path)        
-        return dac_db.get_capacity_existing()
+        return dac_db.get_capacity_existing(self)
     # TODO: capacity_existing should be sourced from a "DAC Announced
     # Deployments" tracker, which is not yet implemented as a dataset in
     # zen_europe; framework default applies.

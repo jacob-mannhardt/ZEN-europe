@@ -77,20 +77,16 @@
   },
   "conversion_factor": [
     {
-      "hydrogen": {
-        "default_value": 1.282051282051282,
-        "unit": "GW/GW"
-      }
-    },
-    {
       "carbon": {
         "default_value": 0.16590361445783133,
         "unit": "kilotCO2eq/hour/GW"
       }
+    },
+    {
+      "hydrogen": {
+        "default_value": 1.282051282051282,
+        "unit": "GW/GW"
+      }
     }
-  ],
-  "min_full_load_hours_fraction": {
-    "default_value": 0,
-    "unit": "1"
-  }
+  ]
 }

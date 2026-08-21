@@ -52,7 +52,7 @@
     "unit": "Euro/kW"
   },
   "max_diffusion_rate": {
-    "default_value": "inf",
+    "default_value": 0.13,
     "unit": "1"
   },
   "capex_specific_conversion": {
@@ -77,20 +77,16 @@
   },
   "conversion_factor": [
     {
-      "biomethane": {
-        "default_value": 1.0095911155981827,
-        "unit": "GW/GW"
-      }
-    },
-    {
       "heat": {
         "default_value": 0.10418980312973246,
         "unit": "GW/GW"
       }
+    },
+    {
+      "biomethane": {
+        "default_value": 1.0095911155981827,
+        "unit": "GW/GW"
+      }
     }
-  ],
-  "min_full_load_hours_fraction": {
-    "default_value": 0,
-    "unit": "1"
-  }
+  ]
 }

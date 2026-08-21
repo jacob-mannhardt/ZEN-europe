@@ -4,6 +4,8 @@ from typing import TYPE_CHECKING, Any, Dict, cast
 
 import pandas as pd
 
+from zen_europe.utils.utils import calculate_capacity_addition_from_cumulative, format_capacity_existing
+
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -11,7 +13,7 @@ if TYPE_CHECKING:
     from zen_creator import Dataset, Element
 
 
-from zen_creator import Attribute, DatasetCollection
+from zen_creator import Attribute, ConversionTechnology, DatasetCollection
 from zen_creator.utils.attribute import SourceInformation
 
 from zen_europe.datasets.datasets.carrier.aidres import Aidres
@@ -42,12 +44,10 @@ class SteelDemand(DatasetCollection):
             "material_economics": MaterialEconomics(self.source_path),
         }
 
-    def get_steel_demand(self, element: Element) -> Attribute:
+    def _calculate_steel_demand(self, element: Element) -> tuple[pd.Series, pd.Series]:
         """
-        Get the demand for steel.
-
-        This function retrieves the steel demand data for the specified element.
-        """
+        Calculate the steel demand for the given element.
+        """ 
         aidres_dataset = cast(Aidres, self.data["aidres"])
         data = aidres_dataset.get_demand(element)
         eurofer_dataset = cast(Eurofer, self.data["eurofer"])
@@ -99,7 +99,15 @@ class SteelDemand(DatasetCollection):
         d_yearly_variation = d_yearly_variation.interpolate(method="index")
         d_yearly_variation.index.name = "year"
         d_yearly_variation.name = "demand_yearly_variation"
+        return d, d_yearly_variation
+    
+    def get_steel_demand(self, element: Element) -> Attribute:
+        """
+        Get the demand for steel.
 
+        This function retrieves the steel demand data for the specified element.
+        """
+        d, d_yearly_variation = self._calculate_steel_demand(element)
         source = SourceInformation(
             description=(
                 "Steel demand data is derived from multiple sources. The main source"
@@ -118,4 +126,50 @@ class SteelDemand(DatasetCollection):
             unit="t/h",
         )
     
-    
+    def get_capacity_existing(self, element: ConversionTechnology) -> Attribute:
+        """
+        Get the existing capacity for steel production technologies.
+
+        This function retrieves the existing capacity data for the specified element.
+        """
+        ref_carrier = element.reference_carrier.default_value[0]
+        if ref_carrier == "secondary_steel":
+            assert element.name == "EAF", (
+                "The existing capacity for secondary steel production is assumed"
+                "to be exclusive the EAF technology."
+            )
+        elif ref_carrier == "primary_steel":
+            assert element.name == "BF_BOF", (
+                "The existing capacity for primary steel production is assumed"
+                "to be exclusive the BF-BOF technology."
+            )
+        else:
+            raise ValueError(
+                f"Unexpected reference carrier '{ref_carrier}' for element '{element.name}'."
+            )
+        ref_carrier = element.model.carriers[ref_carrier]
+        capacity_existing, _ = self._calculate_steel_demand(ref_carrier)
+        capacity_existing = capacity_existing.rename(
+            {"demand": element.settings.time.reference_year - 1},axis=1)
+        capacity_existing = calculate_capacity_addition_from_cumulative(
+            capacity_existing,element)
+        capacity_existing = format_capacity_existing(capacity_existing)
+        source = SourceInformation(
+            description=(
+                "It is assumed that all current primary steel demand is based "
+                "on the BF-BOF route, and all current secondary steel demand is based"
+                "on the EAF route. "
+                "Steel demand data is derived from multiple sources. The main source"
+                "is the Aidres dataset. "
+                "Additional manual data for missing countries is obtained from the "
+                "following datasets:"
+                "Eurofer, WorldSteel, and TradeEconomics. "
+                "The secondary steel ratios are derived from the Material Economics dataset."
+            ),
+            metadata=self.metadata,
+        )
+        return element.capacity_existing.set_data(
+            source=source,
+            df=capacity_existing,
+            unit="tproduct/h",
+        )

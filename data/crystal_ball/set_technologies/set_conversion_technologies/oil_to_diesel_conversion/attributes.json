@@ -32,7 +32,7 @@
     "unit": "1"
   },
   "opex_specific_variable": {
-    "default_value": 0,
+    "default_value": 93.1134881224097,
     "unit": "Euro/MWh"
   },
   "carbon_intensity_technology": {
@@ -52,7 +52,7 @@
     "unit": "Euro/MW"
   },
   "max_diffusion_rate": {
-    "default_value": "inf",
+    "default_value": 0.13,
     "unit": "1"
   },
   "capex_specific_conversion": {
@@ -81,9 +81,5 @@
         "unit": "GW/GW"
       }
     }
-  ],
-  "min_full_load_hours_fraction": {
-    "default_value": 0,
-    "unit": "1"
-  }
+  ]
 }

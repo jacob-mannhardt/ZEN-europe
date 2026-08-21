@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.datasets.technology.methanol_production_collodi import MethanolProductionCollodi
+from zen_europe.datasets.dataset_collections.methanol_demand import MethanolDemand
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
+from zen_creator import Attribute, ConversionTechnology
 
 
 class MethanolFromNaturalGas(ConversionTechnology):
@@ -51,19 +54,9 @@ class MethanolFromNaturalGas(ConversionTechnology):
         Sets the lifetime of methanol from natural gas.
 
         """
-        attr = self.lifetime
-        attr.set_data(
-            default_value=25,
-            source=AssumptionInformation(
-                description=(
-                    "The lifetime of methanol from natural gas is manually "
-                    "set to 25 years, based on the cost study reported in "
-                    "https://www.sciencedirect.com/science/article/pii/S1876610217313280 "
-                    "(p. 10)."
-                ),
-            ),
-        )
-        return attr
+        methanol_production_dataset = MethanolProductionCollodi(
+            source_path=self.source_path)
+        return methanol_production_dataset.get_lifetime(element=self)
 
     def _set_construction_time(self) -> Attribute:
         """
@@ -71,18 +64,9 @@ class MethanolFromNaturalGas(ConversionTechnology):
 
         """
         if self.settings.investment.use_construction_times:
-            attr = self.construction_time
-            attr.set_data(
-                default_value=3,
-                source=AssumptionInformation(
-                    description=(
-                        "The construction time of methanol from natural gas "
-                        "is manually set to 3 years, assuming a standard "
-                        "industrial construction timeline."
-                    ),
-                ),
-            )
-            return attr
+            methanol_production_dataset = MethanolProductionCollodi(
+                source_path=self.source_path)
+            return methanol_production_dataset.get_construction_time(element=self)
         else:
             return self.construction_time
 
@@ -90,37 +74,44 @@ class MethanolFromNaturalGas(ConversionTechnology):
         """
         Return the conversion factor of methanol from natural gas.
 
-        Values from the cost study reported in
-        https://www.sciencedirect.com/science/article/pii/S1876610217313280
-        (p. 10).
         """
-        attr = self.conversion_factor
-        cf = [
-            {"natural_gas": {"default_value": 1760 / 1163, "unit": "GWh/GWh"}},
-            {"electricity": {"default_value": 18.47 / 1163, "unit": "GWh/GWh"}},
-        ]
-        attr.set_data(
-            default_value=cf,
-            source=AssumptionInformation(
-                description=(
-                    "The conversion factor of methanol from natural gas is "
-                    "manually derived from the cost study reported in "
-                    "https://www.sciencedirect.com/science/article/pii/S1876610217313280 "
-                    "(p. 10)."
-                ),
-            ),
-        )
-        return attr
+        methanol_production_dataset = MethanolProductionCollodi(
+            source_path=self.source_path)
+        return methanol_production_dataset.get_conversion_factor(element=self)
 
-    # TODO: capex_specific_conversion/opex_specific_fixed should be sourced
-    # from the curated "costs_additional_technologies.xlsx" (AddTech)
-    # dataset, which is not yet implemented in zen_europe; framework
-    # defaults apply.
+    def _set_capex_specific_conversion(self) -> Attribute:
+        """
+        Sets the specific conversion CAPEX of methanol from natural gas.
 
-    # TODO: capacity_existing should be sourced from methanol demand
-    # (cd.methanol_demand in the legacy pipeline). A MethanolDemand dataset
-    # collection exists in zen_europe (see
-    # zen_europe/datasets/dataset_collections/methanol_demand.py), but its
-    # public method is designed to populate a Carrier's `demand` attribute
-    # rather than a ConversionTechnology's `capacity_existing`; adapting it
-    # is left as a TODO rather than duplicating its internal logic here.
+        """
+        methanol_production_dataset = MethanolProductionCollodi(
+            source_path=self.source_path)
+        return methanol_production_dataset.get_capex_specific(element=self)
+
+    def _set_opex_specific_fixed(self) -> Attribute:
+        """
+        Sets the specific fixed OPEX of methanol from natural gas.
+
+        """
+        methanol_production_dataset = MethanolProductionCollodi(
+            source_path=self.source_path)
+        return methanol_production_dataset.get_opex_specific_fixed(element=self)
+
+    def _set_opex_specific_variable(self) -> Attribute:
+        """
+        Sets the specific variable OPEX of methanol from natural gas.
+
+        """
+        methanol_production_dataset = MethanolProductionCollodi(
+            source_path=self.source_path)
+        return methanol_production_dataset.get_opex_specific_variable(element=self)
+
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of methanol from natural gas.
+
+        """
+        methanol_demand_dataset = MethanolDemand(
+            source_path=self.source_path)
+        return methanol_demand_dataset.get_capacity_existing(element=self)
+    

@@ -77,20 +77,16 @@
   },
   "conversion_factor": [
     {
-      "electricity": {
-        "default_value": 0.00011507936507936508,
+      "fuel_for_cement": {
+        "default_value": 0.0010277777777777778,
         "unit": "GW/(tonproduct/hour)"
       }
     },
     {
-      "fuel_for_cement": {
-        "default_value": 0.0010277777777777778,
+      "electricity": {
+        "default_value": 0.00011507936507936508,
         "unit": "GW/((tonproduct/hour))"
       }
     }
-  ],
-  "min_full_load_hours_fraction": {
-    "default_value": 0,
-    "unit": "1"
-  }
+  ]
 }

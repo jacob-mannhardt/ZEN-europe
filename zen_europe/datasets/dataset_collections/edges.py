@@ -54,24 +54,19 @@ class Edges(DatasetCollection):
         set_edges = pd.concat([nuts_edges, tyndp_edges]).drop_duplicates().sort_index()
 
         # Create edges
-        attr = Attribute(
-            name="set_edges",
+        attr = element.set_edges
+        return attr.set_data(
             default_value=None,
-            element=element,
             df=set_edges,
-            sources=[
-                SourceInformation(
-                    description=(
-                        "Edges are constructed in two steps: first, NUTS0 "
-                        "countries that share a border are assumed to be "
-                        "connected by an edge [NUTSshp]; "
-                        "second, transmission edges from "
-                        "TYNDP are added to this adjacency-based network."
-                        "[tyndp_2020_edges]"
-                    ),
-                    metadata=self.metadata,
-                )
-            ],
+            source=SourceInformation(
+                description=(
+                    "Edges are constructed in two steps: first, NUTS0 "
+                    "countries that share a border are assumed to be "
+                    "connected by an edge [NUTSshp]; "
+                    "second, transmission edges from "
+                    "TYNDP are added to this adjacency-based network."
+                    "[tyndp_2020_edges]"
+                ),
+                metadata=self.metadata,
+            ),
         )
-
-        return attr

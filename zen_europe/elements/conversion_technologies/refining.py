@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.datasets.financial.ECB import ECBDollar2Euro
+from zen_europe.datasets.datasets.technology.LCA_refining import LCARefining
+from zen_europe.datasets.datasets.technology.economics_of_oil_refining import EconomicsOfOilRefining
+from zen_europe.datasets.datasets.technology.energyinst_world_energy_review import EnergyInstituteWorldEnergyReview
+from zen_europe.datasets.datasets.technology.future_hydrogen_demand_neuwirth import FutureHydrogenDemandNeuwirth
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, SourceInformation
+from zen_creator import Attribute, ConversionTechnology
 
 
 class Refining(ConversionTechnology):
@@ -52,17 +55,8 @@ class Refining(ConversionTechnology):
         Sets the lifetime of refining.
 
         """
-        attr = self.lifetime
-        attr.set_data(
-            default_value=30,
-            source=AssumptionInformation(
-                description=(
-                    "The lifetime of refining is manually set to 30 years, "
-                    "based on https://www.mdpi.com/1996-1073/12/24/4664."
-                ),
-            ),
-        )
-        return attr
+        lca_ref_dataset = LCARefining(source_path=self.source_path)
+        return lca_ref_dataset.get_lifetime()
 
     def _set_construction_time(self) -> Attribute:
         """
@@ -70,18 +64,8 @@ class Refining(ConversionTechnology):
 
         """
         if self.settings.investment.use_construction_times:
-            attr = self.construction_time
-            attr.set_data(
-                default_value=3,
-                source=AssumptionInformation(
-                    description=(
-                        "The construction time of refining is manually set "
-                        "to 3 years, based on "
-                        "https://www.mdpi.com/1996-1073/12/24/4664."
-                    ),
-                ),
-            )
-            return attr
+            lca_ref_dataset = LCARefining(source_path=self.source_path)
+            return lca_ref_dataset.get_construction_time()
         else:
             return self.construction_time
 
@@ -93,55 +77,20 @@ class Refining(ConversionTechnology):
         0.541 MWh_H2/toe of oil product, converted to a MWh/MWh basis using
         the standard MWh-to-toe conversion factor (1 MWh = 0.0859845 toe).
         """
-        attr = self.conversion_factor
-        mwh_to_toe = 0.0859845
-        cf = [
-            {"crude_oil": {"default_value": 1, "unit": "GWh/GWh"}},
-            {"hydrogen": {
-                "default_value": 0.541 * mwh_to_toe, "unit": "GWh/GWh"}},
-        ]
-        attr.set_data(
-            default_value=cf,
-            source=AssumptionInformation(
-                description=(
-                    "The conversion factor of refining is manually set, "
-                    "assuming a lossless crude-oil-to-oil conversion and a "
-                    "hydrogen demand of 0.541 MWh H2 per toe of oil product."
-                ),
-            ),
+        future_H2_dataset = (
+            FutureHydrogenDemandNeuwirth(source_path=self.source_path)
         )
-        return attr
+        return future_H2_dataset.get_conversion_factor_refining(self)
 
     def _set_capex_specific_conversion(self) -> Attribute:
         """
         Sets the specific capital expenditure (capex) for refining.
 
-        Manually set based on an investment of 6 bn USD for an 8 Mt/y
-        refinery, https://link.springer.com/chapter/10.1007/978-3-030-86884-0_3
-
         Returns:
             Attribute: An Attribute object containing the specific capex data.
         """
-        attr = self.capex_specific_conversion
-        ecb_dataset = ECBDollar2Euro(source_path=self.source_path)
-        dollar2euro = ecb_dataset.get_dollar2euro(2022)
-        mwh_to_toe = 0.0859845
-        capacity_mt_per_h = 8 / 8760
-        capex = 6 * 1e3 / capacity_mt_per_h * dollar2euro * mwh_to_toe
-        attr.set_data(
-            default_value=capex,
-            unit="Euro/MW",
-            source=SourceInformation(
-                description=(
-                    "The specific capex of refining is a manually derived "
-                    "value assuming an investment of 6 bn USD for an 8 Mt/y "
-                    "refinery, converted to EUR using the ECB USD/EUR "
-                    "reference exchange rate for 2022."
-                ),
-                metadata=ecb_dataset.metadata,
-            ),
-        )
-        return attr
+        oil_ref_dataset = EconomicsOfOilRefining(source_path=self.source_path)
+        return oil_ref_dataset.get_capex_specific()
 
     def _set_opex_specific_fixed(self) -> Attribute:
         """
@@ -154,28 +103,8 @@ class Refining(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
         """
-        attr = self.opex_specific_fixed
-        ecb_dataset = ECBDollar2Euro(source_path=self.source_path)
-        dollar2euro = ecb_dataset.get_dollar2euro(2022)
-        mwh_to_toe = 0.0859845
-        capacity_mt_per_h = 8 / 8760
-        opex_fixed = (
-            (0.015 * 6 * 1e3 + 27.5) / capacity_mt_per_h * dollar2euro * mwh_to_toe)
-        attr.set_data(
-            default_value=opex_fixed,
-            unit="Euro/MW",
-            source=SourceInformation(
-                description=(
-                    "The specific fixed opex of refining is a manually "
-                    "derived value assuming 1.5% of investment for "
-                    "maintenance plus 27.5 M USD/year for personnel, "
-                    "converted to EUR using the ECB USD/EUR reference "
-                    "exchange rate for 2022."
-                ),
-                metadata=ecb_dataset.metadata,
-            ),
-        )
-        return attr
+        oil_ref_dataset = EconomicsOfOilRefining(source_path=self.source_path)
+        return oil_ref_dataset.get_opex_specific_fixed()
 
     def _set_opex_specific_variable(self) -> Attribute:
         """
@@ -187,26 +116,17 @@ class Refining(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the specific variable opex data.
         """
-        attr = self.opex_specific_variable
-        ecb_dataset = ECBDollar2Euro(source_path=self.source_path)
-        dollar2euro = ecb_dataset.get_dollar2euro(2022)
-        mwh_to_toe = 0.0859845
-        ton_to_barrel = 7.46
-        opex_variable = ton_to_barrel * dollar2euro * mwh_to_toe
-        attr.set_data(
-            default_value=opex_variable,
-            unit="Euro/MWh",
-            source=SourceInformation(
-                description=(
-                    "The specific variable opex of refining is a manually "
-                    "derived value assuming 1 USD/barrel, converted to EUR "
-                    "using the ECB USD/EUR reference exchange rate for 2022."
-                ),
-                metadata=ecb_dataset.metadata,
-            ),
-        )
-        return attr
+        oil_ref_dataset = EconomicsOfOilRefining(source_path=self.source_path)
+        return oil_ref_dataset.get_opex_specific_variable()
 
-    # TODO: capacity_existing should be sourced from the Energy Institute
-    # Statistical Review of World Energy (refining capacity), which is not
-    # yet implemented as a dataset in zen_europe; framework default applies.
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing refining capacity in Europe.
+
+        Returns:
+            Attribute: An Attribute object containing the existing refining capacity data.
+        """
+        energyinst_dataset = (
+            EnergyInstituteWorldEnergyReview(source_path=self.source_path)
+        )
+        return energyinst_dataset.get_capacity_existing_refining(self)

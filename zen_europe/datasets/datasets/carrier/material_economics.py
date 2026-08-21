@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pathlib import Path
 
+from zen_creator import Attribute, ConversionTechnology, SourceInformation
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
@@ -60,4 +61,43 @@ class MaterialEconomics(Dataset[pd.DataFrame]):
         secondary_steel_share_beginning = 1-2.7/3.5
         secondary_steel_share_end = 0.6
         return (secondary_steel_share_beginning, secondary_steel_share_end)
-        
+
+    def get_clinker_carbon_intensity(self,element: ConversionTechnology) -> Attribute:
+        """
+        Get the clinker carbon intensity.
+
+        This method retrieves the clinker carbon intensity and returns it as an Attribute.
+
+        unit: ton/tclinker
+
+        Returns:
+            An Attribute object representing the clinker carbon intensity.
+        """
+        attr = element.carbon_intensity_technology
+        attr.set_data(
+            default_value=0.54,
+            unit="ton/tclinker",
+            source=SourceInformation(
+                description=(
+                    "The clinker carbon intensity is based on Material Economics "
+                    "(2019), 'Industrial Transformation 2050' "
+                    "(https://materialeconomics.com/publications/publication/"
+                    "industrial-transformation-2050)."
+                ),
+                metadata=self.metadata,
+            ),
+        )
+        return attr
+
+    def get_fuel_consumption_cement_kiln(self) -> float:
+        """
+        Get the fuel consumption for cement kilns.
+
+        This method retrieves the fuel consumption for cement kilns and returns it as a float.
+
+        unit: GJ/tclinker
+
+        Returns:
+            A float representing the fuel consumption for cement kilns.
+        """
+        return 3.7

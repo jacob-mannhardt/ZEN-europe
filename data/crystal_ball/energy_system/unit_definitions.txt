@@ -1,4 +1,4 @@
-Euro = [currency] = EURO = Eur
+Euro = [currency] = EURO = Eur 
 tCO2eq = [massCO2eq] = tonCO2eq = tCO2 = tonne_carbon
 pkm = [mileage] = passenger_km = passenger_kilometer
 tkm = [tonne_mileage] = tonne_km = tonne_kilometer

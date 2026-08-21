@@ -5,6 +5,7 @@ from pathlib import Path
 import pytz
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
+from zen_europe.utils.constants import Constants
 
 import pandas as pd
 import numpy as np
@@ -91,7 +92,7 @@ class TruckStandardLoadProfiles(Dataset[pd.DataFrame]):
         default_tz = tz["DE"]
         date = "2020-01-01"
         delta_t = {cc: (tz_cc.localize(pd.Timestamp(date)) - 
-                        default_tz.localize(pd.Timestamp(date))).total_seconds()/3600
+                        default_tz.localize(pd.Timestamp(date))).total_seconds()/Constants.SECONDS_PER_HOUR
                    for cc, tz_cc in tz.items()}
         delta_t = {cc: val - 24 if val > 12 else val for cc, val in delta_t.items()}
         slp_shifted = slp.apply(

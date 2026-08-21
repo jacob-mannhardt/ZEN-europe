@@ -11,12 +11,14 @@ if TYPE_CHECKING:
 from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, MetaData, SourceInformation
 import numpy as np
 
+from zen_europe.utils.constants import Constants
+
 class LNGTerminal(ConversionTechnology):
     """Class containing all data and assumptions for LNG terminals (regasification)."""
 
     name: str = "lng_terminal"
 
-    BCM2GWH = 10600 # bcm to GWh conversion factor
+    BCM2GWH = Constants.NATURAL_GAS_GWH_PER_BCM # bcm to GWh conversion factor
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -171,7 +173,7 @@ class LNGTerminal(ConversionTechnology):
         attr = self.capex_specific_conversion
         capex_total = 500*1e6 # Brunsbüttel LNG terminal
         capacity = 8 # bcm
-        capacity = capacity * self.BCM2GWH / 8760 * 1e6 # convert to kW
+        capacity = capacity * self.BCM2GWH / Constants.HOURS_PER_YEAR * 1e6 # convert to kW
         capex_specific = capex_total / capacity # Euro/kW
         inflation = ECBInflation(source_path=self.source_path)
         capex_specific = (capex_specific * 

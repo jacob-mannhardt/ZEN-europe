@@ -10,7 +10,6 @@ if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
-from zen_europe.utils.utils import account_for_decommissioned_capacity
 
 class Electrolysis(ConversionTechnology):
     """Class containing all data and assumptions for electrolysis.

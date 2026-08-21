@@ -4,7 +4,7 @@
     "unit": "tons/MWh"
   },
   "carbon_intensity_carrier_export": {
-    "default_value": 0.295344,
+    "default_value": 0,
     "unit": "ton/MWh"
   },
   "demand": {
@@ -14,6 +14,10 @@
   "price_shed_demand": {
     "default_value": "inf",
     "unit": "Euro/MWh"
+  },
+  "max_shed_demand": {
+    "default_value": "inf",
+    "unit": "1"
   },
   "availability_import": {
     "default_value": "inf",

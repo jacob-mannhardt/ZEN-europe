@@ -56,7 +56,7 @@
     "unit": "1"
   },
   "capex_specific_conversion": {
-    "default_value": 482.7102057996699,
+    "default_value": 482.71020579966984,
     "unit": "Euro/kW"
   },
   "reference_carrier": {
@@ -81,9 +81,5 @@
         "unit": "GW/GW"
       }
     }
-  ],
-  "min_full_load_hours_fraction": {
-    "default_value": 0,
-    "unit": "1"
-  }
+  ]
 }

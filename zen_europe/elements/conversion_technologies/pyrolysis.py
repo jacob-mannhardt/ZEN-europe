@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
 from zen_europe.datasets.datasets.financial.dea import DEA
+from zen_europe.datasets.datasets.technology.biochar_market_report import BiocharMarketReport
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -64,20 +65,13 @@ class Pyrolysis(ConversionTechnology):
         """
         Return the conversion factor of pyrolysis.
 
-        Values from the DEA technology catalogue for renewable fuels (Large
-        scale slow pyrolysis (20 MW), straw feedstock), normalized to the
-        oil reference carrier (biochar/pyrolysis-oil producing process:
-        0.99 MWh biomass input, 0.04 MWh electricity, 0.22 MWh oil and
-        0.05 MWh district heat, plus 0.4 MWh-equivalent hard coal/biochar
-        output, all per MWh of biomass processed).
-        https://ens.dk/en/our-services/projections-and-models/technology-data/technology-data-renewable-fuels
         """
         attr = self.conversion_factor
         dea_dataset = DEA(source_path=self.source_path)
         cf = dea_dataset.get_conversion_factor_pyrolysis()
         source = SourceInformation(
             description=(
-                "The conversion factor of pyrolysis is a manually derived "
+                "The conversion factor of pyrolysis is derived "
                 "value based on the DEA technology catalogue for renewable "
                 "fuels (Large scale slow pyrolysis, straw feedstock), "
                 "normalized to the oil reference carrier."
@@ -134,6 +128,12 @@ class Pyrolysis(ConversionTechnology):
             settings=self.settings, source_path=self.source_path)
         return tech_db.get_opex_specific_variable(self)
 
-    # TODO: capacity_existing should be sourced from a biochar-production
-    # tracker ("biochar_existing.xlsx" in the legacy pipeline), which is not
-    # yet implemented as a dataset in zen_europe; framework default applies.
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of pyrolysis.
+
+        Returns:
+            Attribute: An Attribute object containing the existing capacity data.
+        """
+        biochar_dataset = BiocharMarketReport(source_path=self.source_path)
+        return biochar_dataset.get_capacity_existing(self)

@@ -1,14 +1,29 @@
 import logging
-logging.basicConfig(level=logging.INFO, format="%(levelname)s - %(message)s")
+
+COLOR_SUCCESS = "\033[92m"
+COLOR_WARNING = "\033[38;5;208m"  # orange
+COLOR_RESET = "\033[0m"
+
+
+class _ColorFormatter(logging.Formatter):
+    """Formatter that colors WARNING-level records orange."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        message = super().format(record)
+        if record.levelno == logging.WARNING:
+            return f"{COLOR_WARNING}{message}{COLOR_RESET}"
+        return message
+
+
+_handler = logging.StreamHandler()
+_handler.setFormatter(_ColorFormatter("%(levelname)s - %(message)s"))
+logging.basicConfig(level=logging.INFO, handlers=[_handler])
 logger = logging.getLogger(__name__)
 
 import argparse
 from pathlib import Path
 
 from zen_europe.model_creator import create_model
-
-COLOR_SUCCESS = "\033[92m"
-COLOR_RESET = "\033[0m"
 
 
 def zen_europe_cli() -> None:

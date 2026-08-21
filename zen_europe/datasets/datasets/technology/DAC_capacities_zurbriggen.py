@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from zen_creator import Attribute, SourceInformation
+from zen_creator import Attribute, ConversionTechnology, SourceInformation
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
 import pandas as pd
 
+from zen_europe.utils.constants import Constants
 from zen_europe.utils.utils import convert_ISO3_to_ISO2, format_capacity_existing
 
 class DACCapacitiesZurbriggen(Dataset[pd.DataFrame]):
@@ -64,24 +65,22 @@ class DACCapacitiesZurbriggen(Dataset[pd.DataFrame]):
         data["node"] = data["node"].replace({"IS": "NO"})
         data = data[data["node"].notna()]
         data["year_construction"] = pd.to_numeric(data["Date online"], errors="coerce")
-        data["Capacity"] = data["Capacity"] / 8760 # from tCO2/year to tCO2/h
+        data["Capacity"] = data["Capacity"] / Constants.HOURS_PER_YEAR # from tCO2/year to tCO2/h
         data = data[data["Capacity"].notna()]
 
         return data
 
     # -------- methods ------------------------    
-    def get_capacity_existing(self) -> Attribute:
+    def get_capacity_existing(self,element: ConversionTechnology) -> Attribute:
         """
         Returns the existing DAC capacity from the Zurbriggen et al. paper.
         """
+        attr = element.capacity_existing
         data = self.data[["node","year_construction","Capacity"]].groupby(
             ["node","year_construction"]).sum().squeeze()
         data = format_capacity_existing(data)
-        return Attribute(
-            name="capacity_existing",
-            default_value=0,
+        return attr.set_data(
             df=data,
-            unit="tCO2/h",
             source=SourceInformation(
                 description=(
                     "The existing DAC capacity is based on the Zurbriggen et al. paper "

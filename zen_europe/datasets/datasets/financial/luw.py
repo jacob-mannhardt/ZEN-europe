@@ -9,6 +9,7 @@ import pandas as pd
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
+from zen_europe.utils.constants import Constants
 from zen_europe.datasets.datasets.financial._cost_schema import (
     CO2_BASIS_UNITS,
     INDEX_NAMES,
@@ -97,7 +98,7 @@ def _convert_dac_unit(unit_src: str, variable: str) -> float:
     (hours/year) to convert. vopex is already on a per-tCO2 basis.
     """
     if variable in ("capex", "fopex") and unit_src == "€/(t_{CO2} a)":
-        return 8760.0
+        return Constants.HOURS_PER_YEAR
     if variable == "vopex" and unit_src == "€/t_{CO2}":
         return 1.0
     raise ValueError(f"Unexpected LUW DAC unit '{unit_src}' for variable '{variable}'")
@@ -195,7 +196,7 @@ class LUW(Dataset[pd.DataFrame]):
                     rows.append(
                         (
                             technology, "M", "ref", "lifetime", year,
-                            float(value_src), "years", None, float(value_src), lt_unit,
+                            float(value_src), "1", None, float(value_src), lt_unit,
                         )
                     )
         data = pd.DataFrame(rows, columns=INDEX_NAMES + VALUE_COLUMNS)

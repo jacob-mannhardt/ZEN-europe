@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from zen_creator import Attribute
+from zen_creator import Attribute, ConversionTechnology
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
 
 import pandas as pd
 
-from zen_europe.utils.utils import convert_country_names
+from zen_europe.datasets.datasets.financial.ECB import ECBInflation
+from zen_europe.utils.constants import Constants
 
 class NorthernLightsCosts(Dataset[pd.DataFrame]):
     """
@@ -49,7 +50,7 @@ class NorthernLightsCosts(Dataset[pd.DataFrame]):
         return data
 
     # -------- methods ------------------------    
-    def get_capex_specific(self) -> float:
+    def get_capex_specific(self,element: ConversionTechnology) -> Attribute:
         """
         Returns the specific CAPEX for the Northern Lights CCS project. 
         We only consider the first phase of the Longship carbon storage facility.
@@ -58,21 +59,38 @@ class NorthernLightsCosts(Dataset[pd.DataFrame]):
         capex_permanent_lager = 4.1 # billion NOK
         capex_CO2_terminal = 2.8 # billion NOK
         capex_total = capex_permanent_lager + capex_CO2_terminal # billion NOK
-        specific_capex = capex_total / stored_carbon * 8760 # billion NOK per MtCO2/h
+        specific_capex = capex_total / stored_carbon * Constants.HOURS_PER_YEAR # billion NOK per MtCO2/h
 
         # Convert to Euro
-        specific_capex_euro = specific_capex * self.NOK2EURO * 1000 # Euro per tCO2/h
+        specific_capex = specific_capex * self.NOK2EURO * 1000 # Euro per tCO2/h
+        ecb_inflation = ECBInflation(source_path=self.source_path)
+        inflation = ecb_inflation.get_inflation_rate(
+            base_year=self.MONEY_YEAR,
+            target_year=element.settings.time.reference_year,
+        )
+        specific_capex = specific_capex * inflation
+        attr = element.capex_specific_conversion
+        attr.set_data(
+            default_value=specific_capex,
+            unit="Euro/(tCO2/h)",
+            source=SourceInformation(
+                description=(
+                    "The specific conversion capex of carbon storage is "
+                    "obtained from the Northern Lights costs dataset."
+                ),
+                metadata=self.metadata,
+            ),
+        )
+        return attr
 
-        return specific_capex_euro
-
-    def get_construction_time(self) -> Attribute:
+    def get_construction_time(self, element: ConversionTechnology) -> Attribute:
         """
-        Returns the construction time of the Northern Lights CCS project. 
+        Returns the construction time of the Northern Lights CCS project.
         We only consider the first phase of the Longship carbon storage facility.
         https://article23watch.eu/2026/06/19/blog-eu-co2-storage-by-2030-why-the-nzia-target-is-more-feasible-than-industry-claims/
         """
-        return Attribute(
-            name="construction_time",
+        attr = element.construction_time
+        return attr.set_data(
             default_value=4,
             unit="1",
             source=SourceInformation(

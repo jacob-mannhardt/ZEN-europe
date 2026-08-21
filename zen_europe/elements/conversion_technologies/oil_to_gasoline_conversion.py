@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
-
+from zen_europe.datasets.dataset_collections.gasoline_diesel_price import GasolineDieselPrice
 
 class OilToGasolineConversion(ConversionTechnology):
     """Class containing all data and assumptions for oil-to-gasoline
@@ -83,10 +83,14 @@ class OilToGasolineConversion(ConversionTechnology):
         )
         return attr
 
-    # TODO: opex_specific_variable should be sourced from the price delta
-    # between gasoline and oil (BNEF fuel price data), conditional on the
-    # `assume_oil_price_for_diesel_and_gasoline` scenario flag in the legacy
-    # pipeline. A BNEF fuel-price dataset exists in zen_europe
-    # (zen_europe/datasets/datasets/carrier/bnef_fuelprices.py), but wiring
-    # up the conditional price-delta logic is left as a TODO; framework
-    # default (0) applies.
+    def _set_opex_specific_variable(self) -> Attribute:
+        """
+        Return the specific variable opex of oil to diesel conversion 
+        as the spread between oil and diesel
+        
+        """
+        if not self.settings.cost.assume_oil_price_for_diesel_and_gasoline:
+            gasoline_diesel_price = GasolineDieselPrice
+            return gasoline_diesel_price.get_opex_specific_variable_oil_conversion(self)
+        else:
+            return self.opex_specific_variable

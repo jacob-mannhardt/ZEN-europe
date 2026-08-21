@@ -176,10 +176,7 @@ class Potencia(Dataset[pd.DataFrame]):
             value_src = series.loc[key]
             if pd.isna(value_src):
                 continue
-            if variable == "availability":
-                unit_str = "1"
-            else:
-                unit_str = "years"
+            unit_str = "1"
             for year in YEARS:
                 rows.append(
                     (technology, 

@@ -10,6 +10,7 @@ from datetime import datetime
 import pandas as pd
 from zen_creator import Carrier, Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
+from zen_europe.utils.constants import Constants
 
 _MAPPING_TECHNOLOGY_NAMES = {
     'Elektrizität': "electricity", 
@@ -56,7 +57,7 @@ class SwissEnergyBalance(Dataset[pd.DataFrame]):
         
         data = df.set_index(["Energietraeger","Rubrik","Jahr"]).squeeze().unstack()
 
-        data = data / 3.6 # from TJ to GWh
+        data = data / Constants.GJ_PER_MWH # from TJ to GWh
 
         new_index = data.index.map(lambda x: (_MAPPING_TECHNOLOGY_NAMES.get(x[0], x[0]),x[1]))
         data.index = new_index
@@ -137,7 +138,7 @@ class SwissOilBalance(Dataset[pd.DataFrame]):
     def get_kerosene_demand(self, year: int) -> float:
         """Get the demand for kerosene."""
         data = self.data.loc[("Flugpetrol","Endverbrauch - Total"),year]
-        energy_density = 43.2 / 3600 # [GWh/t] https://www.bfe.admin.ch/bfe/de/home/versorgung/statistik-und-geodaten/energiestatistiken/gesamtenergiestatistik.exturl.html/aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvcHVibGljYX/Rpb24vZG93bmxvYWQvNzQ0Mg==.html
+        energy_density = 43.2 / (Constants.GJ_PER_MWH * 1000) # [GWh/t] https://www.bfe.admin.ch/bfe/de/home/versorgung/statistik-und-geodaten/energiestatistiken/gesamtenergiestatistik.exturl.html/aHR0cHM6Ly9wdWJkYi5iZmUuYWRtaW4uY2gvZGUvcHVibGljYX/Rpb24vZG93bmxvYWQvNzQ0Mg==.html
         data *= energy_density
         return data
     

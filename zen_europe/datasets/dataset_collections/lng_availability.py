@@ -16,6 +16,7 @@ from zen_creator.utils.attribute import SourceInformation
 from zen_europe.datasets.datasets.technology.gie_lng_map import GIELNGMap
 from zen_europe.datasets.datasets.carrier.entsog import ENTSOG
 from zen_europe.datasets.datasets.carrier.import_increase_gas import ImportIncreaseGas
+from zen_europe.utils.constants import Constants
 from zen_europe.utils.utils import link_lng_countries, interpolate_missing_years
 
 class LNGAvailability(DatasetCollection):
@@ -76,7 +77,7 @@ class LNGAvailability(DatasetCollection):
         lng_availability = lng_availability
 
         lng_availability_hourly = (
-            lng_availability[element.settings.time.reference_year] / 8760)
+            lng_availability[element.settings.time.reference_year] / Constants.HOURS_PER_YEAR)
         lng_availability_hourly.name = "availability_import"
         lng_availability_hourly.index.name = "node"
         lng_availability_yearly = (

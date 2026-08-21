@@ -5,11 +5,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pathlib import Path
 
-from zen_creator import Carrier
+from zen_creator import Attribute, Carrier
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
 
 import pandas as pd
+
+from zen_europe.utils.constants import Constants
 
 
 class IPCCEmissionFactors(Dataset[pd.DataFrame]):
@@ -44,7 +46,7 @@ class IPCCEmissionFactors(Dataset[pd.DataFrame]):
         """ sets the data for the IPCC emission factors dataset from kg/TJ to tons/MWh
         
         """
-        conversion_factor = 3.6 / 1000 / 1000 # from kg/TJ to tons/MWh
+        conversion_factor = Constants.GJ_PER_MWH / 1000 / 1000 # from kg/TJ to tons/MWh
         data = {}
 
         data["oil"] = 74100 * conversion_factor # Gas/Diesel Oil
@@ -60,11 +62,25 @@ class IPCCEmissionFactors(Dataset[pd.DataFrame]):
         return pd.Series(data)
 
     # -------- methods ------------------------
-    def get_carbon_intensity(self, element: Carrier) -> int:
+    def _get_raw_carbon_intensity(self, element: Carrier) -> float:
+        """
+        Get the raw carbon intensity of a specific element.
+
+        Returns the carbon intensity in tons/MWh for the given element.
+
+        Args:
+            element: The element for which to get the carbon intensity.
+        """
+        if element.name not in self.data.index:
+            raise ValueError(f"Carbon intensity for {element.name}" 
+                             " is not available in the IPCC emission factors dataset.")
+        return self.data.loc[element.name]
+    
+    def get_carbon_intensity(self, element: Carrier) -> Attribute:
         """
         Get the carbon intensity of a specific element.
 
-        Returns the carbon intensity in kg/MWh for the given element.
+        Returns the carbon intensity in tons/MWh for the given element.
 
         Args:
             element: The element for which to get the carbon intensity.
@@ -72,10 +88,7 @@ class IPCCEmissionFactors(Dataset[pd.DataFrame]):
         Returns:
             The carbon intensity in kg/MWh for the given element.
         """
-        if element.name not in self.data.index:
-            raise ValueError(f"Carbon intensity for {element.name}" 
-                             "is not available in the IPCC emission factors dataset.")
-        default_value = self.data.loc[element.name]
+        default_value = self._get_raw_carbon_intensity(element)
         source = SourceInformation(
             description=(
                 f"Carbon intensity of {element.name} from the IPCC emission factors dataset, "
@@ -86,5 +99,5 @@ class IPCCEmissionFactors(Dataset[pd.DataFrame]):
         return element.carbon_intensity_carrier_import.set_data(
             source=source,
             default_value=default_value,
-            unit="tCO2/MWh",
+            unit="ton/MWh",
         )
