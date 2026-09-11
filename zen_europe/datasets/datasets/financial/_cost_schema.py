@@ -41,7 +41,7 @@ TECH_VARIABLES: tuple[str, ...] = ("efficiency", "lifetime", "construction_time"
 
 STANDARD_UNITS: dict[str, str] = {
     "capex": "Euro/kW",
-    "fopex": "Euro/kW",
+    "fopex": "Euro/kW/year",
     "vopex": "Euro/MWh",
     "efficiency": "1",
     "lifetime": "1",

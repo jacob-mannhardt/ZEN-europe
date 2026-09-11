@@ -62,8 +62,8 @@ class RunOfRiverHydro(ConversionTechnology):
 
         """
         if self.settings.investment.use_200y_lifetime_hydro:
-            lifetime = Attribute(
-                name="lifetime",
+            attr = self.lifetime
+            return attr.set_data(
                 default_value=200,
                 source=AssumptionInformation(
                     description=(
@@ -71,9 +71,7 @@ class RunOfRiverHydro(ConversionTechnology):
                         "as specified in the investment settings."
                     ),
                 ),
-                element=self,
             )
-            return lifetime
         else:
             lifetime_expectation = LifetimeExpectation(source_path=self.source_path)
             return lifetime_expectation.get_lifetime(self)

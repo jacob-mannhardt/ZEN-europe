@@ -3,13 +3,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
-from zen_europe.datasets.datasets.financial.dea import DEA
+from zen_europe.datasets.datasets.technology.agora_industry_steel import AgoraIndustrySteel
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, RetrofittingTechnology, SourceInformation
-from zen_europe.utils.constants import Constants
+from zen_creator import Attribute, RetrofittingTechnology
 
 
 class NG_DRI_CCS(RetrofittingTechnology):
@@ -18,11 +17,6 @@ class NG_DRI_CCS(RetrofittingTechnology):
     carbon capture (CCS)."""
 
     name: str = "NG_DRI_CCS"
-
-    # tCO2eq/tsteel, Agora Industry (2021), 'Low-carbon technologies for the
-    # global steel transformation',
-    # https://www.agora-industry.org/publications/low-carbon-technologies-for-the-global-steel-transformation
-    CARBON_CAPTURE_NG_DRI = 0.35
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -87,29 +81,9 @@ class NG_DRI_CCS(RetrofittingTechnology):
         """
         Return the conversion factor of NG-DRI CCS.
 
-        Value based on an electricity demand of 0.23 GJ per ton of steel
-        (Agora Industry (2021), 'Low-carbon technologies for the global
-        steel transformation'), rescaled from a per-steel to a
-        per-captured-carbon basis via the NG-DRI carbon capture rate.
         """
-        attr = self.conversion_factor
-        cf = [{"electricity": {
-            "default_value": 0.23 / Constants.GJ_PER_MWH / self.CARBON_CAPTURE_NG_DRI,
-            "unit": "GWh/kilotons"}}]
-        dea_dataset = DEA(source_path=self.source_path)
-        source = SourceInformation(
-            description=(
-                "The conversion factor of NG-DRI CCS is manually derived "
-                "from an electricity demand of 0.23 GJ per ton of steel "
-                "(Agora Industry (2021), 'Low-carbon technologies for the "
-                "global steel transformation'), rescaled to a per-captured-"
-                "carbon basis via the NG-DRI carbon capture rate of "
-                f"{self.CARBON_CAPTURE_NG_DRI} tCO2eq/tsteel."
-            ),
-            metadata=dea_dataset.metadata,
-        )
-        attr.set_data(default_value=cf, source=source)
-        return attr
+        agora_dataset = AgoraIndustrySteel(source_path=self.source_path)
+        return agora_dataset.get_conversion_factor_ccs(self)
 
     def _set_capex_specific_conversion(self) -> Attribute:
         """
@@ -155,16 +129,9 @@ class NG_DRI_CCS(RetrofittingTechnology):
         """
         Return the retrofit flow coupling factor of NG-DRI CCS.
 
-        TODO: In the legacy pipeline this is set to the NG-DRI carbon
-        capture rate (`CARBON_CAPTURE_NG_DRI` = 0.35 tCO2eq/tsteel, Agora
-        Industry (2021), 'Low-carbon technologies for the global steel
-        transformation'), then unit-scaled against the `NG_DRI` base
-        technology's capacity units. That unit-scaling step has not been
-        ported; left at the framework default (1.0) pending that
-        implementation.
         """
-        attr = self.retrofit_flow_coupling_factor
-        return attr
+        agora_dataset = AgoraIndustrySteel(source_path=self.source_path)
+        return agora_dataset.retrofit_flow_coupling_factor(self)
 
     # TODO: capacity_existing has no ported data source for NG-DRI CCS (the
     # technology is absent from the legacy pipeline's IOGP capture/cluster

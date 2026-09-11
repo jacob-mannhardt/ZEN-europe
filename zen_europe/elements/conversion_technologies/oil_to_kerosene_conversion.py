@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.dataset_collections.carrier_availability import CarrierAvailability
+from zen_europe.utils.utils import calculate_capacity_addition_from_cumulative, format_capacity_existing
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
+from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, SourceInformation
 
 
 class OilToKeroseneConversion(ConversionTechnology):
@@ -47,11 +50,20 @@ class OilToKeroseneConversion(ConversionTechnology):
         """
         Sets the lifetime of oil to kerosene conversion.
 
-        TODO: No lifetime data source has been identified/ported for this
-        technology (the legacy pipeline also leaves it at the framework
-        default); framework default (NaN) is kept.
         """
         attr = self.lifetime
+        attr.set_data(
+            default_value=100,
+            source=AssumptionInformation(
+                description=(
+                    "The lifetime of oil to kerosene conversion is manually "
+                    "set to 100 years, effectively representing an "
+                    "always-available refinery output-shifting pathway "
+                    "rather than a capital asset with a finite technical "
+                    "lifetime."
+                ),
+            ),
+        )
         return attr
 
     def _set_conversion_factor(self) -> Attribute:
@@ -74,6 +86,26 @@ class OilToKeroseneConversion(ConversionTechnology):
         )
         return attr
 
-    # TODO: capacity_existing should be sourced from kerosene demand
-    # (cd.kerosene_demand in the legacy pipeline); no equivalent hook is
-    # available yet in zen_europe, so the framework default (0) applies.
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of oil to kerosene conversion.
+
+        """
+        attr = self.capacity_existing
+        carr_ava = CarrierAvailability(
+            source_path=self.source_path,settings=self.settings)
+        ex_cap = (carr_ava.get_raw_kerosene_demand(self)).squeeze() 
+        ex_cap = ex_cap.to_frame(name=self.settings.time.reference_year - 1)
+        ex_cap = calculate_capacity_addition_from_cumulative(ex_cap,element=self)
+        ex_cap = format_capacity_existing(ex_cap)
+        attr.set_data(
+            df=ex_cap,
+            source=SourceInformation(
+                description=(
+                    "The existing capacity of oil to kerosene conversion is "
+                    "calculated from the kerosene demand in the reference year." 
+                ),
+                metadata = carr_ava.metadata
+            ),
+        )
+        return attr

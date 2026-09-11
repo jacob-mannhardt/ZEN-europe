@@ -39,7 +39,7 @@ class LifetimeExpectation(DatasetCollection):
             raise ValueError("source_path must be set to load the dataset collection.")
 
         return {
-            "tech_db": TechnologyCostDatabase(self.source_path),
+            "tech_db": TechnologyCostDatabase(self.settings,self.source_path),
             "powerplantmatching": PowerPlantMatching(self.source_path),
         }
 

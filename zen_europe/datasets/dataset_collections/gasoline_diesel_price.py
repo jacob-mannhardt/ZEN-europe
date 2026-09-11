@@ -78,13 +78,14 @@ class GasolineDieselPrice(DatasetCollection):
         bnef_dataset = cast(BNEFFuelPrices, self.data["bnef"])
         data = bnef_dataset.get_price_import_data(element,manual_carrier_name="oil")
         default_value = data.loc[element.settings.time.reference_year]
-        spread_dataset = GasolineDieselSpread(self.source_path)
+        spread_dataset = cast(
+            GasolineDieselSpread, self.data["gasoline_diesel_spread"])
         spread_rel = spread_dataset.get_crack_spread()
         spread = default_value * spread_rel
         yearly_variations_df = (data * spread_rel)/default_value
         yearly_variations_df.index.name = "year"
         yearly_variations_df.name = "opex_specific_variable_yearly_variation"
-        attr = self.opex_specific_variable
+        attr = element.opex_specific_variable
         return attr.set_data(
             default_value=spread,
             unit = "Euro/MWh",

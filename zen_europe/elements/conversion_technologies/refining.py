@@ -56,7 +56,7 @@ class Refining(ConversionTechnology):
 
         """
         lca_ref_dataset = LCARefining(source_path=self.source_path)
-        return lca_ref_dataset.get_lifetime()
+        return lca_ref_dataset.get_lifetime(element=self)
 
     def _set_construction_time(self) -> Attribute:
         """
@@ -65,7 +65,7 @@ class Refining(ConversionTechnology):
         """
         if self.settings.investment.use_construction_times:
             lca_ref_dataset = LCARefining(source_path=self.source_path)
-            return lca_ref_dataset.get_construction_time()
+            return lca_ref_dataset.get_construction_time(element=self)
         else:
             return self.construction_time
 
@@ -90,7 +90,7 @@ class Refining(ConversionTechnology):
             Attribute: An Attribute object containing the specific capex data.
         """
         oil_ref_dataset = EconomicsOfOilRefining(source_path=self.source_path)
-        return oil_ref_dataset.get_capex_specific()
+        return oil_ref_dataset.get_capex_specific(element=self)
 
     def _set_opex_specific_fixed(self) -> Attribute:
         """
@@ -104,7 +104,7 @@ class Refining(ConversionTechnology):
             Attribute: An Attribute object containing the specific fixed opex data.
         """
         oil_ref_dataset = EconomicsOfOilRefining(source_path=self.source_path)
-        return oil_ref_dataset.get_opex_specific_fixed()
+        return oil_ref_dataset.get_opex_specific_fixed(element=self)
 
     def _set_opex_specific_variable(self) -> Attribute:
         """
@@ -117,7 +117,7 @@ class Refining(ConversionTechnology):
             Attribute: An Attribute object containing the specific variable opex data.
         """
         oil_ref_dataset = EconomicsOfOilRefining(source_path=self.source_path)
-        return oil_ref_dataset.get_opex_specific_variable()
+        return oil_ref_dataset.get_opex_specific_variable(element=self)
 
     def _set_capacity_existing(self) -> Attribute:
         """

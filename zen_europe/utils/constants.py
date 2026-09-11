@@ -37,8 +37,8 @@ class Constants:
     https://ocw.tudelft.nl/wp-content/uploads/Summary_table_with_heating_values_and_CO2_emissions.pdf
     """
 
-    HYDROGEN_GWH_PER_KG: float = 20
-    """Lower heating value of hydrogen (~33 kWh/kg)."""
+    HYDROGEN_KWH_PER_KG: float = 33.3
+    """lhv, https://www.nationalacademies.org/read/10922/chapter/21 """
 
     METHANOL_KWH_PER_KG: float = 5.54
     """ lhv, https://www.engineeringtoolbox.com/fuels-higher-calorific-values-d_169.html"""
@@ -49,6 +49,9 @@ class Constants:
     BIOCHAR_GWH_PER_TON: float = 25 / 3600
     """ https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels"""
 
+    DIESEL_KWH_PER_LITER: float = 36/3.6
+    """lhv, from MJ/l to KWH/l, https://www.engineeringtoolbox.com/fuels-higher-calorific-values-d_169.html"""
+
     DENSITY_OIL: float = 800
     """kg/m3. https://static-content.springer.com/esm/art%3A10.1038%2Fs41558-021-01175-7/MediaObjects/41558_2021_1175_MOESM1_ESM.pdf p. 17"""
 
@@ -57,4 +60,5 @@ class Constants:
 
     DENSITY_CO2: float = 700
     """kg/m3, supercritical CO2 under typical storage conditions. https://static-content.springer.com/esm/art%3A10.1038%2Fs41558-021-01175-7/MediaObjects/41558_2021_1175_MOESM1_ESM.pdf p. 17"""
+
     

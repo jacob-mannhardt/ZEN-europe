@@ -19,7 +19,6 @@ class GlobalCCSInstitute(Dataset[pd.DataFrame]):
 
     name = "global_ccs_institute"
 
-    KGH2TOGWH = Constants.HYDROGEN_GWH_PER_KG
 
     def __init__(self, source_path: Path | str | None = None):
         super().__init__(source_path=source_path)
@@ -92,5 +91,5 @@ class GlobalCCSInstitute(Dataset[pd.DataFrame]):
         capacity_existing_amm = capacity_existing_amm["Capacity (kg/h)"]
         # sum capacities
         capacity_existing = capacity_existing_ref.add(capacity_existing_amm,fill_value=0)
-        capacity_existing = capacity_existing * self.KGH2TOGWH
+        capacity_existing = capacity_existing * Constants.HYDROGEN_KWH_PER_KG / 1e6
         return capacity_existing

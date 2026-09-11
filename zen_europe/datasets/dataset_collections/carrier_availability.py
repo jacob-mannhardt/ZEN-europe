@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from zen_creator import Dataset
 
 
-from zen_creator import Attribute, Carrier, DatasetCollection
+from zen_creator import Attribute, Carrier, DatasetCollection, Element
 from zen_creator.utils.attribute import SourceInformation
 from zen_creator.utils.settings import Settings
 
@@ -207,7 +207,7 @@ class CarrierAvailability(DatasetCollection):
             unit="GW",
         )
 
-    def get_kerosene_demand(self, element: Carrier) -> Attribute:
+    def get_raw_kerosene_demand(self, element: Element) -> pd.DataFrame:
         """
         Get the demand for kerosene.
 
@@ -241,7 +241,15 @@ class CarrierAvailability(DatasetCollection):
         
         data.index.name = "node"
         data.name = "demand"
+        return data
 
+    def get_kerosene_demand(self, element: Carrier) -> Attribute:
+        """
+        Get the demand for kerosene.
+        This function retrieves the kerosene demand data for the specified element and
+        returns it as an Attribute object.
+        """
+        data = self.get_raw_kerosene_demand(element)
         source = SourceInformation(
             description=(
                 "Kerosene demand data is derived from the Eurostat dataset. " \
@@ -285,10 +293,10 @@ class CarrierAvailability(DatasetCollection):
                 )    
         
         data = data.sort_index() / Constants.HOURS_PER_YEAR # from GWh/year to GW
-
+        diesel_ICE_ship = element.model.conversion_technologies["diesel_ICE_ship"]
         diesel2shipping = (
             shipping_technologies_korberg_dataset.get_shipping_conversion_factors(
-            "diesel_ICE_ship")["diesel"])
+            diesel_ICE_ship)["diesel"])
         
         data = data / diesel2shipping 
         data.index.name = "node"

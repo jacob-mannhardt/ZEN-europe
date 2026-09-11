@@ -83,53 +83,56 @@ class NaturalGasTurbineCCS(RetrofittingTechnology):
         Sets the specific capital expenditure (capex) for natural gas
         turbine CCS.
 
-        Note: the legacy pipeline computes this as a delta between the
+        Following the legacy pipeline, this is the delta between the
         CCS-equipped plant's cost-database entry and the base
-        `natural_gas_turbine` technology's entry (gated by a
-        `take_delta_cost_from_base_tech` flag, `True` for this technology),
-        divided by `retrofit_flow_coupling_factor`. Since that coupling
-        factor is not implemented here (see `_set_retrofit_flow_coupling_factor`),
-        this method instead returns the absolute cost-database value for
-        `natural_gas_turbine_CCS` (e.g. EUREF's "Gas combined cycle CCS post
-        combustion" entry) as a simplification; TODO revisit once the
-        coupling factor is implemented.
+        `natural_gas_turbine` technology's entry, divided by
+        `retrofit_flow_coupling_factor` so that it is expressed per unit of
+        captured CO2 rather than per unit of power capacity.
 
         Returns:
             Attribute: An Attribute object containing the specific capex data.
         """
         tech_db = TechnologyCostDatabase(
                     settings=self.settings, source_path=self.source_path)
-        return tech_db.get_capex_specific_conversion(self)
+        base_tech = self.model.elements["natural_gas_turbine"]
+        return tech_db.get_capex_specific_conversion_retrofit(
+            self, base_technology=base_tech)
 
     def _set_opex_specific_fixed(self) -> Attribute:
         """
         Sets the specific fixed operational expenditure (opex) for natural
         gas turbine CCS.
 
-        Note: see the `take_delta_cost_from_base_tech` caveat documented in
-        `_set_capex_specific_conversion`.
+        Like the capex, this is the delta between the CCS-equipped plant's
+        cost-database entry and that of the base `natural_gas_turbine`,
+        divided by `retrofit_flow_coupling_factor`.
 
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
         """
         tech_db = TechnologyCostDatabase(
             settings=self.settings, source_path=self.source_path)
-        return tech_db.get_opex_specific_fixed(self)
+        base_tech = self.model.elements["natural_gas_turbine"]
+        return tech_db.get_opex_specific_fixed_retrofit(
+            self, base_technology=base_tech)
 
     def _set_opex_specific_variable(self) -> Attribute:
         """
         Sets the specific variable operational expenditure (opex) for
         natural gas turbine CCS.
 
-        Note: see the `take_delta_cost_from_base_tech` caveat documented in
-        `_set_capex_specific_conversion`.
+        Like the capex, this is the delta between the CCS-equipped plant's
+        cost-database entry and that of the base `natural_gas_turbine`,
+        divided by `retrofit_flow_coupling_factor`.
 
         Returns:
             Attribute: An Attribute object containing the specific variable opex data.
         """
         tech_db = TechnologyCostDatabase(
             settings=self.settings, source_path=self.source_path)
-        return tech_db.get_opex_specific_variable(self)
+        base_tech = self.model.elements["natural_gas_turbine"]
+        return tech_db.get_opex_specific_variable_retrofit(
+            self, base_technology=base_tech)
 
     def _set_conversion_factor(self) -> Attribute:
         """

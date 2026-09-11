@@ -47,11 +47,20 @@ class OilToNaphthaConversion(ConversionTechnology):
         """
         Sets the lifetime of oil to naphtha conversion.
 
-        TODO: No lifetime data source has been identified/ported for this
-        technology (the legacy pipeline also leaves it at the framework
-        default); framework default (NaN) is kept.
         """
         attr = self.lifetime
+        attr.set_data(
+            default_value=100,
+            source=AssumptionInformation(
+                description=(
+                    "The lifetime of oil to naphtha conversion is manually "
+                    "set to 100 years, effectively representing an "
+                    "always-available refinery output-shifting pathway "
+                    "rather than a capital asset with a finite technical "
+                    "lifetime."
+                ),
+            ),
+        )
         return attr
 
     def _set_conversion_factor(self) -> Attribute:

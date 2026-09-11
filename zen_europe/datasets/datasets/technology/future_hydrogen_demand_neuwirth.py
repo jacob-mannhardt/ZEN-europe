@@ -74,4 +74,4 @@ class FutureHydrogenDemandNeuwirth(Dataset[pd.DataFrame]):
                 metadata=self.metadata,
             ),
         )
-        return conversion_factor
+        return attr

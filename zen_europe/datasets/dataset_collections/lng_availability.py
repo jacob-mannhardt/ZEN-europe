@@ -63,10 +63,9 @@ class LNGAvailability(DatasetCollection):
         fraction_lng = (
             lng_terminals.groupby(level=0).sum(numeric_only=True) / 
             lng_terminals.sum())
-        lng_availability = pd.DataFrame(
+        lng_availability = pd.DataFrame(np.outer(fraction_lng, availability),
             index=fraction_lng.index, columns=availability.index,dtype=float)
-        lng_availability.loc[fraction_lng.index] = fraction_lng
-        lng_availability *= availability
+        
         
         opti_years = element.settings.time.get_optimization_years()
         lng_availability = lng_availability.reindex(

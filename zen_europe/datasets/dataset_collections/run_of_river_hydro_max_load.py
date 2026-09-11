@@ -22,7 +22,6 @@ from zen_europe.datasets.datasets.carrier.entsoe import ENTSOE
 
 from zen_creator.utils.settings import Settings
 
-
 class RunOfRiverHydroMaxLoad(DatasetCollection):
     """Extracting maximum load data for run-of-river hydro technologies."""
 

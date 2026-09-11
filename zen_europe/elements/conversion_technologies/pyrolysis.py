@@ -121,12 +121,14 @@ class Pyrolysis(ConversionTechnology):
         Sets the specific variable operational expenditure (opex) for
         pyrolysis.
 
+        DEA does not report the specific variable opex for pyrolysis anymore, 
+        so this method returns a default Attribute object.
+
         Returns:
             Attribute: An Attribute object containing the specific variable opex data.
         """
-        tech_db = TechnologyCostDatabase(
-            settings=self.settings, source_path=self.source_path)
-        return tech_db.get_opex_specific_variable(self)
+        attr = self.opex_specific_variable
+        return attr
 
     def _set_capacity_existing(self) -> Attribute:
         """

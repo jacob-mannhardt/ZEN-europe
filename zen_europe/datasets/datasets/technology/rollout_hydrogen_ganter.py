@@ -90,5 +90,5 @@ class HydrogenRolloutGanter(Dataset[pd.DataFrame]):
         capacity_existing_amm = capacity_existing_amm["Capacity (kg/h)"]
         # sum capacities
         capacity_existing = capacity_existing_ref.add(capacity_existing_amm,fill_value=0)
-        capacity_existing = capacity_existing * Constants.HYDROGEN_GWH_PER_KG
+        capacity_existing = capacity_existing * Constants.HYDROGEN_KWH_PER_KG / 1e6
         return capacity_existing

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     from zen_creator import Dataset
 
 
-from zen_creator import Attribute, Carrier, DatasetCollection
+from zen_creator import Attribute, Carrier, ConversionTechnology, DatasetCollection
 from zen_creator.utils.attribute import SourceInformation
 from zen_creator.utils.settings import Settings
 
@@ -50,29 +50,7 @@ class PassengerMileageDemand(DatasetCollection):
         Get the passenger mileage demand for the specified element.
 
         """
-        # get urbanization data from Eurostat dataset
-        eurostat_dataset = cast(Eurostat, self.data["eurostat"])
-        share_regions = eurostat_dataset.get_population_by_urbanization()
-        year_time_series = element.settings.time.year_time_series
-        share_regions = share_regions[year_time_series].unstack()
-        common_nodes = pd.Index(share_regions.columns).intersection(
-            set(element.model.config.system.set_nodes))
-        share_regions = share_regions.loc[:, common_nodes] 
-        share_regions = share_regions.rename(
-            index={
-                "cities": "urban", "towns_and_suburbs": "suburban", "rural": "rural"}
-        )
-        # add load profiles
-        slp_dataset = StandardLoadProfiles(self.source_path)
-        slp = (
-            slp_dataset.
-                get_standard_load_profiles(share_regions,element))
-        # total demand 
-        total_demand = self._get_total_demand(element)
-        
-        slp = slp.div(slp.sum(axis=0)) * total_demand
-        # shift by timezone
-        slp = slp_dataset.shift_by_timezone(slp)
+        slp = self._get_hourly_demand(element)
 
         source = SourceInformation(
             description=(
@@ -94,6 +72,73 @@ class PassengerMileageDemand(DatasetCollection):
             unit="megavkm/hour",
         )
     
+    def _get_hourly_demand(self, element: Carrier) -> pd.DataFrame:
+        """
+        Get the hourly passenger mileage demand for the specified element.
+
+        """
+        # get urbanization data from Eurostat dataset
+        eurostat_dataset = cast(Eurostat, self.data["eurostat"])
+        share_regions = eurostat_dataset.get_population_by_urbanization()
+        year_time_series = element.settings.time.year_time_series
+        share_regions = share_regions[year_time_series].unstack()
+        common_nodes = pd.Index(share_regions.columns).intersection(
+            set(element.model.config.system.set_nodes))
+        share_regions = share_regions.loc[:, common_nodes]
+        share_regions = share_regions.rename(
+            index={
+                "cities": "urban", "towns_and_suburbs": "suburban", "rural": "rural"}
+        )
+        # add load profiles
+        slp_dataset = cast(StandardLoadProfiles, self.data["standard_load_profiles"])
+        slp = (
+            slp_dataset.
+                get_standard_load_profiles(share_regions,element))
+        # total demand
+        total_demand = self._get_total_demand(element)
+
+        slp = slp.div(slp.sum(axis=0)) * total_demand
+        # shift by timezone
+        slp = slp_dataset.shift_by_timezone(slp)
+        return slp
+
+    def _get_peak_demand_share(self, element: Carrier) -> pd.Series:
+        """
+        Get the peak demand share for the specified element.
+
+        """
+        slp = self._get_hourly_demand(element=element)
+        total_demand = self._get_total_demand(element=element)
+        peak_demand_share = (slp / (total_demand / 8760)).max()
+        return peak_demand_share
+
+    def get_max_load(self, element: ConversionTechnology) -> Attribute:
+        """
+        Get the maximum load for the specified element.
+
+        """
+        passenger_mileage = element.model.carriers["passenger_mileage"]
+        slp = self._get_hourly_demand(element=passenger_mileage)
+        max_demand = slp.max()
+        max_load = slp.div(max_demand, axis=1)
+        max_load.index.name = "time"
+        attr = element.max_load
+        return attr.set_data(
+            df=max_load,
+            source=SourceInformation(
+                description=(
+                    "The maximum load of the passenger mileage demand is "
+                    "calculated by dividing the hourly passenger mileage "
+                    "demand by the maximum hourly demand. The hourly passenger "
+                    "mileage demand is derived from the Statistical Pocketbook "
+                    "Transport dataset and the standard load profiles for "
+                    "urban, suburban and rural areas."
+                ),
+                metadata=self.metadata,
+            ),
+            unit="1",
+        )
+
     def _get_total_demand(self, element: Carrier) -> pd.Series:
         """
         Get the total passenger mileage demand.

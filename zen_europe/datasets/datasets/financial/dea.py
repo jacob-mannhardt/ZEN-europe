@@ -906,21 +906,6 @@ class DEA(Dataset[pd.DataFrame]):
             {"heat": {"default_value": 9.5 / Constants.GJ_PER_MWH, "unit": "GWh/kilotCO2"}},
         ]
 
-    def get_conversion_factor_cement_post_comb(self):
-        """ returns the conversion factor for cement post-combustion capture.
-
-        Values from the DEA technology catalogue for carbon capture,
-        transport and storage (Post-combustion carbon capture in a cement
-        plant), assuming the fuel-for-cement input is directly converted
-        into heat for the capture process.
-        https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage
-        """
-        return [
-            {"electricity": {"default_value": 0.025, "unit": "GWh/kilotCO2"}},
-            {"fuel_for_cement": {"default_value": 0.833, "unit": "GWh/kilotCO2"}},
-            {"district_heat": {"default_value": 1.65, "unit": "GWh/kilotCO2"}},
-        ]
-
     def get_conversion_factor_SMR_CCS(self):
         """ returns the conversion factor for SMR CCS.
 
@@ -945,3 +930,29 @@ class DEA(Dataset[pd.DataFrame]):
         data = self.get_dh_distribution_data()
         cf = 1 - data.loc[("suburban", "energy_losses", "ref"), "value"].iloc[0] / 100
         return [{"district_heat": {"default_value": 1 / cf, "unit": "GW/GW"}}]
+
+    
+    def get_conversion_factor_cement_post_comb(self):
+        """ returns the conversion factor for cement post-combustion capture.
+
+        Values from the DEA technology catalogue for carbon capture,
+        transport and storage (Post-combustion carbon capture in a cement
+        plant), assuming the fuel-for-cement input is directly converted
+        into heat for the capture process.
+        https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage
+        """
+        return [
+            {"electricity": {"default_value": 0.025, "unit": "GWh/kilotCO2"}},
+            {"fuel_for_cement": {"default_value": 0.833, "unit": "GWh/kilotCO2"}},
+            {"district_heat": {"default_value": 1.65, "unit": "GWh/kilotCO2"}},
+        ]
+
+    def get_capture_rate_cement_post_comb(self):
+        """ returns the capture rate for cement post-combustion capture.
+
+        Values from the DEA technology catalogue for carbon capture,
+        transport and storage (Post-combustion carbon capture in a cement
+        plant).
+        https://ens.dk/en/analyses-and-statistics/technology-data-carbon-capture-transport-and-storage
+        """
+        return 0.9

@@ -23,6 +23,23 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
 
     MONEY_YEAR = 2024
 
+    # Post-combustion capture retrofits of the steel routes. Agora reports
+    # both figures per ton of crude steel: the CO2 that the capture unit
+    # removes (p. 65 for BF-BOF CCS, p. 59 for NG-DRI CCS) and the electricity
+    # it needs to do so.
+    CARBON_CAPTURE_RATE = {  # tCO2/tonproduct
+        "BF_BOF_CCS": 1.36,
+        "NG_DRI_CCS": 0.35,
+    }
+    CARBON_CAPTURE_ELECTRICITY_DEMAND = {  # GJ/tonproduct
+        "BF_BOF_CCS": 2.77,
+        "NG_DRI_CCS": 1.45,
+    }
+    BASE_TECHNOLOGIES = {
+        "BF_BOF_CCS": "BF_BOF",
+        "NG_DRI_CCS": "NG_DRI",
+    }
+
     def __init__(self, source_path: Path | str | None = None):
         super().__init__(source_path=source_path)
 
@@ -188,6 +205,103 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
                     "The conversion factor of steel production technologies is derived from "
                     "Agora Industry (2021), 'Low-carbon technologies for the "
                     "global steel transformation'."
+                ),
+                metadata=self.metadata,
+            ),
+        )
+        return attr
+
+    def get_carbon_capture_rate(self, element: ConversionTechnology) -> float:
+        """
+        Get the carbon that a steel CCS retrofit captures, per ton of crude
+        steel produced by the route it retrofits.
+
+        Args:
+            element (ConversionTechnology): The steel CCS retrofit for which to
+                get the carbon capture rate.
+
+        Returns:
+            float: The captured carbon in tCO2 per ton of crude steel.
+        """
+        if element.name not in self.CARBON_CAPTURE_RATE:
+            raise ValueError(
+                f"Agora Industry does not report a carbon capture rate for "
+                f"{element.name}, expected one of "
+                f"{sorted(self.CARBON_CAPTURE_RATE)}.")
+        return self.CARBON_CAPTURE_RATE[element.name]
+
+    def retrofit_flow_coupling_factor(self, element: ConversionTechnology) -> Attribute:
+        """
+        Return the retrofit flow coupling factor of a steel CCS retrofit.
+
+        The retrofit flow coupling factor is the carbon capture rate of the
+        retrofit, in tCO2 per ton of crude steel produced by the route it
+        retrofits. 
+
+        Args:
+            element (ConversionTechnology): The steel CCS retrofit for which to
+                get the retrofit flow coupling factor.
+
+        Returns:
+            Attribute: An Attribute object containing the retrofit flow
+                coupling factor data.
+        """
+        base_tech = self.BASE_TECHNOLOGIES.get(element.name)
+        if base_tech is None:
+            raise ValueError(
+                f"Agora Industry does not report a base technology for "
+                f"{element.name}, expected one of "
+                f"{sorted(self.BASE_TECHNOLOGIES)}.")
+        capture_rate = self.get_carbon_capture_rate(element)
+        attr = element.retrofit_flow_coupling_factor
+        attr.set_data(
+            default_value=capture_rate,
+            base_technology=base_tech,
+            unit="tCO2/tonproduct",
+            source=SourceInformation(
+                description=(
+                    "The retrofit flow coupling factor of a steel CCS retrofit is "
+                    "the carbon capture rate of the retrofit, in tCO2 per ton of "
+                    "crude steel produced by the route it retrofits. This is used "
+                    "to scale the captured carbon output flow of the retrofit "
+                    "against the capacity units of its base technology."
+                ),
+                metadata=self.metadata,
+            ),
+        )
+        return attr
+    def get_conversion_factor_ccs(self, element: ConversionTechnology) -> Attribute:
+        """
+        Get the conversion factor of a steel CCS retrofit.
+
+        Agora reports the electricity demand of the capture unit per ton of
+        crude steel, whereas the retrofit produces captured carbon, so the
+        demand is divided by the carbon captured per ton of crude steel.
+
+        Returns:
+            Attribute: An Attribute object containing the conversion factor data.
+        """
+        if element.name not in self.CARBON_CAPTURE_ELECTRICITY_DEMAND:
+            raise ValueError(
+                f"Agora Industry does not report a capture electricity demand "
+                f"for {element.name}, expected one of "
+                f"{sorted(self.CARBON_CAPTURE_ELECTRICITY_DEMAND)}.")
+        electricity_demand = self.CARBON_CAPTURE_ELECTRICITY_DEMAND[element.name]
+        capture_rate = self.get_carbon_capture_rate(element)
+        attr = element.conversion_factor
+        attr.set_data(
+            default_value=[{"electricity": {
+                "default_value": (
+                    electricity_demand / Constants.GJ_PER_MWH / capture_rate),
+                "unit": "GWh/kilotons"}}],
+            source=SourceInformation(
+                description=(
+                    f"The conversion factor of {element.name} is derived from "
+                    "Agora Industry, 'Low-carbon technologies for the global "
+                    "steel transformation': an electricity demand of "
+                    f"{electricity_demand} GJ per ton of crude steel, divided "
+                    f"by the {capture_rate} tCO2 captured per ton of crude "
+                    "steel to give the demand per captured carbon."
                 ),
                 metadata=self.metadata,
             ),

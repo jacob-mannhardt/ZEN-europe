@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.datasets.carrier.material_economics import MaterialEconomics
 from zen_europe.datasets.datasets.financial.dea import DEA
 
 if TYPE_CHECKING:
@@ -90,7 +91,6 @@ class CementPostComb(RetrofittingTechnology):
         transport and storage (Post-combustion carbon capture in a cement
         plant), assuming the fuel-for-cement input is directly converted
         into heat for the capture process.
-        https://ens.dk/en/our-services/projections-and-models/technology-data/technology-data-carbon-capture-transport-and
         """
         attr = self.conversion_factor
         dea_dataset = DEA(source_path=self.source_path)
@@ -164,7 +164,32 @@ class CementPostComb(RetrofittingTechnology):
         technology's capacity units. Left at the framework default (1.0)
         pending that unit-scaling implementation.
         """
+        material_economics_dataset = MaterialEconomics(source_path=self.source_path)
+        dea_dataset = DEA(source_path=self.source_path)
+        clinker_carbon_intensity = (
+            material_economics_dataset._CARBON_INTENSITY_CEMENT_KILN)
+        carbon_capture_rate_cement = dea_dataset.get_capture_rate_cement_post_comb()
+        retrofit_flow_coupling_factor = (
+            clinker_carbon_intensity * carbon_capture_rate_cement)
         attr = self.retrofit_flow_coupling_factor
+        attr.set_data(
+            default_value=retrofit_flow_coupling_factor,
+            base_technology="cement_kiln",
+            unit="tCO2/tonproduct",
+            source=SourceInformation(
+                description=(
+                    "The retrofit flow coupling factor of cement "
+                    "post-combustion capture is computed as the product of "
+                    "the clinker carbon intensity (0.54 tCO2/tClinker, "
+                    "Material Economics (2019), 'Industrial Transformation "
+                    "2050') and the carbon capture rate for cement "
+                    "(0.9, DEA technology catalogue for carbon capture, "
+                    "transport and storage, Post-combustion carbon capture "
+                    "in a cement plant)."
+                ),
+                metadata=material_economics_dataset.metadata,
+            ),
+        )
         return attr
 
     # TODO: capacity_existing should be sourced from the IOGP CCS database

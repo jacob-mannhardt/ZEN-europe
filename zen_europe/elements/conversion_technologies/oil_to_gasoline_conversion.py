@@ -2,10 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.datasets.financial.ECB import ECBDollar2Euro, ECBInflation
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
+from zen_europe.datasets.dataset_collections.existing_vehicle_capacity import ExistingVehicleCapacity
 from zen_europe.datasets.dataset_collections.gasoline_diesel_price import GasolineDieselPrice
 
 class OilToGasolineConversion(ConversionTechnology):
@@ -16,6 +19,13 @@ class OilToGasolineConversion(ConversionTechnology):
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
+        # set the inflation rate function from the ECB dataset
+        # TODO make the inflation rate function directly available in the model, 
+        # so that it can be used by other elements as well
+        ecb = ECBInflation(source_path=self.source_path)
+        self.get_inflation_rate = ecb.get_inflation_rate
+        ecb_dollar2euro = ECBDollar2Euro(source_path=self.source_path)
+        self.get_dollar2euro = ecb_dollar2euro.get_dollar2euro
 
     # ---------- Required methods that are called during object construction ----------
 
@@ -90,7 +100,33 @@ class OilToGasolineConversion(ConversionTechnology):
         
         """
         if not self.settings.cost.assume_oil_price_for_diesel_and_gasoline:
-            gasoline_diesel_price = GasolineDieselPrice
+            gasoline_diesel_price = GasolineDieselPrice(self.source_path)
             return gasoline_diesel_price.get_opex_specific_variable_oil_conversion(self)
         else:
             return self.opex_specific_variable
+
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of oil to gasoline conversion.
+
+        The refinery has to be able to supply the gasoline that the existing
+        passenger cars burn.
+        """
+        if not (self.settings.investment.use_existing_capacities
+                and self.settings.investment.use_existing_oil_to_x_capacities):
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities of the "
+                        "refinery output-shifting technologies."
+                    ),
+                ),
+            )
+            return attr
+
+        vehicle_capacity = ExistingVehicleCapacity(
+            settings=self.model.settings, source_path=self.source_path)
+        return vehicle_capacity.get_existing_capacity_oil_conversion(element=self)

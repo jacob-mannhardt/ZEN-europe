@@ -2,10 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.dataset_collections.existing_vehicle_capacity import ExistingVehicleCapacity
+from zen_europe.datasets.dataset_collections.truck_mileage_demand import TruckMileageDemand
+from zen_europe.datasets.datasets.technology.truck_technologies_icct import TruckTechnologiesICCT
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology
+from zen_creator import Attribute, ConversionTechnology, SourceInformation
 
 
 class HDT_diesel(ConversionTechnology):
@@ -14,7 +18,7 @@ class HDT_diesel(ConversionTechnology):
 
     name: str = "HDT_diesel"
 
-    def __init__(self, model: Model, power_unit: str = "MW"):
+    def __init__(self, model: Model, power_unit: str = "megatkm/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ---------- Required methods that are called during object construction ----------
@@ -47,27 +51,67 @@ class HDT_diesel(ConversionTechnology):
         """
         Sets the lifetime of HDT diesel.
 
-        TODO: No lifetime data source has been identified/ported for HDT
-        diesel; framework default (NaN) is kept.
         """
-        attr = self.lifetime
-        return attr
+        hdt_dataset = TruckTechnologiesICCT(source_path=self.source_path)
+        return hdt_dataset.get_lifetime(element=self)
 
     def _set_conversion_factor(self) -> Attribute:
         """
         Return the conversion factor of HDT diesel.
 
-        TODO: Should be sourced from a `HDT_params.xlsx` table (truck
-        techno-economic parameters), which is not yet implemented as a
-        dataset in zen_europe (see IMPLEMENTATION_TODO.md:
-        "VehicleTransportParams" not yet built); left empty.
         """
-        attr = self.conversion_factor
-        return attr
+        hdt_dataset = TruckTechnologiesICCT(source_path=self.source_path)
+        return hdt_dataset.get_conversion_factor(element=self)
 
-    # TODO: capacity_existing/max_load should be sourced from truck-fleet/
-    # mileage data and the `slp_truck` standard load profile, respectively.
-    # capex_specific_conversion/opex_specific_variable should be sourced
-    # from `HDT_params.xlsx`. None of these are currently reachable from a
-    # clean dataset call for this technology; framework defaults apply
-    # throughout.
+    def _set_opex_specific_variable(self) -> Attribute:
+        """
+        Sets the specific variable OPEX of HDT diesel.
+
+        """
+        hdt_dataset = TruckTechnologiesICCT(source_path=self.source_path)
+        return hdt_dataset.get_opex_specific_variable(element=self)
+
+    def _set_capex_specific_conversion(self) -> Attribute:
+        """
+        Sets the specific conversion CAPEX of HDT diesel.
+
+        """
+        vehicle_capacity = ExistingVehicleCapacity(
+            settings=self.model.settings, source_path=self.source_path)
+        return vehicle_capacity.get_capex_specific_conversion_truck(element=self)
+    
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of HDT diesel.
+
+        """
+        vehicle_capacity = ExistingVehicleCapacity(
+            settings=self.model.settings, source_path=self.source_path)
+        ex_cap = vehicle_capacity.get_existing_capacity_truck(element=self)
+        attr = self.capacity_existing
+        return attr.set_data(
+            df=ex_cap,
+            source=SourceInformation(
+                description=(
+                    "The existing capacity of HDT diesel is calculated from the "
+                    "existing fleet of HDT diesel vehicles and the total truck "
+                    "mileage demand. The existing fleet is sourced from the UNECE "
+                    "dataset, and the total truck mileage demand is sourced from the "
+                    "TruckMileageDemand dataset."
+                    " The capacity is corrected for the peak demand share."
+                ),
+                metadata=vehicle_capacity.metadata
+            ),
+            unit="megatkm/h"
+        )
+
+    def _set_max_load(self) -> Attribute:
+        """
+        Sets the maximum load of HDT diesel.
+
+        """
+        truck_transport_db = TruckMileageDemand(
+            settings=self.model.settings, source_path=self.source_path)
+        
+        return truck_transport_db.get_max_load(element=self)
+    

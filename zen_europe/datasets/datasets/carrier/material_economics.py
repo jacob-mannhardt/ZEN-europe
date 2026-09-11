@@ -11,6 +11,7 @@ from zen_creator.datasets.datasets.metadata import MetaData
 
 import pandas as pd
 
+
 class MaterialEconomics(Dataset[pd.DataFrame]):
     """
     Material economics dataset class.
@@ -18,6 +19,7 @@ class MaterialEconomics(Dataset[pd.DataFrame]):
     This class implements the specific behavior for the Material Economics dataset.
     """
 
+    _CARBON_INTENSITY_CEMENT_KILN = 0.54  # tCO2/tclinker
     name = "material_economics"
 
     def __init__(self, source_path: Path | str | None = None):
@@ -68,15 +70,15 @@ class MaterialEconomics(Dataset[pd.DataFrame]):
 
         This method retrieves the clinker carbon intensity and returns it as an Attribute.
 
-        unit: ton/tclinker
+        unit: tonCO2/tclinker
 
         Returns:
             An Attribute object representing the clinker carbon intensity.
         """
         attr = element.carbon_intensity_technology
         attr.set_data(
-            default_value=0.54,
-            unit="ton/tclinker",
+            default_value=self._CARBON_INTENSITY_CEMENT_KILN,
+            unit="tonCO2/tclinker",
             source=SourceInformation(
                 description=(
                     "The clinker carbon intensity is based on Material Economics "

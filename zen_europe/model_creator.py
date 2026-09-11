@@ -6,6 +6,7 @@ from zen_creator import Model
 from .elements.carriers import Biomass, Electricity  # noqa: F401
 from .elements.conversion_technologies import Photovoltaics  # noqa: F401
 from .elements.energy_systems import EnergySystemNuts0  # noqa: F401
+from .elements.retrofitting_technologies import SMR_CCS  # noqa: F401
 from .elements.storage_technologies import PumpedHydro  # noqa: F401
 from .elements.transport_technologies import PowerLine  # noqa: F401
 

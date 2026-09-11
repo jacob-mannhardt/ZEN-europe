@@ -22,7 +22,6 @@ class InvestmentSettings(SettingsCategory):
     use_power_line_capacity_limit: bool = True
     use_chemical_pipelines: bool = False
     account_for_offshore_transport: bool = False
-    force_ice_phase_out: bool = False
     use_battery_e2p_ratio: bool = False
     storage_charge_discharge_binary: Optional[bool] = None
     use_200y_lifetime_hydro: bool = True

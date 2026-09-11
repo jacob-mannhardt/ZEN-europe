@@ -2,10 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.dataset_collections.existing_vehicle_capacity import ExistingVehicleCapacity
+from zen_europe.datasets.dataset_collections.passenger_mileage_demand import PassengerMileageDemand
+from zen_europe.datasets.datasets.technology.passenger_cars_cox import PassengerCarsCox
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology
+from zen_creator import Attribute, ConversionTechnology, SourceInformation
 
 
 class BEV(ConversionTechnology):
@@ -14,7 +18,7 @@ class BEV(ConversionTechnology):
 
     name: str = "BEV"
 
-    def __init__(self, model: Model, power_unit: str = "MW"):
+    def __init__(self, model: Model, power_unit: str = "megavkm/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ---------- Required methods that are called during object construction ----------
@@ -49,28 +53,66 @@ class BEV(ConversionTechnology):
         """
         Sets the lifetime of BEV.
 
-        TODO: No lifetime data source has been identified/ported for BEV
-        (the legacy pipeline's `get_transport_constants("lifetime")=20` is
-        dead/commented-out code); framework default (NaN) is kept.
         """
-        attr = self.lifetime
-        return attr
+        passenger_cars = PassengerCarsCox(source_path=self.source_path)
+        return passenger_cars.get_lifetime(element=self)
 
     def _set_conversion_factor(self) -> Attribute:
         """
         Return the conversion factor of BEV.
 
-        TODO: Should be sourced from a `vehicle_tech_parameters.csv` table
-        (passenger-vehicle techno-economic parameters), which is not yet
-        implemented as a dataset in zen_europe (see IMPLEMENTATION_TODO.md:
-        "VehicleTransportParams" not yet built); left empty.
         """
-        attr = self.conversion_factor
-        return attr
+        passenger_cars = PassengerCarsCox(source_path=self.source_path)
+        return passenger_cars.get_conversion_factor(element=self)
 
-    # TODO: capacity_existing/max_load should be sourced from Eurostat
-    # vehicle-stock/mileage data and the `slp_passenger` standard load
-    # profile, respectively. capex_specific_conversion/opex_specific_variable
-    # should be sourced from `vehicle_tech_parameters.csv`. None of these are
-    # currently reachable from a clean dataset call for this technology;
-    # framework defaults apply throughout.
+    def _set_opex_specific_variable(self) -> Attribute:
+        """
+        Sets the specific variable OPEX of BEV.
+
+        """
+        passenger_cars = PassengerCarsCox(source_path=self.source_path)
+        return passenger_cars.get_opex_specific_variable(element=self)
+
+    def _set_capex_specific_conversion(self) -> Attribute:
+        """
+        Sets the specific conversion CAPEX of BEV.
+
+        """
+        vehicle_capacity = ExistingVehicleCapacity(
+            settings=self.model.settings, source_path=self.source_path)
+        return vehicle_capacity.get_capex_specific_conversion_passenger(element=self)
+
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of BEV.
+
+        """
+        vehicle_capacity = ExistingVehicleCapacity(
+            settings=self.model.settings, source_path=self.source_path)
+        ex_cap = vehicle_capacity.get_existing_capacity_passenger(element=self)
+        attr = self.capacity_existing
+        return attr.set_data(
+            df=ex_cap,
+            source=SourceInformation(
+                description=(
+                    "The existing capacity of BEV is calculated from the "
+                    "existing fleet of BEV vehicles and the total passenger "
+                    "mileage demand. The existing fleet is sourced from the UNECE "
+                    "dataset, and the total passenger mileage demand is sourced from the "
+                    "PassengerMileageDemand dataset."
+                    " The capacity is corrected for the peak demand share."
+                ),
+                metadata=vehicle_capacity.metadata
+            ),
+            unit="megavkm/h"
+        )
+
+    def _set_max_load(self) -> Attribute:
+        """
+        Sets the maximum load of BEV.
+
+        """
+        passenger_transport_db = PassengerMileageDemand(
+            settings=self.model.settings, source_path=self.source_path)
+        return passenger_transport_db.get_max_load(element=self)
+

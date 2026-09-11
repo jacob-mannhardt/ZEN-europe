@@ -6,28 +6,6 @@ Potencia) into a single queryable database, following the same "many
 agencies, one schema" approach as the legacy ``agg_financial_parameters.py``
 script this class replaces.
 
-Not ported from the legacy script (documented limitations):
-    - The ETRI, BNEF, NREL and IRENA sources: these were already
-      unimplemented stubs in the legacy script, so there was nothing to port.
-    - DEA's CO2 transport/storage/liquefaction entries: these were never
-      parsed by the legacy script either, price logistics infrastructure
-      rather than a standalone conversion technology, and the technologies
-      that could theoretically consume them (`carbon_pipeline`,
-      `carbon_storage`) already source their costs from a separate, active
-      pipeline (``costs_additional_technologies.xlsx``).
-    - `oil_boiler_DH` (DEA mapped it to the same row as `waste_boiler_DH` in
-      the legacy script - looks like a bug, not reproduced here).
-
-
-Note: DEA's and LUW's carbon-capture technologies (DAC and DEA's retrofit
-post-combustion capture) are reported on a Euro/tCO2(/h) basis rather than
-Euro/kW; the `unit` returned by `get_capex_specific_conversion` etc.
-reflects whichever basis the technology actually uses (see `_unit_for`), it
-is not always `Euro/kW`.
-
-Note: Potencia reports a single point estimate per technology/year (no
-min/max spread, ``scenario="ref"`` only) at up to four plant sizes, of which
-this database uses S/M/L.
 """
 
 from __future__ import annotations
@@ -41,12 +19,13 @@ if TYPE_CHECKING:
 
     from zen_creator import Dataset, Element
 
-from zen_creator import Attribute, DatasetCollection
+from zen_creator import Attribute, ConversionTechnology, DatasetCollection, RetrofittingTechnology
 from zen_creator.utils.attribute import SourceInformation
 from zen_creator.utils.settings import Settings
 
 from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 from zen_europe.datasets.datasets.financial._cost_schema import (
+    CO2_BASIS_UNITS,
     COST_VARIABLES,
     STANDARD_UNITS,
     YEARS,
@@ -67,6 +46,18 @@ _AGENCY_DATASETS = {
     "potencia": Potencia,
 }
 _METRICS = ("mean", "median", "min", "max")
+
+# A retrofit technology is sized by its retrofit reference carrier (the CO2 it
+# captures), while the agencies report costs against the power capacity or
+# energy throughput of the underlying plant. Dividing a cost by the retrofit
+# flow coupling factor [tCO2/MWh] rebases it onto that CO2 basis; this maps the
+# unit the agencies report to the (multiplier, resulting unit) of that division.
+_RETROFIT_COUPLING_UNITS = ("tCO2eq/MWh", "tCO2/MWh")
+_RETROFIT_UNIT_CONVERSION: dict[tuple[str, str], tuple[float, str]] = {
+    ("capex", "Euro/kW"): (1e3, CO2_BASIS_UNITS["capex"]),
+    ("fopex", "Euro/kW/year"): (1e3, CO2_BASIS_UNITS["fopex"]),
+    ("vopex", "Euro/MWh"): (1.0, CO2_BASIS_UNITS["vopex"]),
+}
 
 
 class TechnologyCostDatabase(DatasetCollection):
@@ -91,7 +82,7 @@ class TechnologyCostDatabase(DatasetCollection):
     def get_capex_specific_conversion(
         self, element: Element, plant_size: str = "M", metric: str = "mean"
     ) -> Attribute:
-        """Specific investment cost [Euro/kW] for `element`'s technology."""
+        """Specific investment cost for `element`'s technology."""
         return self._set_technology_attribute(
             element, element.capex_specific_conversion, "capex", plant_size, metric,
             description="specific investment cost (CAPEX)", annual_values=True
@@ -100,7 +91,7 @@ class TechnologyCostDatabase(DatasetCollection):
     def get_opex_specific_fixed(
         self, element: Element, plant_size: str = "M", metric: str = "mean"
     ) -> Attribute:
-        """Fixed operational cost [Euro/kW/year] for `element`'s technology."""
+        """Fixed operational cost for `element`'s technology."""
         return self._set_technology_attribute(
             element, element.opex_specific_fixed, "fopex", plant_size, metric,
             description="fixed operational cost", annual_values=True
@@ -109,7 +100,7 @@ class TechnologyCostDatabase(DatasetCollection):
     def get_opex_specific_variable(
         self, element: Element, plant_size: str = "M", metric: str = "mean"
     ) -> Attribute:
-        """Variable operational cost [Euro/MWh] for `element`'s technology."""
+        """Variable operational cost for `element`'s technology."""
         return self._set_technology_attribute(
             element, element.opex_specific_variable, "vopex", plant_size, metric,
             description="variable operational cost", annual_values=False
@@ -203,24 +194,15 @@ class TechnologyCostDatabase(DatasetCollection):
         return cost_df
 
     # -------- aggregation internals ------------------
-
-    def _set_technology_attribute(
+    def _get_attribute_data(
         self, element: Element, attribute: Attribute, variable: str,
         plant_size: str, metric: str, description: str, annual_values: bool = True
-    ) -> Attribute:
+    ) -> tuple[pd.Series,float,pd.Series,list[str]]:
+        """Get the data for a given attribute of a technology."""
         reference_year = element.settings.time.reference_year
         series = self._aggregate(
             element.name, variable, plant_size, metric, reference_year)
         agencies = self._extract_agencies(element.name, variable, plant_size)
-        source = SourceInformation(
-            description=(
-                f"{description.capitalize()} for '{element.name}' is the {metric} across "
-                f"for the agencies {', '.join(agencies)} reporting data for this "
-                f"technology at plant size '{plant_size}'. Monetary values are rebased to "
-                f"{reference_year} EUR using ECB HICP inflation."
-            ),
-            metadata=self.metadata,
-        )
         if series.empty:
             raise ValueError(
                 f"No {description} data found for technology '{element.name}' "
@@ -246,6 +228,25 @@ class TechnologyCostDatabase(DatasetCollection):
             yearly_variations.index.name = "year"
             yearly_variations.name = attribute.name
             df = None
+        return df, default_value, yearly_variations, agencies
+    
+    def _set_technology_attribute(
+        self, element: Element, attribute: Attribute, variable: str,
+        plant_size: str, metric: str, description: str, annual_values: bool = True
+    ) -> Attribute:
+        df, default_value, yearly_variations, agencies = self._get_attribute_data(
+            element, attribute, variable, plant_size, metric, description, annual_values
+        )
+        reference_year = element.settings.time.reference_year
+        source = SourceInformation(
+            description=(
+                f"{description.capitalize()} for '{element.name}' is the {metric} across "
+                f"all available data for the agencies {', '.join(agencies)} reporting data for this "
+                f"technology at plant size '{plant_size}'. Monetary values are rebased to "
+                f"{reference_year} EUR using ECB HICP inflation."
+            ),
+            metadata=self.metadata,
+        )
         return attribute.set_data(
             source=source,
             default_value=default_value,
@@ -364,3 +365,156 @@ class TechnologyCostDatabase(DatasetCollection):
         reindexed = series.reindex(combined_index).interpolate(
             method="index", limit_direction="both")
         return reindexed.loc[years]
+
+    def get_capex_specific_conversion_retrofit(
+        self,
+        element: RetrofittingTechnology,
+        base_technology: ConversionTechnology,
+        plant_size: str = "M",
+        metric: str = "mean"
+    ) -> Attribute:
+        """Specific investment cost for `element`'s retrofit technology."""
+        return self._set_retrofit_cost_attribute(
+            element, element.capex_specific_conversion, base_technology,
+            "capex", plant_size, metric,
+            description="specific investment cost (CAPEX)", annual_values=True,
+        )
+
+    def get_opex_specific_fixed_retrofit(
+        self,
+        element: RetrofittingTechnology,
+        base_technology: ConversionTechnology,
+        plant_size: str = "M",
+        metric: str = "mean"
+    ) -> Attribute:
+        """Fixed operational cost for `element`'s retrofit technology."""
+        return self._set_retrofit_cost_attribute(
+            element, element.opex_specific_fixed, base_technology,
+            "fopex", plant_size, metric,
+            description="fixed operational cost", annual_values=True,
+        )
+
+    def get_opex_specific_variable_retrofit(
+        self,
+        element: RetrofittingTechnology,
+        base_technology: ConversionTechnology,
+        plant_size: str = "M",
+        metric: str = "mean"
+    ) -> Attribute:
+        """Variable operational cost for `element`'s retrofit technology."""
+        return self._set_retrofit_cost_attribute(
+            element, element.opex_specific_variable, base_technology,
+            "vopex", plant_size, metric,
+            description="variable operational cost", annual_values=False,
+        )
+
+    def _annual_series(
+        self, element: Element, variable: str, plant_size: str, metric: str,
+        description: str,
+    ) -> tuple[pd.Series, set[str]]:
+        """Aggregated `variable` for `element`, on the optimization-year grid."""
+        reference_year = element.settings.time.reference_year
+        series = self._aggregate(
+            element.name, variable, plant_size, metric, reference_year)
+        if series.empty:
+            raise ValueError(
+                f"No {description} data found for technology '{element.name}' "
+                f"at plant size '{plant_size}' in any agency dataset."
+            )
+        optimization_years = pd.Index(element.settings.time.get_optimization_years())
+        return (
+            self._reindex_to_years(series, optimization_years),
+            self._extract_agencies(element.name, variable, plant_size),
+        )
+
+    def _set_retrofit_cost_attribute(
+        self, element: RetrofittingTechnology, attribute: Attribute,
+        base_technology: ConversionTechnology, variable: str, plant_size: str,
+        metric: str, description: str, annual_values: bool = True,
+    ) -> Attribute:
+        """Set `attribute` to the cost of retrofitting `base_technology`.
+
+        The agencies report the CCS-equipped plant and the base plant on the
+        same power/energy basis, so the cost of the retrofit itself is the
+        difference between the two. That difference is then divided by the
+        retrofit flow coupling factor to express it per unit of captured CO2,
+        which is what a retrofit technology is sized by.
+        """
+        series, agencies = self._annual_series(
+            element, variable, plant_size, metric, f"{description} for retrofit")
+        series_base, agencies_base = self._annual_series(
+            base_technology, variable, plant_size, metric,
+            f"{description} for base technology")
+
+        reported_unit = self._unit_for(element.name, variable, plant_size)
+        reported_unit_base = self._unit_for(base_technology.name, variable, plant_size)
+        if reported_unit != reported_unit_base:
+            raise ValueError(
+                f"Cannot take a retrofit {variable} delta between "
+                f"'{element.name}' ({reported_unit}) and '{base_technology.name}' "
+                f"({reported_unit_base}): the two are reported on different bases."
+            )
+
+        delta = series - series_base
+        if (delta <= 0).any():
+            raise ValueError(
+                f"Retrofitting '{base_technology.name}' to '{element.name}' has a "
+                f"non-positive {description} delta in the year(s) "
+                f"{list(delta.index[delta <= 0])}, which would give the retrofit "
+                f"a zero or negative cost. Check the underlying agency data."
+            )
+
+        # rebase from the base plant's power/energy basis onto captured CO2
+        coupling_factor = element.retrofit_flow_coupling_factor
+        if coupling_factor.unit not in _RETROFIT_COUPLING_UNITS:
+            raise ValueError(
+                f"Expected the retrofit flow coupling factor of '{element.name}' "
+                f"in one of {_RETROFIT_COUPLING_UNITS}, got "
+                f"'{coupling_factor.unit}'."
+            )
+        if (variable, reported_unit) not in _RETROFIT_UNIT_CONVERSION:
+            raise ValueError(
+                f"No retrofit unit conversion defined for '{variable}' reported "
+                f"as '{reported_unit}' (technology '{element.name}')."
+            )
+        multiplier, unit = _RETROFIT_UNIT_CONVERSION[(variable, reported_unit)]
+        delta = delta / coupling_factor.default_value * multiplier
+
+        reference_year = element.settings.time.reference_year
+        at_reference_year = self._reindex_to_years(
+            delta, pd.Index([reference_year]))
+        default_value = float(at_reference_year.loc[reference_year])
+        if annual_values:
+            # a delta that is flat across years is fully described by its default
+            df = None if len(delta.unique()) == 1 else delta
+            yearly_variations = None
+        else:
+            df = None
+            yearly_variations = delta / default_value
+        for frame in (df, yearly_variations):
+            if frame is not None:
+                frame.index.name = "year"
+                frame.name = attribute.name
+
+        agencies = sorted(set(agencies).union(agencies_base))
+        source = SourceInformation(
+            description=(
+                f"{description.capitalize()} for '{element.name}' is the cost of "
+                f"retrofitting '{base_technology.name}', i.e. the difference "
+                f"between the two technologies' {metric} across all available "
+                f"data for the agencies {', '.join(agencies)} reporting data at "
+                f"plant size '{plant_size}', divided by the retrofit flow "
+                f"coupling factor ({coupling_factor.default_value:.4g} "
+                f"{coupling_factor.unit}) to express it per unit of captured "
+                f"CO2. Monetary values are rebased to {reference_year} EUR "
+                f"using ECB HICP inflation."
+            ),
+            metadata=self.metadata,
+        )
+        return attribute.set_data(
+            source=source,
+            default_value=default_value,
+            df=df,
+            unit=unit,
+            yearly_variations_df=yearly_variations,
+        )

@@ -5,6 +5,7 @@ import json
 import logging
 import multiprocessing as mp
 from datetime import datetime
+from functools import cache
 from pathlib import Path
 from typing import Any, Callable, Union
 
@@ -265,40 +266,49 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
 
     # -------- outward-facing accessors ------------------
 
+    @cache
     def get_efficiencies(self) -> pd.Series:
         """Fleet efficiency (output/input) per technology, at the latest
         available Eurostat year."""
         return self._query_efficiencies()
 
+    @cache
     def get_electricity_generation(self) -> pd.Series:
         """Gross electricity generation per country, at the latest
         available Eurostat year."""
         return self._query_electricity_generation()
 
+    @cache
     def get_total_heat_household(self) -> pd.DataFrame:
         """Heat consumption per node."""
         return self._query_total_heat_household()
     
+    @cache
     def get_heat_household_technology(self) -> pd.DataFrame:
         """Household heat consumption per technology/node."""
         return self._query_heat_household_technology()
     
+    @cache
     def get_heat_dh_technology(self) -> pd.DataFrame:
         """District heat consumption per technology/node."""
         return self._query_heat_dh_technology()
     
+    @cache
     def get_coal_availability(self) -> pd.Series:
         """Coal availability per node."""
         return self._query_coal_availability()
     
+    @cache
     def get_oil_availability(self) -> pd.Series:
         """Oil availability per node."""
         return self._query_oil_availability()
 
+    @cache
     def get_natural_gas_production(self) -> pd.Series:
         """Natural gas production per node."""
         return self._query_natural_gas_production()
 
+    @cache
     def get_waste_availability(self, include_industry: bool = False) -> pd.Series:
         """Waste availability per node.
 
@@ -308,18 +318,22 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         """
         return self._query_waste_availability(include_industry=include_industry)
 
+    @cache
     def get_naphtha_demand(self) -> pd.Series:
         """Naphtha demand per node."""
         return self._query_naphtha_demand()
 
+    @cache
     def get_kerosene_demand(self) -> pd.Series:
         """Kerosene demand per node."""
         return self._query_kerosene_demand()
 
+    @cache
     def get_shipping_fuel_demand(self) -> pd.Series:
         """Shipping fuel demand per node."""
         return self._query_shipping_fuel_demand()
 
+    @cache
     def get_population_by_urbanization(self) -> pd.DataFrame:
         """Population share per country and degree of urbanization (urban,
         intermediate, rural), for all available Eurostat years."""
@@ -700,6 +714,7 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
 
         return es.get_data_df(dataset, filter_pars=filter_pars)
 
+    @cache
     def get_vehicle_occupancy(self) -> float:
         """Get the average vehicle occupancy.
         

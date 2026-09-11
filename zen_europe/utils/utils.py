@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from typing import Union
 from zen_creator import Technology
@@ -127,6 +128,39 @@ def interpolate_missing_years(df: pd.DataFrame) -> pd.DataFrame:
         raise TypeError("Input must be a pandas DataFrame or Series,"
                         f" but got {type(df).__name__}.")
     return df
+
+def linearly_fill_missing_years(
+        df: pd.DataFrame, deg: int = 1, clip_to_zero: bool = True) -> pd.DataFrame:
+    """Fill missing years by fitting a polynomial to each row.
+
+    In contrast to :func:`interpolate_missing_years`, which only interpolates
+    between observed values, this fits a (by default linear) trend through the
+    observed years of each row and uses it to fill the gaps, including the
+    years before the first and after the last observation. Rows with fewer than
+    two observations are left untouched.
+
+    Args:
+        df (pd.DataFrame): DataFrame with years as columns.
+        deg (int): Degree of the polynomial fitted to each row.
+        clip_to_zero (bool): Whether to clip the filled values at zero.
+
+    Returns:
+        pd.DataFrame: DataFrame with missing years filled.
+    """
+    df_filled = df.copy()
+    fit_params = df.apply(
+        lambda row: np.polyfit(row.dropna().index, row.dropna(), deg=deg)
+        if len(row.dropna()) > 1 else None,
+        axis=1)
+    df_fit = df.apply(
+        lambda row: np.polyval(fit_params.loc[row.name], row.index)
+        if fit_params.loc[row.name] is not None else row,
+        axis=1, result_type="expand")
+    df_fit.columns = df.columns
+    df_filled[df_filled.isna()] = df_fit[df_filled.isna()]
+    if clip_to_zero:
+        df_filled = df_filled.clip(lower=0)
+    return df_filled
 
 def calculate_capacity_addition_from_cumulative(df: pd.DataFrame, element: Technology) -> pd.DataFrame:
     """Calculate capacity addition from cumulative capacity data.

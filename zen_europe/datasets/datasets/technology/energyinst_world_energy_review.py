@@ -146,7 +146,8 @@ class EnergyInstituteWorldEnergyReview(Dataset[pd.DataFrame]):
             Constants.TOE_PER_MWH / 
             Constants.HOURS_PER_DAY)
         refining_capacity = refining_capacity * conversion_tb_daily_to_GW
-        data = calculate_capacity_addition_from_cumulative(refining_capacity)
+        data = calculate_capacity_addition_from_cumulative(
+            refining_capacity, element=element)
         data = format_capacity_existing(data)
         attr = element.capacity_existing
         attr.set_data(
