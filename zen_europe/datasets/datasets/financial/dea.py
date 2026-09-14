@@ -947,7 +947,7 @@ class DEA(Dataset[pd.DataFrame]):
             {"district_heat": {"default_value": 1.65, "unit": "GWh/kilotCO2"}},
         ]
 
-    def get_capture_rate_cement_post_comb(self):
+    def get_capture_rate_CCS(self):
         """ returns the capture rate for cement post-combustion capture.
 
         Values from the DEA technology catalogue for carbon capture,

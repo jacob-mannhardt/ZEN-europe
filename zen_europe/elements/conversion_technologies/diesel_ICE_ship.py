@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING
 
 from zen_europe.datasets.datasets.carrier.eurostat import Eurostat
 from zen_europe.datasets.datasets.technology.shipping_technologies_korberg import ShippingTechnologiesKorberg
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -224,3 +227,12 @@ class DieselICEShip(ConversionTechnology):
             ),
         )
         return attr
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of diesel ICE ship.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING
 
 from zen_europe.datasets.datasets.technology.agora_industry_steel import AgoraIndustrySteel
 from zen_europe.datasets.datasets.technology.steel_technologies_woertler import SteelTechnologiesWoertler
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -98,3 +101,12 @@ class H2_DRI(ConversionTechnology):
         steel_woertler_dataset = SteelTechnologiesWoertler(self.source_path)
         return steel_woertler_dataset.get_capex_specific(self)
     
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of H2 DRI.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

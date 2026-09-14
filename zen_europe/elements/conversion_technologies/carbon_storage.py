@@ -6,6 +6,9 @@ from zen_europe.datasets.datasets.technology.CO2_storage_costs_ZEP import CO2Sto
 from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import IOGPCarbonStorageProjects
 from zen_europe.datasets.datasets.technology.energyinst_world_energy_review import EnergyInstituteWorldEnergyReview
 from zen_europe.datasets.datasets.technology.northern_lights_costs import NorthernLightsCosts
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -186,3 +189,12 @@ class CarbonStorage(ConversionTechnology):
                 )
         else:
             return self.capacity_limit
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of carbon storage.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

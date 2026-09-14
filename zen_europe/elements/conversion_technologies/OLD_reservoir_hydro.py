@@ -75,7 +75,9 @@ class ReservoirHydro(ConversionTechnology):
                 )
             )
         else:
-            lifetime_expectation = LifetimeExpectation(source_path=self.source_path)
+            lifetime_expectation = LifetimeExpectation(
+                settings=self.settings, 
+                source_path=self.source_path)
             return lifetime_expectation.get_lifetime(self)
 
     def _set_construction_time(self) -> Attribute:

@@ -2,12 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.dataset_collections.ccs_conversion_factor import CCSConversionFactor
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import IOGPCarbonStorageProjects
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, RetrofittingTechnology
+from zen_creator import AssumptionInformation, Attribute, RetrofittingTechnology
+
 
 
 class NaturalGasTurbineCCS(RetrofittingTechnology):
@@ -15,41 +21,40 @@ class NaturalGasTurbineCCS(RetrofittingTechnology):
     retrofitted with post-combustion carbon capture (CCS)."""
 
     name: str = "natural_gas_turbine_CCS"
+    base_technology_name: str = "natural_gas_turbine"
 
-    def __init__(self, model: Model, power_unit: str = "MW"):
+    def __init__(self, model: Model, power_unit: str = "tCO2/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ---------- Required methods that are called during object construction ----------
 
     def _set_reference_carrier(self) -> Attribute:
         """
-        Sets the reference carrier of natural gas turbine CCS to electricity.
+        Sets the reference carrier of natural gas turbines with CCS to carbon.
         """
         return Attribute(
-            name="reference_carrier", default_value=["electricity"], element=self
+            name="reference_carrier", default_value=["carbon"], element=self
         )
 
     def _set_input_carrier(self) -> Attribute:
         """
-        Sets the input carrier of natural gas turbine CCS to natural gas.
+        Sets the input carrier of natural gas turbines with CCS to electricity.
         """
         return Attribute(
-            name="input_carrier", default_value=["natural_gas"], element=self)
+            name="input_carrier", default_value=["electricity"], element=self)
 
     def _set_output_carrier(self) -> Attribute:
         """
-        Set the output carrier of natural gas turbine CCS to electricity and
-        carbon.
+        Set the output carrier of natural gas turbines with CCS to carbon.
         """
         return Attribute(
-            name="output_carrier", default_value=["electricity", "carbon"],
+            name="output_carrier", default_value=["carbon"],
             element=self
         )
 
     def _set_retrofit_reference_carrier(self) -> Attribute:
         """
-        Sets the retrofit reference carrier of natural gas turbine CCS to
-        carbon.
+        Sets the retrofit reference carrier of natural gas turbines with CCS to carbon.
         """
         return Attribute(
             name="retrofit_reference_carrier", default_value=["carbon"], element=self
@@ -59,7 +64,7 @@ class NaturalGasTurbineCCS(RetrofittingTechnology):
 
     def _set_lifetime(self) -> Attribute:
         """
-        Sets the lifetime of natural gas turbine CCS.
+        Sets the lifetime of natural gas turbines with CCS.
 
         """
         tech_db = TechnologyCostDatabase(
@@ -68,7 +73,7 @@ class NaturalGasTurbineCCS(RetrofittingTechnology):
 
     def _set_construction_time(self) -> Attribute:
         """
-        Sets the construction time of natural gas turbine CCS.
+        Sets the construction time of natural gas turbines with CCS.
 
         """
         if self.settings.investment.use_construction_times:
@@ -80,87 +85,110 @@ class NaturalGasTurbineCCS(RetrofittingTechnology):
 
     def _set_capex_specific_conversion(self) -> Attribute:
         """
-        Sets the specific capital expenditure (capex) for natural gas
-        turbine CCS.
+        Sets the specific capital expenditure (capex) for natural gas turbines with CCS.
 
         Following the legacy pipeline, this is the delta between the
-        CCS-equipped plant's cost-database entry and the base
-        `natural_gas_turbine` technology's entry, divided by
-        `retrofit_flow_coupling_factor` so that it is expressed per unit of
-        captured CO2 rather than per unit of power capacity.
+        CCS-equipped plant's cost-database entry and the base `natural_gas_turbine` 
+        technology's entry, divided by `retrofit_flow_coupling_factor` so that
+        it is expressed per unit of captured CO2 rather than per unit of power
+        capacity.
 
         Returns:
             Attribute: An Attribute object containing the specific capex data.
         """
         tech_db = TechnologyCostDatabase(
                     settings=self.settings, source_path=self.source_path)
-        base_tech = self.model.elements["natural_gas_turbine"]
+        base_tech = self.model.elements[self.base_technology_name]
         return tech_db.get_capex_specific_conversion_retrofit(
             self, base_technology=base_tech)
 
     def _set_opex_specific_fixed(self) -> Attribute:
         """
-        Sets the specific fixed operational expenditure (opex) for natural
-        gas turbine CCS.
+        Sets the specific fixed operational expenditure (opex) for natural gas
+        turbines with CCS.
 
         Like the capex, this is the delta between the CCS-equipped plant's
-        cost-database entry and that of the base `natural_gas_turbine`,
-        divided by `retrofit_flow_coupling_factor`.
+        cost-database entry and that of the base `natural_gas_turbine`, divided by
+        `retrofit_flow_coupling_factor`.
 
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
         """
         tech_db = TechnologyCostDatabase(
             settings=self.settings, source_path=self.source_path)
-        base_tech = self.model.elements["natural_gas_turbine"]
+        base_tech = self.model.elements[self.base_technology_name]
         return tech_db.get_opex_specific_fixed_retrofit(
             self, base_technology=base_tech)
 
     def _set_opex_specific_variable(self) -> Attribute:
         """
         Sets the specific variable operational expenditure (opex) for
-        natural gas turbine CCS.
+        natural gas turbines with CCS.
 
         Like the capex, this is the delta between the CCS-equipped plant's
-        cost-database entry and that of the base `natural_gas_turbine`,
-        divided by `retrofit_flow_coupling_factor`.
+        cost-database entry and that of the base `natural_gas_turbine`, divided by
+        `retrofit_flow_coupling_factor`.
 
         Returns:
             Attribute: An Attribute object containing the specific variable opex data.
         """
         tech_db = TechnologyCostDatabase(
             settings=self.settings, source_path=self.source_path)
-        base_tech = self.model.elements["natural_gas_turbine"]
+        base_tech = self.model.elements[self.base_technology_name]
         return tech_db.get_opex_specific_variable_retrofit(
             self, base_technology=base_tech)
 
     def _set_conversion_factor(self) -> Attribute:
         """
-        Return the conversion factor of natural gas turbine CCS.
+        Return the conversion factor of natural gas turbines with CCS.
 
-        TODO: In the legacy pipeline this is derived from a cost-database
-        efficiency comparison between `natural_gas_turbine` and
-        `natural_gas_turbine_CCS`; left empty pending that comparison.
         """
-        attr = self.conversion_factor
-        return attr
+        ccs_cf_db = CCSConversionFactor(
+            settings=self.settings, source_path=self.source_path)
+        base_tech = self.model.elements[self.base_technology_name]
+        cf = ccs_cf_db.get_conversion_factor_CCS(
+            element=self, base_tech=base_tech)
+        return cf
 
     def _set_retrofit_flow_coupling_factor(self) -> Attribute:
         """
-        Return the retrofit flow coupling factor of natural gas turbine CCS.
+        Return the retrofit flow coupling factor of natural gas turbines with CCS.
 
-        TODO: In the legacy pipeline this is computed as
-        `carbon_intensity_carrier_fuel["natural_gas"] * (1 / efficiency_base)
-        * CCS_capture_rate`, with `CCS_capture_rate = 0.88` (Yang et al.
-        2021, https://www.sciencedirect.com/science/article/pii/S136403212100318X,
-        Table 2, VPSA) and the natural gas carbon intensity and base-plant
-        efficiency both requiring cross-referencing a Carrier element and
-        the technology cost database's efficiency data. Left at the
-        framework default (1.0) pending that implementation.
         """
-        attr = self.retrofit_flow_coupling_factor
-        return attr
+        ccs_cf_db = CCSConversionFactor(
+            settings=self.settings, source_path=self.source_path)
+        base_tech = self.model.elements[self.base_technology_name]
+        return ccs_cf_db.get_retrofit_flow_coupling_factor(
+            element=self, base_tech=base_tech)
 
-    # TODO: capacity_existing should be sourced from the IOGP CCS database
-    # (technologies present in the capture/cluster maps), which is not yet
-    # implemented as a dataset in zen_europe; framework default applies.
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of natural gas turbines with CCS.
+
+        Returns:
+            Attribute: An Attribute object containing the existing capacity data.
+        """
+        if self.settings.investment.use_existing_capacities:
+            igop_projects = IOGPCarbonStorageProjects(source_path=self.source_path)
+            return igop_projects.get_capacity_existing_capture(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of natural gas turbine CCS.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

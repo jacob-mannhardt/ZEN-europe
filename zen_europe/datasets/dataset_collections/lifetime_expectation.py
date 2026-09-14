@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 
 from zen_creator import Attribute, DatasetCollection
 from zen_creator.utils.attribute import SourceInformation
+from zen_creator.utils.settings import Settings
 
 
 
@@ -29,7 +30,8 @@ class LifetimeExpectation(DatasetCollection):
 
     name = "lifetime_expectation"
 
-    def __init__(self, source_path: Path | str):
+    def __init__(self, settings: Settings, source_path: Path | str):
+        self.settings = settings
         super().__init__(source_path=source_path)
 
     def _get_data(self) -> Dict[str, Dataset[Any]]:

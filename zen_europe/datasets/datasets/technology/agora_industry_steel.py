@@ -270,6 +270,7 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
             ),
         )
         return attr
+    
     def get_conversion_factor_ccs(self, element: ConversionTechnology) -> Attribute:
         """
         Get the conversion factor of a steel CCS retrofit.

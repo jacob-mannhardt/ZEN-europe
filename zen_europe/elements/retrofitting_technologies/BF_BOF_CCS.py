@@ -3,12 +3,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import IOGPCarbonStorageProjects
 from zen_europe.datasets.datasets.technology.agora_industry_steel import AgoraIndustrySteel
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, RetrofittingTechnology
+from zen_creator import AssumptionInformation, Attribute, RetrofittingTechnology
 
 
 class BF_BOF_CCS(RetrofittingTechnology):
@@ -18,7 +22,7 @@ class BF_BOF_CCS(RetrofittingTechnology):
 
     name: str = "BF_BOF_CCS"
 
-    def __init__(self, model: Model, power_unit: str = "MW"):
+    def __init__(self, model: Model, power_unit: str = "tCO2/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ---------- Required methods that are called during object construction ----------
@@ -133,6 +137,35 @@ class BF_BOF_CCS(RetrofittingTechnology):
         agora_dataset = AgoraIndustrySteel(source_path=self.source_path)
         return agora_dataset.retrofit_flow_coupling_factor(self)
 
-    # TODO: capacity_existing should be sourced from the IOGP CCS database
-    # (technologies present in the cluster map), which is not yet
-    # implemented as a dataset in zen_europe; framework default applies.
+    
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of BF-BOF CCS.
+
+        Returns:
+            Attribute: An Attribute object containing the existing capacity data.
+        """
+        if self.settings.investment.use_existing_capacities:
+            igop_projects = IOGPCarbonStorageProjects(source_path=self.source_path)
+            return igop_projects.get_capacity_existing_capture(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of BF BOF CCS.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

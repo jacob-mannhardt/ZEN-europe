@@ -6,6 +6,9 @@ from zen_europe.datasets.dataset_collections.hydro_existing_capacity import Hydr
 from zen_europe.datasets.dataset_collections.lifetime_expectation import LifetimeExpectation
 from zen_europe.datasets.dataset_collections.run_of_river_hydro_max_load import RunOfRiverHydroMaxLoad
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -73,7 +76,9 @@ class RunOfRiverHydro(ConversionTechnology):
                 ),
             )
         else:
-            lifetime_expectation = LifetimeExpectation(source_path=self.source_path)
+            lifetime_expectation = LifetimeExpectation(
+                settings=self.settings, 
+                source_path=self.source_path)
             return lifetime_expectation.get_lifetime(self)
 
     def _set_construction_time(self) -> Attribute:
@@ -208,3 +213,12 @@ class RunOfRiverHydro(ConversionTechnology):
             set_nodes=self.model.config.system.set_nodes
         )
         return ror_max_load.get_max_load(self)
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of run-of-river hydro.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

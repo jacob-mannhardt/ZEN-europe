@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
 from zen_europe.datasets.datasets.financial.dea import DEA
 from zen_europe.datasets.datasets.technology.european_biogas_association import EuropeanBiogasAssociation
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -149,3 +152,12 @@ class BiomethaneConversion(ConversionTechnology):
                 ),
             )
             return attr
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of biomethane conversion.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

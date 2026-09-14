@@ -5,6 +5,9 @@ from typing import TYPE_CHECKING, cast
 from zen_europe.datasets.dataset_collections.existing_vehicle_capacity import ExistingVehicleCapacity
 from zen_europe.datasets.dataset_collections.truck_mileage_demand import TruckMileageDemand
 from zen_europe.datasets.datasets.technology.truck_technologies_icct import TruckTechnologiesICCT
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -116,3 +119,12 @@ class HDT_BET(ConversionTechnology):
         
         return truck_transport_db.get_max_load(element=self)
     
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of HDT BET.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

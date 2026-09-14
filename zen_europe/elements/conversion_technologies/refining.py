@@ -6,6 +6,9 @@ from zen_europe.datasets.datasets.technology.LCA_refining import LCARefining
 from zen_europe.datasets.datasets.technology.economics_of_oil_refining import EconomicsOfOilRefining
 from zen_europe.datasets.datasets.technology.energyinst_world_energy_review import EnergyInstituteWorldEnergyReview
 from zen_europe.datasets.datasets.technology.future_hydrogen_demand_neuwirth import FutureHydrogenDemandNeuwirth
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -130,3 +133,12 @@ class Refining(ConversionTechnology):
             EnergyInstituteWorldEnergyReview(source_path=self.source_path)
         )
         return energyinst_dataset.get_capacity_existing_refining(self)
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of refining.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

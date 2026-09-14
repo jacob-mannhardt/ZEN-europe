@@ -5,11 +5,15 @@ from typing import TYPE_CHECKING
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
 from zen_europe.datasets.datasets.carrier.material_economics import MaterialEconomics
 from zen_europe.datasets.datasets.financial.dea import DEA
+from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import IOGPCarbonStorageProjects
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, RetrofittingTechnology, SourceInformation
+from zen_creator import AssumptionInformation, Attribute, RetrofittingTechnology, SourceInformation
 
 
 class CementPostComb(RetrofittingTechnology):
@@ -18,7 +22,7 @@ class CementPostComb(RetrofittingTechnology):
 
     name: str = "cement_post_comb"
 
-    def __init__(self, model: Model, power_unit: str = "MW"):
+    def __init__(self, model: Model, power_unit: str = "tCO2/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ---------- Required methods that are called during object construction ----------
@@ -154,21 +158,12 @@ class CementPostComb(RetrofittingTechnology):
         """
         Return the retrofit flow coupling factor of cement post-combustion
         capture.
-
-        TODO: In the legacy pipeline this is computed as
-        `clinker_carbon_intensity (0.54 tCO2/tClinker, Material Economics
-        (2019), 'Industrial Transformation 2050') *
-        carbon_capture_rate_cement (0.9,
-        https://ens.dk/en/our-services/projections-and-models/technology-data/technology-data-carbon-capture-transport-and)`,
-        unit-scaled from a clinker basis to the `cement_kiln` base
-        technology's capacity units. Left at the framework default (1.0)
-        pending that unit-scaling implementation.
         """
         material_economics_dataset = MaterialEconomics(source_path=self.source_path)
         dea_dataset = DEA(source_path=self.source_path)
         clinker_carbon_intensity = (
             material_economics_dataset._CARBON_INTENSITY_CEMENT_KILN)
-        carbon_capture_rate_cement = dea_dataset.get_capture_rate_cement_post_comb()
+        carbon_capture_rate_cement = dea_dataset.get_capture_rate_CCS()
         retrofit_flow_coupling_factor = (
             clinker_carbon_intensity * carbon_capture_rate_cement)
         attr = self.retrofit_flow_coupling_factor
@@ -192,6 +187,37 @@ class CementPostComb(RetrofittingTechnology):
         )
         return attr
 
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of cement post-combustion capture.
+
+        Returns:
+            Attribute: An Attribute object containing the existing capacity data.
+        """
+        if self.settings.investment.use_existing_capacities:
+            igop_projects = IOGPCarbonStorageProjects(source_path=self.source_path)
+            return igop_projects.get_capacity_existing_capture(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
     # TODO: capacity_existing should be sourced from the IOGP CCS database
     # (technologies present in the cluster map), which is not yet
     # implemented as a dataset in zen_europe; framework default applies.
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of cement post comb.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

@@ -25,9 +25,9 @@ class InvestmentSettings(SettingsCategory):
     use_battery_e2p_ratio: bool = False
     storage_charge_discharge_binary: Optional[bool] = None
     use_200y_lifetime_hydro: bool = True
-    use_diffusion_rates: bool = False
-    use_varying_diffusion_rates: bool = False
+    use_diffusion_rates: bool = True
     use_inf_spillover_rate: bool = True
     use_unbounded_market_share: bool = True
     use_unbounded_capacity_addition_carbon: bool = True
     knowledge_depreciation_rate: float = 0.1
+    set_future_CCS_investments: bool = False

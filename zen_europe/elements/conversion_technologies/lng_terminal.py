@@ -4,6 +4,9 @@ from typing import TYPE_CHECKING
 
 from zen_europe.datasets.datasets.financial.ECB import ECBDollar2Euro, ECBInflation
 from zen_europe.datasets.datasets.technology.gie_lng_map import GIELNGMap
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -276,3 +279,12 @@ class LNGTerminal(ConversionTechnology):
                 unit="GW",
             )
         return attr
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of lng terminal.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

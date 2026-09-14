@@ -7,6 +7,9 @@ from zen_europe.datasets.datasets.carrier.eurostat import Eurostat
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
 from zen_europe.datasets.datasets.financial.potencia import Potencia
 from zen_europe.datasets.datasets.technology.powerplantmatching import PowerPlantMatching
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -53,7 +56,9 @@ class NaturalGasTurbine(ConversionTechnology):
         Sets the lifetime of natural gas turbines.
 
         """
-        lifetime_expectation = LifetimeExpectation(source_path=self.source_path)
+        lifetime_expectation = LifetimeExpectation(
+            settings=self.settings, 
+            source_path=self.source_path)
         return lifetime_expectation.get_lifetime(self)
 
     def _set_construction_time(self) -> Attribute:
@@ -182,3 +187,12 @@ class NaturalGasTurbine(ConversionTechnology):
         """
         potencia_db = Potencia(source_path=self.source_path)
         return potencia_db.get_max_load(self)
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of natural gas turbine.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

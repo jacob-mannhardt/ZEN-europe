@@ -2,12 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.dataset_collections.ccs_conversion_factor import CCSConversionFactor
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import IOGPCarbonStorageProjects
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, RetrofittingTechnology
+from zen_creator import AssumptionInformation, AssumptionInformation, Attribute, RetrofittingTechnology
 
 
 class BiomassPlantCCS(RetrofittingTechnology):
@@ -15,34 +20,34 @@ class BiomassPlantCCS(RetrofittingTechnology):
     retrofitted with post-combustion carbon capture (CCS)."""
 
     name: str = "biomass_plant_CCS"
+    base_technology_name: str = "biomass_plant"
 
-    def __init__(self, model: Model, power_unit: str = "MW"):
+    def __init__(self, model: Model, power_unit: str = "tCO2/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ---------- Required methods that are called during object construction ----------
 
     def _set_reference_carrier(self) -> Attribute:
         """
-        Sets the reference carrier of biomass plant CCS to electricity.
+        Sets the reference carrier of biomass plant CCS to carbon.
         """
         return Attribute(
-            name="reference_carrier", default_value=["electricity"], element=self
+            name="reference_carrier", default_value=["carbon"], element=self
         )
 
     def _set_input_carrier(self) -> Attribute:
         """
-        Sets the input carrier of biomass plant CCS to biomass.
+        Sets the input carrier of biomass plant CCS to electricity.
         """
         return Attribute(
-            name="input_carrier", default_value=["biomass"], element=self)
+            name="input_carrier", default_value=["electricity"], element=self)
 
     def _set_output_carrier(self) -> Attribute:
         """
-        Set the output carrier of biomass plant CCS to electricity and
-        carbon.
+        Set the output carrier of biomass plant CCS to carbon.
         """
         return Attribute(
-            name="output_carrier", default_value=["electricity", "carbon"],
+            name="output_carrier", default_value=["carbon"],
             element=self
         )
 
@@ -92,7 +97,7 @@ class BiomassPlantCCS(RetrofittingTechnology):
         """
         tech_db = TechnologyCostDatabase(
                     settings=self.settings, source_path=self.source_path)
-        base_tech = self.model.elements["biomass_plant"]
+        base_tech = self.model.elements[self.base_technology_name]
         return tech_db.get_capex_specific_conversion_retrofit(
             self, base_technology=base_tech)
 
@@ -110,7 +115,7 @@ class BiomassPlantCCS(RetrofittingTechnology):
         """
         tech_db = TechnologyCostDatabase(
             settings=self.settings, source_path=self.source_path)
-        base_tech = self.model.elements["biomass_plant"]
+        base_tech = self.model.elements[self.base_technology_name]
         return tech_db.get_opex_specific_fixed_retrofit(
             self, base_technology=base_tech)
 
@@ -128,7 +133,7 @@ class BiomassPlantCCS(RetrofittingTechnology):
         """
         tech_db = TechnologyCostDatabase(
             settings=self.settings, source_path=self.source_path)
-        base_tech = self.model.elements["biomass_plant"]
+        base_tech = self.model.elements[self.base_technology_name]
         return tech_db.get_opex_specific_variable_retrofit(
             self, base_technology=base_tech)
 
@@ -136,29 +141,54 @@ class BiomassPlantCCS(RetrofittingTechnology):
         """
         Return the conversion factor of biomass plant CCS.
 
-        TODO: In the legacy pipeline this is derived from a cost-database
-        efficiency comparison between `biomass_plant` and
-        `biomass_plant_CCS`; left empty pending that comparison.
         """
-        attr = self.conversion_factor
-        return attr
+        ccs_cf_db = CCSConversionFactor(
+            settings=self.settings, source_path=self.source_path)
+        base_tech = self.model.elements[self.base_technology_name]
+        cf = ccs_cf_db.get_conversion_factor_CCS(
+            element=self, base_tech=base_tech)
+        return cf
 
     def _set_retrofit_flow_coupling_factor(self) -> Attribute:
         """
         Return the retrofit flow coupling factor of biomass plant CCS.
 
-        TODO: In the legacy pipeline this is computed as
-        `carbon_intensity_carrier_fuel["biomass"] * (1 / efficiency_base)
-        * CCS_capture_rate`, with `CCS_capture_rate = 0.88` (Yang et al.
-        2021, https://www.sciencedirect.com/science/article/pii/S136403212100318X,
-        Table 2, VPSA) and the biomass carbon intensity and base-plant
-        efficiency both requiring cross-referencing a Carrier element and
-        the technology cost database's efficiency data. Left at the
-        framework default (1.0) pending that implementation.
         """
-        attr = self.retrofit_flow_coupling_factor
-        return attr
+        ccs_cf_db = CCSConversionFactor(
+            settings=self.settings, source_path=self.source_path)
+        base_tech = self.model.elements[self.base_technology_name]
+        return ccs_cf_db.get_retrofit_flow_coupling_factor(
+            element=self, base_tech=base_tech)
 
-    # TODO: capacity_existing has no ported data source for biomass plant
-    # CCS (the technology is absent from the legacy pipeline's IOGP
-    # capture/cluster maps); framework default applies.
+    
+    def _set_capacity_existing(self) -> Attribute:
+        """
+        Sets the existing capacity of biomass plant CCS.
+
+        Returns:
+            Attribute: An Attribute object containing the existing capacity data.
+        """
+        if self.settings.investment.use_existing_capacities:
+            igop_projects = IOGPCarbonStorageProjects(source_path=self.source_path)
+            return igop_projects.get_capacity_existing_capture(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of biomass plant CCS.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

@@ -7,6 +7,9 @@ from zen_europe.datasets.dataset_collections.potential_capacity_renewables impor
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
 from zen_europe.datasets.datasets.technology.irena_solar_capacity import IRENASolarCapacity
 from zen_europe.datasets.datasets.technology.pan_european_climate_database import PanEuropeanClimateDatabase
+from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
+    TechnologyDiffusionMannhardt,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -56,7 +59,9 @@ class Photovoltaics(ConversionTechnology):
         Sets the lifetime of photovoltaics.
 
         """
-        lifetime_expectation = LifetimeExpectation(source_path=self.source_path)
+        lifetime_expectation = LifetimeExpectation(
+            settings=self.settings, 
+            source_path=self.source_path)
         return lifetime_expectation.get_lifetime(self)
 
     def _set_construction_time(self) -> Attribute:
@@ -170,3 +175,12 @@ class Photovoltaics(ConversionTechnology):
             settings=self.settings, 
             source_path=self.source_path)
         return pecd.get_max_load(self)
+
+    def _set_max_diffusion_rate(self) -> Attribute:
+        """
+        Sets the maximum diffusion rate of photovoltaics.
+        """
+        if not self.settings.investment.use_diffusion_rates:
+            return self.max_diffusion_rate
+        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
+        return diffusion_rates.get_max_diffusion_rate(self)

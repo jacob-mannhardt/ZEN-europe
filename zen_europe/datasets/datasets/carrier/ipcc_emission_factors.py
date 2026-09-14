@@ -58,6 +58,8 @@ class IPCCEmissionFactors(Dataset[pd.DataFrame]):
         data["waste"] = 91700 * conversion_factor # Municipal Wastes (non-biomass fraction)
         data["hard_coal"] = 94600 * conversion_factor # Coking Coal/Other bituminous Coal
         data["lignite"] = 101000 * conversion_factor # Lignite
+        data["biomass"] = 112000 * conversion_factor # Wood/Wood Waste
+        data["biogas"] = 54600 * conversion_factor # Landfill/Sludge/Other Biogas
 
         return pd.Series(data)
 
@@ -101,3 +103,12 @@ class IPCCEmissionFactors(Dataset[pd.DataFrame]):
             default_value=default_value,
             unit="ton/MWh",
         )
+
+    def get_unit(self) -> str:
+        """
+        Get the unit of the IPCC emission factors dataset.
+
+        Returns:
+            The unit of the dataset, which is "tons/MWh".
+        """
+        return "tons/MWh"
