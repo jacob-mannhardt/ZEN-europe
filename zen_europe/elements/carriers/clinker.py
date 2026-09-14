@@ -18,7 +18,7 @@ class Clinker(Carrier):
 
     name: str = "clinker"
 
-    def __init__(self, model: Model, power_unit: str = "t/h"):
+    def __init__(self, model: Model, power_unit: str = "tproduct/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ----Example of optional methods for overriding default attributes ------

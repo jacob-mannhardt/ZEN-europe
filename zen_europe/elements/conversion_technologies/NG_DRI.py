@@ -11,8 +11,7 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
-from zen_europe.utils.constants import Constants
+from zen_creator import Attribute, ConversionTechnology
 
 
 class NG_DRI(ConversionTechnology):
@@ -21,7 +20,7 @@ class NG_DRI(ConversionTechnology):
 
     name: str = "NG_DRI"
 
-    def __init__(self, model: Model, power_unit: str = "tonproduct/h"):
+    def __init__(self, model: Model, power_unit: str = "tproduct/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ---------- Required methods that are called during object construction ----------

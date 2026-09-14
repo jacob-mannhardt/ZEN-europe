@@ -18,8 +18,6 @@ from zen_creator.utils.attribute import SourceInformation
 from zen_creator.utils.settings import Settings
 
 from zen_europe.datasets.datasets.carrier.eurostat import Eurostat
-from zen_europe.datasets.datasets.carrier.standard_load_profiles import (
-    StandardLoadProfiles)
 from zen_europe.datasets.datasets.carrier.statistical_pocketbook_transport import (
     StatisticalPocketbookTransport
 )

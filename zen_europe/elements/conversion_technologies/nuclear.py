@@ -169,17 +169,7 @@ class Nuclear(ConversionTechnology):
             Attribute: An Attribute object containing the capacity limit data.
         """
         attr = self.capacity_limit
-        if not self.settings.investment.allow_investment:
-            attr.set_data(
-                default_value=0,
-                source=AssumptionInformation(
-                    description=(
-                        "The capacity limit is set to 0, "
-                        "as investment is not allowed."
-                    ),
-                ),
-            )
-        elif self.settings.investment.use_nuclear_phase_out:
+        if self.settings.investment.use_nuclear_phase_out:
             attr.set_data(
                 default_value=0,
                 source=AssumptionInformation(

@@ -61,4 +61,7 @@ class Constants:
     DENSITY_CO2: float = 700
     """kg/m3, supercritical CO2 under typical storage conditions. https://static-content.springer.com/esm/art%3A10.1038%2Fs41558-021-01175-7/MediaObjects/41558_2021_1175_MOESM1_ESM.pdf p. 17"""
 
+    DUIVEN_CAPTURE_CAPACITY: float = 0.1e6
+    """tCO2/year captured by the Duiven plant, the size of a single first-of-a-kind carbon capture project."""
+
     

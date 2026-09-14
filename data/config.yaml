@@ -136,7 +136,6 @@ elements:
       - photovoltaics
       - pyrolysis
       - refining
-      - reservoir_hydro
       - run-of-river_hydro
       - waste_boiler_DH
       - waste_plant
@@ -148,6 +147,7 @@ elements:
       - natural_gas_storage
       - oil_storage
       - pumped_hydro
+      - reservoir_hydro
       - salt_cavern_storage
     set_transport_technologies:
       - carbon_pipeline
@@ -221,9 +221,9 @@ energy_system:
       - megatons
       - megaEuro
       - kilotCO2
-      - megapkm
+      - megavkm
       - megatkm
-      - ktonproduct
+      - ktproduct
     definitions:
       Euro:
         dimension: currency
@@ -234,7 +234,6 @@ energy_system:
         dimension: massCO2
         aliases:
           - tonCO2
-          - tCO2
           - tonne_carbon
       vkm:
         dimension: mileage
@@ -246,10 +245,10 @@ energy_system:
         aliases:
           - tonne_km
           - tonne_kilometer
-      tonproduct:
+      tproduct:
         dimension: mass_product
         aliases:
-          - tproduct
+          - tonproduct
           - tonne_product
   parameters_interpolation_off:
     parameter_name:

@@ -393,7 +393,8 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
             geo=["NO", "UK"]
         )
         heat_data = self._convert_availability(
-            heat_data, _HEAT_HOUSEHOLD_SIEC_TOTAL, cutoff_year=self.eurostat_year_time_series)
+            heat_data, _HEAT_HOUSEHOLD_SIEC_TOTAL, 
+            cutoff_year=self.eurostat_year_time_series)
         heat_data = heat_data.rename(index=_HEAT_HOUSEHOLD_NRG_BAL, level=0)
         heat_data = heat_data.swaplevel(0, 1).sort_index(level=0)
         return heat_data / Constants.GJ_PER_MWH  # convert from TJ to GWh
@@ -460,14 +461,18 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         """Calculate biomass availability from transformation input and
         final consumption (households and commercial)."""
         data = self._query_siec_data(
-            nrg_bal=_BIOMASS_NRG_BAL, siec=_BIOMASS_SIEC, start_period=self.eurostat_year
+            nrg_bal=_BIOMASS_NRG_BAL, 
+            siec=_BIOMASS_SIEC, 
+            start_period=self.eurostat_year
         )
         data = self._convert_availability(data, _BIOMASS_SIEC)
         transformation_input = data.loc["TI_EHG_E"].sum(axis=1)
         final_consumption_households = data.loc["FC_OTH_HH_E"].sum(axis=1)
         final_consumption_commercial = data.loc["FC_OTH_CP_E"].sum(axis=1)
         availability = (
-            transformation_input + final_consumption_commercial + final_consumption_households
+            transformation_input + 
+            final_consumption_commercial + 
+            final_consumption_households
         )
         return availability.sort_index()
 
@@ -497,7 +502,9 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
     def _query_naphtha_demand(self) -> pd.Series:
         """Calculate naphtha demand from transformation output."""
         data = self._query_siec_data(
-            nrg_bal=_NAPHTHA_NRG_BAL, siec=_NAPHTHA_SIEC, start_period=self.eurostat_year
+            nrg_bal=_NAPHTHA_NRG_BAL, 
+            siec=_NAPHTHA_SIEC, 
+            start_period=self.eurostat_year
         )
         data = self._convert_availability(data, _NAPHTHA_SIEC, return_all_years=True)
         demand = data.groupby(level=1).sum(numeric_only=True)
@@ -508,7 +515,9 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         """Calculate kerosene demand from international and domestic
         aviation consumption."""
         data = self._query_siec_data(
-            nrg_bal=_KEROSENE_NRG_BAL, siec=_KEROSENE_SIEC, start_period=self.eurostat_year
+            nrg_bal=_KEROSENE_NRG_BAL, 
+            siec=_KEROSENE_SIEC, 
+            start_period=self.eurostat_year
         )
         data = self._convert_availability(data, _KEROSENE_SIEC)
         demand = data.groupby(level=1).sum(numeric_only=True)

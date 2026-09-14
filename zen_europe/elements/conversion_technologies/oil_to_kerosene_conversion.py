@@ -94,30 +94,47 @@ class OilToKeroseneConversion(ConversionTechnology):
         Sets the existing capacity of oil to kerosene conversion.
 
         """
-        attr = self.capacity_existing
-        carr_ava = CarrierAvailability(
-            source_path=self.source_path,settings=self.settings)
-        ex_cap = (carr_ava.get_raw_kerosene_demand(self)).squeeze() 
-        ex_cap = ex_cap.to_frame(name=self.settings.time.reference_year - 1)
-        ex_cap = calculate_capacity_addition_from_cumulative(ex_cap,element=self)
-        ex_cap = format_capacity_existing(ex_cap)
-        attr.set_data(
-            df=ex_cap,
-            source=SourceInformation(
-                description=(
-                    "The existing capacity of oil to kerosene conversion is "
-                    "calculated from the kerosene demand in the reference year." 
+        if self.settings.investment.use_existing_capacities:
+            attr = self.capacity_existing
+            carr_ava = CarrierAvailability(
+                source_path=self.source_path,settings=self.settings)
+            ex_cap = (carr_ava.get_raw_kerosene_demand(self)).squeeze() 
+            ex_cap = ex_cap.to_frame(name=self.settings.time.reference_year - 1)
+            ex_cap = calculate_capacity_addition_from_cumulative(ex_cap,element=self)
+            ex_cap = format_capacity_existing(ex_cap)
+            attr.set_data(
+                df=ex_cap,
+                source=SourceInformation(
+                    description=(
+                        "The existing capacity of oil to kerosene conversion is "
+                        "calculated from the kerosene demand in the reference year." 
+                    ),
+                    metadata = carr_ava.metadata
                 ),
-                metadata = carr_ava.metadata
-            ),
-        )
-        return attr
+            )
+            return attr
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
 
     def _set_max_diffusion_rate(self) -> Attribute:
         """
         Sets the maximum diffusion rate of oil to kerosene conversion.
+
+        Without existing capacities the technology cannot grow from a zero
+        base, so the diffusion rate is left unbounded.
         """
-        if not self.settings.investment.use_diffusion_rates:
+        if (not self.settings.investment.use_diffusion_rates
+                or not self.settings.investment.use_existing_oil_to_x_capacities):
             return self.max_diffusion_rate
         diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
         return diffusion_rates.get_max_diffusion_rate(self)

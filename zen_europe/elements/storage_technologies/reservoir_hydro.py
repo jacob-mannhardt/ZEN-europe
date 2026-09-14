@@ -66,10 +66,15 @@ class ReservoirHydro(StorageTechnology):
         """
         Sets the existing capacity of reservoir hydro.
 
+        The existing hydro capacities are kept if
+        settings.investment.keep_existing_hydro_capacities is set, even if
+        existing capacities are otherwise not considered.
+
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        if self.settings.investment.use_existing_capacities:
+        if (self.settings.investment.use_existing_capacities
+                or self.settings.investment.keep_existing_hydro_capacities):
             hydro_dataset = HydroExistingCapacity(source_path=self.source_path)
             return hydro_dataset.get_capacity_existing(element=self, power=True)
         else:
@@ -84,46 +89,6 @@ class ReservoirHydro(StorageTechnology):
                 ),
             )
             return attr
-
-    def _set_capacity_limit(self) -> Attribute:
-        """
-        Sets the capacity limit for pumped hydro.
-
-        Returns:
-            Attribute: An Attribute object containing the capacity limit data.
-        """
-        attr = self.capacity_limit
-        if not self.settings.investment.allow_investment:
-            attr.set_data(
-                default_value=0,
-                source=AssumptionInformation(
-                    description=(
-                        "The capacity limit is set to 0, "
-                        "as investment is not allowed."
-                    ),
-                ),
-            )
-        return attr
-
-    def _set_capacity_limit_energy(self) -> Attribute:
-        """
-        Sets the energy capacity limit for reservoir hydro.
-
-        Returns:
-            Attribute: An Attribute object containing the energy capacity limit data.
-        """
-        attr = self.capacity_limit_energy
-        if not self.settings.investment.allow_investment:
-            attr.set_data(
-                default_value=0,
-                source=AssumptionInformation(
-                    description=(
-                        "The capacity limit is set to 0, "
-                        "as investment is not allowed."
-                    ),
-                ),
-            )
-        return attr
 
     def _set_max_diffusion_rate(self) -> Attribute:
         """

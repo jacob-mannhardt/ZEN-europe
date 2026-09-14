@@ -27,11 +27,11 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
     # both figures per ton of crude steel: the CO2 that the capture unit
     # removes (p. 65 for BF-BOF CCS, p. 59 for NG-DRI CCS) and the electricity
     # it needs to do so.
-    CARBON_CAPTURE_RATE = {  # tCO2/tonproduct
+    CARBON_CAPTURE_RATE = {  # tCO2/tproduct
         "BF_BOF_CCS": 1.36,
         "NG_DRI_CCS": 0.35,
     }
-    CARBON_CAPTURE_ELECTRICITY_DEMAND = {  # GJ/tonproduct
+    CARBON_CAPTURE_ELECTRICITY_DEMAND = {  # GJ/tproduct
         "BF_BOF_CCS": 2.77,
         "NG_DRI_CCS": 1.45,
     }
@@ -122,7 +122,7 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
 
         attr.set_data(
             default_value=opex,
-            unit="Euro/tonproduct",
+            unit="Euro/tproduct",
             source=SourceInformation(
                 description=(
                     "The specific variable opex for steel production technologies is derived from "
@@ -169,18 +169,18 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
         """
         conversion_factor = {
             "BF_BOF": {
-                "hard_coal": (14.8 + 4.7)}, # GJ/tonproduct
+                "hard_coal": (14.8 + 4.7)}, # GJ/tproduct
             "NG_DRI": {
                 "natural_gas": 10.5,
                 "electricity": (0.25 + 1.24),
-                "hard_coal": 0.07}, # GJ/tonproduct
+                "hard_coal": 0.07}, # GJ/tproduct
             "H2_DRI": {
                 "hydrogen": 8.25,
                 "electricity": (0.29 + 1.77),
-                "hard_coal": 0.53}, # GJ/tonproduct
+                "hard_coal": 0.53}, # GJ/tproduct
             "EAF": {
                 "electricity": 2.46,
-                "hard_coal": 0.37}, # GJ/tonproduct
+                "hard_coal": 0.37}, # GJ/tproduct
         }
         assert element.name in conversion_factor, (f"Element {element.name} not found"
         "in conversion_factor.")
@@ -198,7 +198,7 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
         data = self._get_raw_conversion_factor(element)
         attr = element.conversion_factor
         attr.set_data(
-            default_value=[{carrier: {"default_value": value, "unit": "GWh/tonproduct"}}
+            default_value=[{carrier: {"default_value": value, "unit": "GWh/tproduct"}}
                            for carrier, value in data.items()],
             source=SourceInformation(
                 description=(
@@ -257,7 +257,7 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
         attr.set_data(
             default_value=capture_rate,
             base_technology=base_tech,
-            unit="tCO2/tonproduct",
+            unit="tCO2/tproduct",
             source=SourceInformation(
                 description=(
                     "The retrofit flow coupling factor of a steel CCS retrofit is "
@@ -355,7 +355,7 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
         process_emissions = total_emissions[element.name] - feedstock_emissions
         attr.set_data(
             default_value=process_emissions,
-            unit="ton/tonproduct",
+            unit="ton/tproduct",
             source=SourceInformation(
                 description=(
                     "The carbon intensity of steel production technologies is derived "

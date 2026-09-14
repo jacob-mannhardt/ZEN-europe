@@ -12,7 +12,7 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology, SourceInformation
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
 
 
 class Pyrolysis(ConversionTechnology):
@@ -100,24 +100,30 @@ class Pyrolysis(ConversionTechnology):
         """
         Sets the specific capital expenditure (capex) for pyrolysis.
 
+        The technology cost database reports the capex per unit of total
+        pyrolysis output, so it is rebased onto the oil reference carrier.
+
         Returns:
             Attribute: An Attribute object containing the specific capex data.
         """
         tech_db = TechnologyCostDatabase(
                     settings=self.settings, source_path=self.source_path)
-        return tech_db.get_capex_specific_conversion(self)
+        return tech_db.get_capex_specific_conversion_pyrolysis(self)
 
     def _set_opex_specific_fixed(self) -> Attribute:
         """
         Sets the specific fixed operational expenditure (opex) for
         pyrolysis.
 
+        The technology cost database reports the fixed opex per unit of total
+        pyrolysis output, so it is rebased onto the oil reference carrier.
+
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
         """
         tech_db = TechnologyCostDatabase(
             settings=self.settings, source_path=self.source_path)
-        return tech_db.get_opex_specific_fixed(self)
+        return tech_db.get_opex_specific_fixed_pyrolysis(self)
 
     def _set_opex_specific_variable(self) -> Attribute:
         """
@@ -140,8 +146,21 @@ class Pyrolysis(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        biochar_dataset = BiocharMarketReport(source_path=self.source_path)
-        return biochar_dataset.get_capacity_existing(self)
+        if self.settings.investment.use_existing_capacities:
+            biochar_dataset = BiocharMarketReport(source_path=self.source_path)
+            return biochar_dataset.get_capacity_existing(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
 
     def _set_max_diffusion_rate(self) -> Attribute:
         """

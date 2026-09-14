@@ -20,7 +20,7 @@ class SecondarySteel(Carrier):
     name: str = "secondary_steel"
     
 
-    def __init__(self, model: Model, power_unit: str = "t/h"):
+    def __init__(self, model: Model, power_unit: str = "tproduct/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ----Example of optional methods for overriding default attributes ------
@@ -47,7 +47,7 @@ class SecondarySteel(Carrier):
                 "price_shed_demand",
                 default_value=1e4,
                 element=self,
-                unit="EUR/t",
+                unit="EUR/tproduct",
             )
         else:
             return self.price_shed_demand

@@ -165,30 +165,26 @@ class CarbonStorage(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the capacity limit data.
         """
-        if self.settings.investment.allow_investment:
-            if self.settings.data_source.use_OG_carbon_storage_limit:
-                OG_extraction_db = EnergyInstituteWorldEnergyReview(
-                    source_path=self.source_path)
-                return OG_extraction_db.get_capacity_limit_carbon_storage(self)
-            else:
-                data = self.capacity_existing.df.groupby("node").sum()
-                data.name = "capacity_limit"
-                return Attribute(
-                    name="capacity_limit",
-                    default_value=0,
-                    df=data,
-                    unit="tCO2/h",
-                    source=SourceInformation(
-                        description=(
-                            "The limit on carbon storage capacity is based on the "
-                            "existing capacity from the IOGP report, which includes "
-                            "all planned and under construction projects. "
-                        ),
-                        metadata=self.capacity_existing.sources[-1],
-                    ),
-                )
-        else:
-            return self.capacity_limit
+        if self.settings.data_source.use_OG_carbon_storage_limit:
+            OG_extraction_db = EnergyInstituteWorldEnergyReview(
+                source_path=self.source_path)
+            return OG_extraction_db.get_capacity_limit_carbon_storage(self)
+        data = self.capacity_existing.df.groupby("node").sum()
+        data.name = "capacity_limit"
+        return Attribute(
+            name="capacity_limit",
+            default_value=0,
+            df=data,
+            unit="tCO2/h",
+            source=SourceInformation(
+                description=(
+                    "The limit on carbon storage capacity is based on the "
+                    "existing capacity from the IOGP report, which includes "
+                    "all planned and under construction projects. "
+                ),
+                metadata=self.capacity_existing.sources[-1],
+            ),
+        )
 
     def _set_max_diffusion_rate(self) -> Attribute:
         """

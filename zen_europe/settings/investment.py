@@ -1,7 +1,5 @@
 from typing import Optional
 
-from pydantic import Field
-
 from zen_creator.utils.settings import SettingsCategory
 
 
@@ -12,8 +10,9 @@ class InvestmentSettings(SettingsCategory):
 
     allow_investment: bool = True # NOTE: DONE
     use_retrofit: bool = True  # TODO remove
-    keep_existing_capacities: list[str] = Field(default_factory=list)
     use_existing_capacities: bool = True
+    # keeps the existing hydro capacities even if use_existing_capacities is False
+    keep_existing_hydro_capacities: bool = False
     use_battery_capacity_existing: bool = True
     use_existing_oil_to_x_capacities: bool = False
     use_construction_times: bool = True # NOTE: DONE

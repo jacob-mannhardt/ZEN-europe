@@ -156,22 +156,9 @@ class DistrictHeatingGrid(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the capacity limit data.
         """
-        attr = self.capacity_limit
-        if not self.settings.investment.allow_investment:
-            attr.set_data(
-                default_value=0,
-                source=AssumptionInformation(
-                    description=(
-                        "The capacity limit is set to 0, "
-                        "as investment is not allowed."
-                    ),
-                ),
-            )
-        else:
-            dh_dataset = DistrictHeatingData(
-                settings=self.settings, source_path=self.source_path)
-            attr = dh_dataset.get_capacity_limit(self)
-        return attr
+        dh_dataset = DistrictHeatingData(
+            settings=self.settings, source_path=self.source_path)
+        return dh_dataset.get_capacity_limit(self)
     
     def _set_capacity_existing(self) -> Attribute:
         """

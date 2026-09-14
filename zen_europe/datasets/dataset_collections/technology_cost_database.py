@@ -106,6 +106,60 @@ class TechnologyCostDatabase(DatasetCollection):
             description="variable operational cost", annual_values=False
         )
 
+    def get_capex_specific_conversion_pyrolysis(
+        self, element: ConversionTechnology, plant_size: str = "M",
+        metric: str = "mean"
+    ) -> Attribute:
+        """Specific investment cost for pyrolysis, per unit of reference carrier."""
+        return self._set_technology_attribute(
+            element, element.capex_specific_conversion, "capex", plant_size, metric,
+            description="specific investment cost (CAPEX)", annual_values=True,
+            multiplier=self._get_pyrolysis_multiplier(element),
+        )
+
+    def get_opex_specific_fixed_pyrolysis(
+        self, element: ConversionTechnology, plant_size: str = "M",
+        metric: str = "mean"
+    ) -> Attribute:
+        """Fixed operational cost for pyrolysis, per unit of reference carrier."""
+        return self._set_technology_attribute(
+            element, element.opex_specific_fixed, "fopex", plant_size, metric,
+            description="fixed operational cost", annual_values=True,
+            multiplier=self._get_pyrolysis_multiplier(element),
+        )
+
+    def get_opex_specific_variable_pyrolysis(
+        self, element: ConversionTechnology, plant_size: str = "M",
+        metric: str = "mean"
+    ) -> Attribute:
+        """Variable operational cost for pyrolysis, per unit of reference carrier."""
+        return self._set_technology_attribute(
+            element, element.opex_specific_variable, "vopex", plant_size, metric,
+            description="variable operational cost", annual_values=False,
+            multiplier=self._get_pyrolysis_multiplier(element),
+        )
+
+    def _get_pyrolysis_multiplier(self, element: ConversionTechnology) -> float:
+        """Total pyrolysis output per unit of reference-carrier output.
+
+        The agencies report the pyrolysis cost per MW of total output from the
+        process, while the technology is sized by its reference carrier. The
+        conversion factor gives the co-product outputs per unit of reference
+        carrier, so summing them and adding the reference carrier itself gives
+        the factor that rebases the cost onto the reference carrier.
+        """
+        reference_carrier = element.reference_carrier.default_value[0]
+        conversion_factor = {
+            carrier: values["default_value"]
+            for entry in element.conversion_factor.default_value
+            for carrier, values in entry.items()
+        }
+        co_products = [
+            carrier for carrier in element.output_carrier.default_value
+            if carrier != reference_carrier
+        ]
+        return 1.0 + sum(conversion_factor[carrier] for carrier in co_products)
+
     def get_lifetime(
         self, element: Element, plant_size: str = "M", metric: str = "median"
     ) -> Attribute:
@@ -232,18 +286,26 @@ class TechnologyCostDatabase(DatasetCollection):
     
     def _set_technology_attribute(
         self, element: Element, attribute: Attribute, variable: str,
-        plant_size: str, metric: str, description: str, annual_values: bool = True
+        plant_size: str, metric: str, description: str, annual_values: bool = True,
+        multiplier: float = 1.0,
     ) -> Attribute:
         df, default_value, yearly_variations, agencies = self._get_attribute_data(
             element, attribute, variable, plant_size, metric, description, annual_values
         )
+        default_value *= multiplier
+        if df is not None:
+            df = df * multiplier
         reference_year = element.settings.time.reference_year
+        rebasing = "" if multiplier == 1.0 else (
+            f" The agencies report the cost per unit of total plant output, so it is "
+            f"rebased onto the reference carrier with a factor of {multiplier:.4g}."
+        )
         source = SourceInformation(
             description=(
                 f"{description.capitalize()} for '{element.name}' is the {metric} across "
                 f"all available data for the agencies {', '.join(agencies)} reporting data for this "
                 f"technology at plant size '{plant_size}'. Monetary values are rebased to "
-                f"{reference_year} EUR using ECB HICP inflation."
+                f"{reference_year} EUR using ECB HICP inflation.{rebasing}"
             ),
             metadata=self.metadata,
         )

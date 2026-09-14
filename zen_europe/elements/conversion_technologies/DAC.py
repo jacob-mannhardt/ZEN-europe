@@ -12,7 +12,7 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology, SourceInformation
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
 
 
 class DAC(ConversionTechnology):
@@ -20,7 +20,7 @@ class DAC(ConversionTechnology):
 
     name: str = "DAC"
 
-    def __init__(self, model: Model, power_unit: str = "MW"):
+    def __init__(self, model: Model, power_unit: str = "tCO2/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ---------- Required methods that are called during object construction ----------
@@ -131,11 +131,21 @@ class DAC(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        dac_db = DACCapacitiesZurbriggen(source_path=self.source_path)        
-        return dac_db.get_capacity_existing(self)
-    # TODO: capacity_existing should be sourced from a "DAC Announced
-    # Deployments" tracker, which is not yet implemented as a dataset in
-    # zen_europe; framework default applies.
+        if self.settings.investment.use_existing_capacities:
+            dac_db = DACCapacitiesZurbriggen(source_path=self.source_path)        
+            return dac_db.get_capacity_existing(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
 
     def _set_max_diffusion_rate(self) -> Attribute:
         """

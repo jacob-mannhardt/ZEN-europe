@@ -838,12 +838,12 @@ class DEA(Dataset[pd.DataFrame]):
         output, all per MWh of biomass processed).
         https://ens.dk/en/analyses-and-statistics/technology-data-renewable-fuels
         """
-        oil_output = 0.22  # MWh oil / MWh biomass processed (reference carrier)
+        oil_output = 0.19  # MWh oil / MWh input processed (reference carrier)
         return [
-            {"biomass": {"default_value": 0.99 / oil_output, "unit": "GWh/GWh"}},
+            {"biomass": {"default_value": 0.96 / oil_output, "unit": "GWh/GWh"}},
             {"electricity": {"default_value": 0.04 / oil_output, "unit": "GWh/GWh"}},
-            {"district_heat": {"default_value": 0.05 / oil_output, "unit": "GWh/GWh"}},
-            {"hard_coal": {"default_value": 0.4 / oil_output, "unit": "GWh/GWh"}},
+            {"district_heat": {"default_value": 0.24 / oil_output, "unit": "GWh/GWh"}},
+            {"hard_coal": {"default_value": 0.45 / oil_output, "unit": "GWh/GWh"}},
         ]
 
     def get_conversion_factor_haber_bosch(self):

@@ -142,41 +142,35 @@ class RunOfRiverHydro(ConversionTechnology):
             Attribute: An Attribute object containing the capacity limit data.
         """
         attr = self.capacity_limit
-        if not self.settings.investment.allow_investment:
-            attr.set_data(
-                default_value=0,
-                source=AssumptionInformation(
-                    description=(
-                        "The capacity limit is set to 0, "
-                        "as investment is not allowed."
-                    ),
+        data = self.capacity_existing.df
+        capacity_limit = data.groupby(level=0).sum()
+        capacity_limit.name = "capacity_limit"
+        attr.set_data(
+            df=capacity_limit,
+            source=SourceInformation(
+                description=(
+                    "The capacity limit is set to the sum of the"
+                    "historical capacity additions across all years."
                 ),
-            )
-        else:
-            data = self.capacity_existing.df
-            capacity_limit = data.groupby(level=0).sum()
-            capacity_limit.name = "capacity_limit"
-            attr.set_data(
-                df=capacity_limit,
-                source=SourceInformation(
-                    description=(
-                        "The capacity limit is set to the sum of the"
-                        "historical capacity additions across all years."
-                    ),
-                    metadata=self.capacity_existing.sources[-1].metadata,
-                ),
-                unit="GW",
-            )
+                metadata=self.capacity_existing.sources[-1].metadata,
+            ),
+            unit="GW",
+        )
         return attr
 
     def _set_capacity_existing(self) -> Attribute:
         """
         Sets the existing capacity for run-of-river hydro.
 
+        The existing hydro capacities are kept if
+        settings.investment.keep_existing_hydro_capacities is set, even if
+        existing capacities are otherwise not considered.
+
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        if self.settings.investment.use_existing_capacities:
+        if (self.settings.investment.use_existing_capacities
+                or self.settings.investment.keep_existing_hydro_capacities):
             hydro_capacity = HydroExistingCapacity(
                 settings=self.settings,
                 source_path=self.source_path,

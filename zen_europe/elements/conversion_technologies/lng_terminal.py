@@ -252,32 +252,21 @@ class LNGTerminal(ConversionTechnology):
             Attribute: An Attribute object containing the capacity limit data.
         """
         attr = self.capacity_limit
-        if not self.settings.investment.allow_investment:
-            attr.set_data(
-                default_value=0,
-                source=AssumptionInformation(
-                    description=(
-                        "The capacity limit is set to 0, "
-                        "as investment is not allowed."
-                    ),
+        data = self.capacity_existing.df
+        capacity_limit = data.groupby(level=0).sum()
+        capacity_limit.loc[:] = np.inf
+        capacity_limit.name = "capacity_limit"
+        attr.set_data(
+            df=capacity_limit,
+            default_value=0,
+            source=AssumptionInformation(
+                description=(
+                    "Assume infinite capacity limit for those countries "
+                    "with existing lng terminals."
                 ),
-            )
-        else:
-            data = self.capacity_existing.df
-            capacity_limit = data.groupby(level=0).sum()
-            capacity_limit.loc[:] = np.inf
-            capacity_limit.name = "capacity_limit"
-            attr.set_data(
-                df=capacity_limit,
-                default_value=0,
-                source=AssumptionInformation(
-                    description=(
-                        "Assume infinite capacity limit for those countries "
-                        "with existing lng terminals."
-                    ),
-                ),
-                unit="GW",
-            )
+            ),
+            unit="GW",
+        )
         return attr
 
     def _set_max_diffusion_rate(self) -> Attribute:

@@ -92,7 +92,7 @@ class ClinkerData(DatasetCollection):
         return element.demand.set_data(
             source=source,
             df=data,
-            unit="t/h",
+            unit="tproduct/h",
         )
 
     def get_conversion_factor_cement_kiln(
@@ -116,12 +116,12 @@ class ClinkerData(DatasetCollection):
                     0.29 / 
                     (Constants.GJ_PER_MWH * 1000) / 
                     cement_to_clinker), 
-                    "unit": "GWh/tonproduct"}},
+                    "unit": "GWh/tproduct"}},
             {"fuel_for_cement": {
                 "default_value": (
                     fuel_consumption_kiln / 
                     (Constants.GJ_PER_MWH * 1000)), 
-                "unit": "GWh/tonproduct"}},
+                "unit": "GWh/tproduct"}},
         ]
         attr.set_data(
             default_value=cf,

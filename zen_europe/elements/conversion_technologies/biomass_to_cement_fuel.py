@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
-from zen_europe.utils.constants import Constants
 
 
 class BiomassToCementFuel(ConversionTechnology):
@@ -101,8 +100,21 @@ class BiomassToCementFuel(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        clinker_demand_dataset = ClinkerData(source_path=self.source_path)
-        return clinker_demand_dataset.get_capacity_existing_cement_fuel(self)
+        if self.settings.investment.use_existing_capacities:
+            clinker_demand_dataset = ClinkerData(source_path=self.source_path)
+            return clinker_demand_dataset.get_capacity_existing_cement_fuel(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
     
 
     def _set_max_diffusion_rate(self) -> Attribute:

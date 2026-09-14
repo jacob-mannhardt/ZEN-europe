@@ -33,6 +33,8 @@ def create_model(
     model = Model.from_existing(crystal_ball_path, config=config)
     model.output_folder = Path(output_folder) / "data"
     model.name = name
+    # TODO move this somewhere else
+    model.config.system.allow_investment = model.settings.investment.allow_investment
     # model.remove_element_by_name("crude_oil")
     # model.remove_element_by_name("refining")
 

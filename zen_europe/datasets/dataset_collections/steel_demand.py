@@ -123,7 +123,7 @@ class SteelDemand(DatasetCollection):
             source=source,
             df=d,
             yearly_variations_df=d_yearly_variation,
-            unit="t/h",
+            unit="tproduct/h",
         )
     
     def get_capacity_existing(self, element: ConversionTechnology) -> Attribute:

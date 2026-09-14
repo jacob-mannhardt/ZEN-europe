@@ -106,7 +106,7 @@ class OlefinFromMethanol(ConversionTechnology):
         aidres_dataset = Aidres(source_path=self.source_path)
         cf_dict = aidres_dataset.get_conversion_factors_aidres(self.name)
         cf = [
-            {carrier: {"default_value": value, "unit": "GWh/tonproduct"}
+            {carrier: {"default_value": value, "unit": "GWh/tproduct"}
             for carrier, value in cf_dict.items()}
         ]
         source = SourceInformation(

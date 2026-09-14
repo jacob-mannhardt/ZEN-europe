@@ -9,14 +9,13 @@ from zen_europe.datasets.datasets.financial.dea import DEA
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from zen_creator import Dataset, Element
+    from zen_creator import Dataset
 
 
 from zen_creator import Attribute, ConversionTechnology, DatasetCollection, RetrofittingTechnology, SourceInformation
     
 from zen_creator.utils.settings import Settings
 
-import pandas as pd
 
 class CCSConversionFactor(DatasetCollection):
     """
@@ -47,7 +46,7 @@ class CCSConversionFactor(DatasetCollection):
     def get_conversion_factor_CCS(self, 
             element: RetrofittingTechnology,
             base_tech: ConversionTechnology) -> Attribute:
-        """
+        r"""
         Get the conversion factor for CCS technologies in the electricity sector.
 
         This function retrieves the conversion factor for electricity produced by

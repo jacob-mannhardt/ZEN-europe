@@ -8,7 +8,7 @@ from zen_europe.datasets.datasets.carrier.aidres import Aidres
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology, SourceInformation
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
 
 
 class OlefinFromNaphtha(ConversionTechnology):
@@ -104,7 +104,7 @@ class OlefinFromNaphtha(ConversionTechnology):
         aidres_dataset = Aidres(source_path=self.source_path)
         cf_dict = aidres_dataset.get_conversion_factors_aidres(self.name)
         cf = [
-            {carrier: {"default_value": value, "unit": "GWh/tonproduct"}
+            {carrier: {"default_value": value, "unit": "GWh/tproduct"}
             for carrier, value in cf_dict.items()}
         ]
         source = SourceInformation(
@@ -130,7 +130,20 @@ class OlefinFromNaphtha(ConversionTechnology):
         Sets the existing capacity of olefin from naphtha.
 
         """
-        olefin_dataset = OlefinDemand(
-            source_path=self.source_path,
-            settings=self.settings)
-        return olefin_dataset.get_capacity_existing_olefin(self)
+        if self.settings.investment.use_existing_capacities:
+            olefin_dataset = OlefinDemand(
+                source_path=self.source_path,
+                settings=self.settings)
+            return olefin_dataset.get_capacity_existing_olefin(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr

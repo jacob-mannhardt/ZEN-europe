@@ -13,7 +13,7 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology
 
 
 class Refining(ConversionTechnology):
@@ -129,10 +129,23 @@ class Refining(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing refining capacity data.
         """
-        energyinst_dataset = (
-            EnergyInstituteWorldEnergyReview(source_path=self.source_path)
-        )
-        return energyinst_dataset.get_capacity_existing_refining(self)
+        if self.settings.investment.use_existing_capacities:
+            energyinst_dataset = (
+                EnergyInstituteWorldEnergyReview(source_path=self.source_path)
+            )
+            return energyinst_dataset.get_capacity_existing_refining(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
 
     def _set_max_diffusion_rate(self) -> Attribute:
         """

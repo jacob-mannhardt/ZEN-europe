@@ -17,7 +17,7 @@ class Carbon(Carrier):
     name: str = "carbon"
     
 
-    def __init__(self, model: Model, power_unit: str = "tonCO2"):
+    def __init__(self, model: Model, power_unit: str = "tonCO2/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ----Example of optional methods for overriding default attributes ------

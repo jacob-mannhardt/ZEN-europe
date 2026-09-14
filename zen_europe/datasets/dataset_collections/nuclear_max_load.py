@@ -17,7 +17,6 @@ from zen_europe.datasets.datasets.carrier.entsoe import ENTSOE
 from zen_creator.utils.settings import Settings
 
 import calendar
-import pandas as pd
 
 class NuclearMaxLoad(DatasetCollection):
     """Extracting maximum load data for nuclear power plants.

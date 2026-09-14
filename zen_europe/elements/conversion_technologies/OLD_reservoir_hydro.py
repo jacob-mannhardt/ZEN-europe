@@ -6,7 +6,6 @@ from zen_europe.datasets.dataset_collections.hydro_existing_capacity import Hydr
 from zen_europe.datasets.dataset_collections.lifetime_expectation import LifetimeExpectation
 from zen_europe.datasets.dataset_collections.run_of_river_hydro_max_load import RunOfRiverHydroMaxLoad
 from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
-from zen_europe.datasets.datasets.technology.pan_european_climate_database import PanEuropeanClimateDatabase
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -141,31 +140,20 @@ class ReservoirHydro(ConversionTechnology):
             Attribute: An Attribute object containing the capacity limit data.
         """
         attr = self.capacity_limit
-        if not self.settings.investment.allow_investment:
-            attr.set_data(
-                default_value=0,
-                source=AssumptionInformation(
-                    description=(
-                        "The capacity limit is set to 0, "
-                        "as investment is not allowed."
-                    ),
+        data = self.capacity_existing.df
+        capacity_limit = data.groupby(level=0).sum()
+        capacity_limit.name = "capacity_limit"
+        attr.set_data(
+            df=capacity_limit,
+            source=SourceInformation(
+                description=(
+                    "The capacity limit is set to the sum of the "
+                    "historical capacity additions across all years."
                 ),
-            )
-        else:
-            data = self.capacity_existing.df
-            capacity_limit = data.groupby(level=0).sum()
-            capacity_limit.name = "capacity_limit"
-            attr.set_data(
-                df=capacity_limit,
-                source=SourceInformation(
-                    description=(
-                        "The capacity limit is set to the sum of the "
-                        "historical capacity additions across all years."
-                    ),
-                    metadata=self.capacity_existing.sources[-1].metadata,
-                ),
-                unit="GW",
-            )
+                metadata=self.capacity_existing.sources[-1].metadata,
+            ),
+            unit="GW",
+        )
         return attr
 
     def _set_capacity_existing(self) -> Attribute:

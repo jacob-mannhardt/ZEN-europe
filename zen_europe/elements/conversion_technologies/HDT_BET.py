@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.existing_vehicle_capacity import ExistingVehicleCapacity
 from zen_europe.datasets.dataset_collections.truck_mileage_demand import TruckMileageDemand
@@ -12,7 +12,7 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology, SourceInformation
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
 
 
 class HDT_BET(ConversionTechnology):
@@ -89,25 +89,38 @@ class HDT_BET(ConversionTechnology):
         Sets the existing capacity of HDT BET.
 
         """
-        vehicle_capacity = ExistingVehicleCapacity(
-            settings=self.model.settings, source_path=self.source_path)
-        ex_cap = vehicle_capacity.get_existing_capacity_truck(element=self)
-        attr = self.capacity_existing
-        return attr.set_data(
-            df=ex_cap,
-            source=SourceInformation(
-                description=(
-                    "The existing capacity of HDT BET is calculated from the "
-                    "existing fleet of HDT BET vehicles and the total truck "
-                    "mileage demand. The existing fleet is sourced from the UNECE "
-                    "dataset, and the total truck mileage demand is sourced from the "
-                    "TruckMileageDemand dataset."
-                    " The capacity is corrected for the peak demand share."
+        if self.settings.investment.use_existing_capacities:
+            vehicle_capacity = ExistingVehicleCapacity(
+                settings=self.model.settings, source_path=self.source_path)
+            ex_cap = vehicle_capacity.get_existing_capacity_truck(element=self)
+            attr = self.capacity_existing
+            return attr.set_data(
+                df=ex_cap,
+                source=SourceInformation(
+                    description=(
+                        "The existing capacity of HDT BET is calculated from the "
+                        "existing fleet of HDT BET vehicles and the total truck "
+                        "mileage demand. The existing fleet is sourced from the UNECE "
+                        "dataset, and the total truck mileage demand is sourced from the "
+                        "TruckMileageDemand dataset."
+                        " The capacity is corrected for the peak demand share."
+                    ),
+                    metadata=vehicle_capacity.metadata
                 ),
-                metadata=vehicle_capacity.metadata
-            ),
-            unit="megatkm/h"
-        )
+                unit="megatkm/h"
+            )
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
 
     def _set_max_load(self) -> Attribute:
         """

@@ -137,8 +137,12 @@ class OilToGasolineConversion(ConversionTechnology):
     def _set_max_diffusion_rate(self) -> Attribute:
         """
         Sets the maximum diffusion rate of oil to gasoline conversion.
+
+        Without existing capacities the technology cannot grow from a zero
+        base, so the diffusion rate is left unbounded.
         """
-        if not self.settings.investment.use_diffusion_rates:
+        if (not self.settings.investment.use_diffusion_rates
+                or not self.settings.investment.use_existing_oil_to_x_capacities):
             return self.max_diffusion_rate
         diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
         return diffusion_rates.get_max_diffusion_rate(self)

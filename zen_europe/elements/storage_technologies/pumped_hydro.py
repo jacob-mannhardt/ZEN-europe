@@ -9,7 +9,7 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.datasets.datasets.metadata import AssumptionInformation, MetaData
+from zen_creator.datasets.datasets.metadata import MetaData
 from zen_creator.elements import StorageTechnology
 from zen_creator.utils.attribute import Attribute, SourceInformation
 
@@ -61,46 +61,6 @@ class PumpedHydro(StorageTechnology):
                 ),
             ),
         )
-
-    def _set_capacity_limit(self) -> Attribute:
-        """
-        Sets the capacity limit for pumped hydro.
-
-        Returns:
-            Attribute: An Attribute object containing the capacity limit data.
-        """
-        attr = self.capacity_limit
-        if not self.settings.investment.allow_investment:
-            attr.set_data(
-                default_value=0,
-                source=AssumptionInformation(
-                    description=(
-                        "The capacity limit is set to 0, "
-                        "as investment is not allowed."
-                    ),
-                ),
-            )
-        return attr
-
-    def _set_capacity_limit_energy(self) -> Attribute:
-        """
-        Sets the energy capacity limit for pumped hydro.
-
-        Returns:
-            Attribute: An Attribute object containing the energy capacity limit data.
-        """
-        attr = self.capacity_limit_energy
-        if not self.settings.investment.allow_investment:
-            attr.set_data(
-                default_value=0,
-                source=AssumptionInformation(
-                    description=(
-                        "The capacity limit is set to 0, "
-                        "as investment is not allowed."
-                    ),
-                ),
-            )
-        return attr
 
     def _set_max_diffusion_rate(self) -> Attribute:
         """

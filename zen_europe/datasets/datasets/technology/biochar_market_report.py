@@ -8,7 +8,6 @@ from zen_creator.datasets.datasets.metadata import MetaData
 
 import pandas as pd
 
-from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 from zen_europe.datasets.datasets.financial.dea import DEA
 from zen_europe.utils.utils import convert_country_names, calculate_capacity_addition_from_cumulative
 from zen_europe.utils.constants import Constants

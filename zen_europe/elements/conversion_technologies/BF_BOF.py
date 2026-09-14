@@ -13,7 +13,6 @@ if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
-from zen_europe.utils.constants import Constants
 
 
 class BF_BOF(ConversionTechnology):
@@ -22,7 +21,7 @@ class BF_BOF(ConversionTechnology):
 
     name: str = "BF_BOF"
 
-    def __init__(self, model: Model, power_unit: str = "tonproduct/h"):
+    def __init__(self, model: Model, power_unit: str = "tproduct/h"):
         super().__init__(model=model, power_unit=power_unit)
 
     # ---------- Required methods that are called during object construction ----------
@@ -105,8 +104,21 @@ class BF_BOF(ConversionTechnology):
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
         """
-        steel_demand_dataset = SteelDemand(source_path=self.source_path)
-        return steel_demand_dataset.get_capacity_existing(self)
+        if self.settings.investment.use_existing_capacities:
+            steel_demand_dataset = SteelDemand(source_path=self.source_path)
+            return steel_demand_dataset.get_capacity_existing(self)
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
     
 
     def _set_max_diffusion_rate(self) -> Attribute:

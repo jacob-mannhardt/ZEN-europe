@@ -25,7 +25,6 @@ from zen_europe.utils.utils import account_for_decommissioned_capacity, format_c
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LinearRegression
 
 # The capacity of a passenger car is the mileage it delivers per hour.
 _PASSENGER_CAPEX_UNIT = "Euro/(vkm/h)"

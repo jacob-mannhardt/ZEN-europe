@@ -9,10 +9,12 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
     TechnologyDiffusionMannhardt,
 )
 
+from zen_europe.utils.constants import Constants
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import AssumptionInformation, AssumptionInformation, Attribute, RetrofittingTechnology
+from zen_creator import AssumptionInformation, Attribute, RetrofittingTechnology
 
 
 class BiomassPlantCCS(RetrofittingTechnology):
@@ -192,3 +194,26 @@ class BiomassPlantCCS(RetrofittingTechnology):
             return self.max_diffusion_rate
         diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
         return diffusion_rates.get_max_diffusion_rate(self)
+
+    def _set_capacity_addition_unbounded(self) -> Attribute:
+        """
+        Sets the unbounded capacity addition of biomass plants with CCS.
+
+        Capacity additions up to the size of a single reference project are
+        exempt from the diffusion limit, so that a first plant can be built
+        from a zero installed base.
+        """
+        attr = self.capacity_addition_unbounded
+        if not self.settings.investment.use_unbounded_capacity_addition_carbon:
+            return attr
+        attr.set_data(
+            default_value=Constants.DUIVEN_CAPTURE_CAPACITY / Constants.HOURS_PER_YEAR,
+            unit="tCO2/h",
+            source=AssumptionInformation(
+                description=(
+                    "The unbounded capacity addition is the size of the Duiven "
+                    "carbon capture plant (0.1 MtCO2 per year)."
+                ),
+            ),
+        )
+        return attr

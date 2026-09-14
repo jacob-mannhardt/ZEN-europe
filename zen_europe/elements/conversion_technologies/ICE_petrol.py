@@ -12,7 +12,7 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, ConversionTechnology, SourceInformation
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
 
 
 class ICE_petrol(ConversionTechnology):
@@ -90,25 +90,38 @@ class ICE_petrol(ConversionTechnology):
         Sets the existing capacity of ICE petrol.
 
         """
-        vehicle_capacity = ExistingVehicleCapacity(
-            settings=self.model.settings, source_path=self.source_path)
-        ex_cap = vehicle_capacity.get_existing_capacity_passenger(element=self)
-        attr = self.capacity_existing
-        return attr.set_data(
-            df=ex_cap,
-            source=SourceInformation(
-                description=(
-                    "The existing capacity of ICE petrol is calculated from the "
-                    "existing fleet of ICE petrol vehicles and the total passenger "
-                    "mileage demand. The existing fleet is sourced from the UNECE "
-                    "dataset, and the total passenger mileage demand is sourced from the "
-                    "PassengerMileageDemand dataset."
-                    " The capacity is corrected for the peak demand share."
+        if self.settings.investment.use_existing_capacities:
+            vehicle_capacity = ExistingVehicleCapacity(
+                settings=self.model.settings, source_path=self.source_path)
+            ex_cap = vehicle_capacity.get_existing_capacity_passenger(element=self)
+            attr = self.capacity_existing
+            return attr.set_data(
+                df=ex_cap,
+                source=SourceInformation(
+                    description=(
+                        "The existing capacity of ICE petrol is calculated from the "
+                        "existing fleet of ICE petrol vehicles and the total passenger "
+                        "mileage demand. The existing fleet is sourced from the UNECE "
+                        "dataset, and the total passenger mileage demand is sourced from the "
+                        "PassengerMileageDemand dataset."
+                        " The capacity is corrected for the peak demand share."
+                    ),
+                    metadata=vehicle_capacity.metadata
                 ),
-                metadata=vehicle_capacity.metadata
-            ),
-            unit="megavkm/h"
-        )
+                unit="megavkm/h"
+            )
+        else:
+            attr = self.capacity_existing
+            attr.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not consider existing capacities."
+                    ),
+                ),
+            )
+            return attr
 
     def _set_max_load(self) -> Attribute:
         """

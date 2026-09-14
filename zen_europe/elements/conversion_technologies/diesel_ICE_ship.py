@@ -7,6 +7,7 @@ from zen_europe.datasets.datasets.technology.shipping_technologies_korberg impor
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
+from zen_europe.utils.utils import account_for_decommissioned_capacity
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -145,12 +146,17 @@ class DieselICEShip(ConversionTechnology):
             common_nodes = shipping_fuel_demand.index.intersection(
                 self.model.config.system.set_nodes)
             demand = shipping_fuel_demand.loc[common_nodes] / Constants.HOURS_PER_YEAR
+            max_load = self.max_load.default_value
             cf_dict = self.conversion_factor.default_value
             diesel_cf = next(
-                entry["diesel"]["default_value"] for entry in cf_dict if "diesel" in entry)
-            capacity_existing = demand / diesel_cf
+                entry["diesel"]["default_value"] 
+                for entry in cf_dict if "diesel" in entry)
+            capacity_existing = demand / diesel_cf / max_load
+            
             capacity_existing.index.name = "node"
-            capacity_existing.name = "capacity_existing"
+            capacity_existing.name = self.settings.time.reference_year
+            capacity_existing = account_for_decommissioned_capacity(
+                capacity_existing.to_frame(),self)
             attr = self.capacity_existing
             source = SourceInformation(
                 description=(

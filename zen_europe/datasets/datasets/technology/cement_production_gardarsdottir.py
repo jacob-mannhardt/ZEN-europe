@@ -10,7 +10,6 @@ from zen_creator.datasets.datasets.metadata import MetaData
 import pandas as pd
 
 from zen_europe.datasets.datasets.financial.ECB import ECBInflation
-from zen_europe.utils.constants import Constants
 
 class CementProductionGardarsdottir(Dataset[pd.DataFrame]):
     """
