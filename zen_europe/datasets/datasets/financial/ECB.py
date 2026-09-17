@@ -1,16 +1,56 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
 from datetime import datetime
+from pathlib import Path
 
 import pandas as pd
 import scipy.stats as stats
 from zen_creator import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
+
+# The ECB series are downloaded once and then read back from this directory,
+# so that building a model does not depend on the ECB API being reachable.
+# Delete the cached file to pick up newer observations.
+_CACHE_DIRECTORY = ("04-monetary", "ecb")
+
+
+def _cache_directory(source_path: Path | str | None) -> Path | None:
+    """The directory the ECB series are cached in, None without a source path."""
+    if source_path is None:
+        return None
+    path = Path(source_path).joinpath(*_CACHE_DIRECTORY)
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def _read_cache(path: Path | None) -> pd.DataFrame | None:
+    """Return the cached yearly series, or None if it has not been cached yet."""
+    if path is None or not path.exists():
+        return None
+    return pd.read_csv(path, index_col="year")
+
+
+def _write_cache(path: Path | None, data: pd.DataFrame) -> None:
+    """Cache the yearly series, unless there is no source path to cache it in."""
+    if path is not None:
+        data.to_csv(path)
+
+
+def _read_yearly_observations(url: str) -> pd.DataFrame:
+    """Download an ECB series and return its monthly observations by year."""
+    df = pd.read_csv(url, usecols=["TIME_PERIOD", "OBS_VALUE"])
+
+    period_parts = df["TIME_PERIOD"].astype(str).str.split("-", n=1, expand=True)
+    df["year"] = pd.to_numeric(period_parts[0], errors="raise").astype(int)
+    df["month"] = pd.to_numeric(period_parts[1], errors="raise").astype(int)
+    df["obs_value"] = pd.to_numeric(df["OBS_VALUE"], errors="raise").astype(float)
+
+    if df.isna().values.any():
+        raise ValueError(
+            "Data contains NaN values after conversion. "
+            "Please check the source data."
+        )
+    return df
 
 
 class ECBInflation(Dataset[pd.DataFrame]):
@@ -31,8 +71,14 @@ class ECBInflation(Dataset[pd.DataFrame]):
             url="https://data.ecb.europa.eu/",
         )
 
+    URL = (
+        "https://data-api.ecb.europa.eu/service/data/ICP/"
+        "M.U2.N.000000.4.ANR?format=csvdata"
+    )
+    CACHE_FILE = "ecb_inflation.csv"
+
     def _set_path(self) -> Path | None:
-        return None  # ECB data is accessed directly via URL, no local path needed
+        return _cache_directory(self.source_path)
 
     # ----- Property overwrites -----
 
@@ -40,26 +86,24 @@ class ECBInflation(Dataset[pd.DataFrame]):
 
     def _set_data(self) -> pd.DataFrame:
         """Method to get the inflation rate from ECB data."""
-        url = "https://data-api.ecb.europa.eu/service/data/ICP/M.U2.N.000000.4.ANR?format=csvdata"
-        df = pd.read_csv(url, usecols=["TIME_PERIOD", "OBS_VALUE"])
+        cache_path = self._cache_path()
+        cached = _read_cache(cache_path)
+        if cached is not None:
+            return cached
 
-        period_parts = df["TIME_PERIOD"].astype(str).str.split("-", n=1, expand=True)
-        df["year"] = pd.to_numeric(period_parts[0], errors="raise").astype(int)
-        df["month"] = pd.to_numeric(period_parts[1], errors="raise").astype(int)
-        df["obs_value"] = pd.to_numeric(df["OBS_VALUE"], errors="raise").astype(float)
-
-        if df.isna().values.any():
-            raise ValueError(
-                "Data contains NaN values after conversion. "
-                "Please check the source data."
-            )
-
+        df = _read_yearly_observations(self.URL)
         df["inflation_factor"] = 1.0 + df["obs_value"] / 100.0
 
         inflation_data = df.groupby("year", sort=True)["inflation_factor"].agg(
             lambda values: float(stats.gmean(values.to_numpy(dtype=float)))
         )
-        return inflation_data.to_frame(name="inflation_rate")
+        data = inflation_data.to_frame(name="inflation_rate")
+        _write_cache(cache_path, data)
+        return data
+
+    def _cache_path(self) -> Path | None:
+        """The file the downloaded series is cached in."""
+        return None if self.source_path is None else self.path / self.CACHE_FILE
 
     # ------ Outward facing functions ------
 
@@ -98,32 +142,35 @@ class ECBDollar2Euro(Dataset[pd.DataFrame]):
             url="https://data.ecb.europa.eu/data/datasets/EXR/EXR.M.USD.EUR.SP00.A",
         )
 
+    URL = (
+        "https://data-api.ecb.europa.eu/service/data/EXR/"
+        "M.USD.EUR.SP00.A?format=csvdata"
+    )
+    CACHE_FILE = "ecb_dollar_to_euro.csv"
+
     def _set_path(self) -> Path | None:
-        return None  # ECB data is accessed directly via URL, no local path needed
-    
+        return _cache_directory(self.source_path)
+
     # ----- Property overwrites -----
 
     # ----- Load and format Data -----
 
     def _set_data(self) -> pd.DataFrame:
         """Method to get the dollar-to-euro conversion rate from ECB data."""
-        url = "https://data-api.ecb.europa.eu/service/data/EXR/M.USD.EUR.SP00.A?format=csvdata"
-        df = pd.read_csv(url, usecols=["TIME_PERIOD", "OBS_VALUE"])
+        cache_path = self._cache_path()
+        cached = _read_cache(cache_path)
+        if cached is not None:
+            return cached
 
-        period_parts = df["TIME_PERIOD"].astype(str).str.split("-", n=1, expand=True)
-        df["year"] = pd.to_numeric(period_parts[0], errors="raise").astype(int)
-        df["month"] = pd.to_numeric(period_parts[1], errors="raise").astype(int)
-        df["obs_value"] = pd.to_numeric(df["OBS_VALUE"], errors="raise").astype(float)
-
-        if df.isna().values.any():
-            raise ValueError(
-                "Data contains NaN values after conversion. "
-                "Please check the source data."
-            )
-
-
+        df = _read_yearly_observations(self.URL)
         euro2dollar = df.groupby("year")["obs_value"].mean()
-        return euro2dollar.to_frame(name="euro2dollar")
+        data = euro2dollar.to_frame(name="euro2dollar")
+        _write_cache(cache_path, data)
+        return data
+
+    def _cache_path(self) -> Path | None:
+        """The file the downloaded series is cached in."""
+        return None if self.source_path is None else self.path / self.CACHE_FILE
 
     # ------ Outward facing functions ------
 

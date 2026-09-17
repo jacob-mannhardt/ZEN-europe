@@ -53,7 +53,7 @@ class ShippingTechnologiesKorberg(Dataset[pd.DataFrame]):
 
     # -------- methods ------------------------    
     def get_shipping_conversion_factors(
-            self, technology: ConversionTechnology) -> dict[str, float]:
+            self, technology: ConversionTechnology | str) -> dict[str, float]:
         """
         Get the shipping conversion factors for a specific technology.
 
@@ -63,6 +63,8 @@ class ShippingTechnologiesKorberg(Dataset[pd.DataFrame]):
         Returns:
             A dictionary containing the conversion factors for the specified technology.
         """
+        if isinstance(technology, ConversionTechnology):
+            technology = technology.name
         electricity_demand_LH2 = 6.78 # kWh/kg, https://www.sciencedirect.com/science/article/pii/S0306261917305457
         conversion_factors = {
             "diesel_ICE_ship": {"diesel": 1 / 0.45},
@@ -71,10 +73,10 @@ class ShippingTechnologiesKorberg(Dataset[pd.DataFrame]):
             "methanol_ICE_ship": {"methanol": 1 / 0.45},
             "ammonia_ICE_ship": {"ammonia": 1 / 0.45},
         }
-        if technology.name not in conversion_factors:
+        if technology not in conversion_factors:
             raise ValueError(f"Conversion factors for technology" 
-                             f"'{technology.name}' are not available.")
-        return conversion_factors[technology.name]
+                             f"'{technology}' are not available.")
+        return conversion_factors[technology]
 
     def get_lifetime(self, technology: ConversionTechnology) -> Attribute:
         """

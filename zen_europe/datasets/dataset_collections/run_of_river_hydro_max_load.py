@@ -44,13 +44,18 @@ class RunOfRiverHydroMaxLoad(DatasetCollection):
             raise ValueError("source_path must be set to load the dataset collection.")
 
         return {
-            "pan_european_climate_database": PanEuropeanClimateDatabase(self.source_path),
+            "pan_european_climate_database": PanEuropeanClimateDatabase(
+                settings=self.settings, 
+                source_path=self.source_path),
             "entsoe": ENTSOE(
                 settings=self.settings, 
                 source_path=self.source_path,
                 set_nodes=self.set_nodes
                 ),
-            "hydro_existing_capacity": HydroExistingCapacity(self.source_path),
+            "hydro_existing_capacity": HydroExistingCapacity(
+                settings=self.settings, 
+                set_nodes=self.set_nodes,
+                source_path=self.source_path),
         }
 
     def get_max_load(self, element: Element) -> Attribute:

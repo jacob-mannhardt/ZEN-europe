@@ -2,29 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import numpy as np
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
+from zen_europe.datasets.datasets.technology.dea_energy_storage import DEAEnergyStorage
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.datasets.datasets.metadata import MetaData
 from zen_creator.elements import StorageTechnology
-from zen_creator.utils.attribute import Attribute, SourceInformation
-
-# Lifetime and round-trip efficiency of hydrogen storage caverns are taken from
-# the energy storage catalogue of the Danish Energy Agency.
-DEA_ENERGY_STORAGE = MetaData(
-    name="dea_energy_storage",
-    title="Technology Data for Energy Storage",
-    author=["Danish Energy Agency"],
-    publication="Danish Energy Agency",
-    publication_year=2026,
-    url=(
-        "https://ens.dk/en/our-services/technology-catalogues/"
-        "technology-data-energy-storage"
-    ),
-    note="Hydrogen storage caverns, assuming pre-existing salt caverns.",
-)
+from zen_creator.utils.attribute import Attribute
 
 
 class SaltCavernStorage(StorageTechnology):
@@ -32,9 +19,6 @@ class SaltCavernStorage(StorageTechnology):
     storage technology."""
 
     name: str = "salt_cavern_storage"
-
-    # round-trip efficiency, split evenly between charging and discharging
-    EFFICIENCY_ROUND_TRIP = 0.99
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)
@@ -55,52 +39,43 @@ class SaltCavernStorage(StorageTechnology):
         """
         Sets the lifetime of salt cavern storage.
         """
-        attr = self.lifetime
-        return attr.set_data(
-            default_value=100,
-            source=SourceInformation(
-                description=(
-                    "The lifetime of hydrogen storage caverns is based on the "
-                    "energy storage catalogue of the Danish Energy Agency. "
-                    "The caverns are assumed to exist already, so they do not "
-                    "retire within the modeling horizon."
-                ),
-                metadata=DEA_ENERGY_STORAGE,
-            ),
-        )
+        energy_storage = DEAEnergyStorage(source_path=self.source_path)
+        return energy_storage.get_lifetime(self)
+
+    def _set_capex_specific_storage(self) -> Attribute:
+        """
+        Sets the specific capex of the power capacity of salt cavern storage.
+        """
+        tech_db = TechnologyCostDatabase(
+            settings=self.settings, source_path=self.source_path)
+        return tech_db.get_capex_specific_storage(self)
+
+    def _set_capex_specific_storage_energy(self) -> Attribute:
+        """
+        Sets the specific capex of the energy capacity of salt cavern storage.
+        """
+        tech_db = TechnologyCostDatabase(
+            settings=self.settings, source_path=self.source_path)
+        return tech_db.get_capex_specific_storage_energy(self)
+
+    def _set_opex_specific_fixed(self) -> Attribute:
+        """
+        Sets the specific fixed opex of salt cavern storage.
+        """
+        tech_db = TechnologyCostDatabase(
+            settings=self.settings, source_path=self.source_path)
+        return tech_db.get_opex_specific_fixed(self)
 
     def _set_efficiency_charge(self) -> Attribute:
         """
         Sets the charging efficiency of salt cavern storage.
         """
-        attr = self.efficiency_charge
-        return attr.set_data(
-            default_value=np.sqrt(self.EFFICIENCY_ROUND_TRIP),
-            source=SourceInformation(
-                description=(
-                    "The round-trip efficiency of hydrogen storage caverns is "
-                    f"{self.EFFICIENCY_ROUND_TRIP} (energy storage catalogue "
-                    "of the Danish Energy Agency) and is split evenly between "
-                    "charging and discharging."
-                ),
-                metadata=DEA_ENERGY_STORAGE,
-            ),
-        )
+        energy_storage = DEAEnergyStorage(source_path=self.source_path)
+        return energy_storage.get_efficiency_charge(self)
 
     def _set_efficiency_discharge(self) -> Attribute:
         """
         Sets the discharging efficiency of salt cavern storage.
         """
-        attr = self.efficiency_discharge
-        return attr.set_data(
-            default_value=np.sqrt(self.EFFICIENCY_ROUND_TRIP),
-            source=SourceInformation(
-                description=(
-                    "The round-trip efficiency of hydrogen storage caverns is "
-                    f"{self.EFFICIENCY_ROUND_TRIP} (energy storage catalogue "
-                    "of the Danish Energy Agency) and is split evenly between "
-                    "charging and discharging."
-                ),
-                metadata=DEA_ENERGY_STORAGE,
-            ),
-        )
+        energy_storage = DEAEnergyStorage(source_path=self.source_path)
+        return energy_storage.get_efficiency_discharge(self)

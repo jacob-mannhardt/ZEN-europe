@@ -41,6 +41,7 @@ def convert_country_names(series: pd.Series) -> pd.Series:
         "Slovakia": "SK",
         "Slovak Republic": "SK",
         "United Kingdom": "UK",
+        "Great Britain": "UK",
         "UK": "UK",
     }
     series_new = series.apply(

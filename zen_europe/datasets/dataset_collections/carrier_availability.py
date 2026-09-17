@@ -293,10 +293,9 @@ class CarrierAvailability(DatasetCollection):
                 )    
         
         data = data.sort_index() / Constants.HOURS_PER_YEAR # from GWh/year to GW
-        diesel_ICE_ship = element.model.conversion_technologies["diesel_ICE_ship"]
         diesel2shipping = (
             shipping_technologies_korberg_dataset.get_shipping_conversion_factors(
-            diesel_ICE_ship)["diesel"])
+            "diesel_ICE_ship")["diesel"])
         
         data = data / diesel2shipping 
         data.index.name = "node"

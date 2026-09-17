@@ -2,26 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.datasets.technology.tyndp_scenario_building_guidelines import (
+    TYNDPScenarioBuildingGuidelines,
+)
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.datasets.datasets.metadata import AssumptionInformation, MetaData
+from zen_creator.datasets.datasets.metadata import AssumptionInformation
 from zen_creator.elements import TransportTechnology
-from zen_creator.utils.attribute import Attribute, SourceInformation
-
-# The pipeline investment cost is taken from the TYNDP 2022 scenario building
-# guidelines (Tab. 14, p. 32).
-TYNDP_SCENARIO_GUIDELINES = MetaData(
-    name="tyndp_2022_scenario_building_guidelines",
-    title="TYNDP 2022 Scenario Building Guidelines",
-    author=["ENTSOG", "ENTSO-E"],
-    publication="ENTSOG and ENTSO-E",
-    publication_year=2021,
-    url=(
-        "https://www.entsog.eu/sites/default/files/2021-10/"
-        "entsos_TYNDP_2022_Scenario_Building_Guidelines_211007_1.pdf"
-    ),
-)
+from zen_creator.utils.attribute import Attribute
 
 
 class OilPipeline(TransportTechnology):
@@ -81,18 +71,10 @@ class OilPipeline(TransportTechnology):
     def _set_capex_per_distance_transport(self) -> Attribute:
         """
         Sets the distance-specific capex of oil pipeline.
+
+        The investment cost is assumed to equal the investment cost of natural
+        gas pipelines.
         """
-        attr = self.capex_per_distance_transport
-        return attr.set_data(
-            default_value=265,
-            unit="kiloEuro/GW/km",
-            source=SourceInformation(
-                description=(
-                    "The investment cost of oil pipelines is assumed to equal "
-                    "the investment cost of natural gas pipelines from the "
-                    "TYNDP 2022 scenario building guidelines "
-                    "(Tab. 14, p. 32)."
-                ),
-                metadata=TYNDP_SCENARIO_GUIDELINES,
-            ),
-        )
+        pipeline_costs = TYNDPScenarioBuildingGuidelines(
+            source_path=self.source_path)
+        return pipeline_costs.get_capex_per_distance_transport(self)

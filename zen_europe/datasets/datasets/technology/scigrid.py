@@ -8,9 +8,12 @@ if TYPE_CHECKING:
 
 from zen_creator.elements import Element
 from zen_creator.datasets.datasets.dataset import Dataset
-from zen_creator.datasets.datasets.metadata import MetaData
+from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
+from zen_creator.utils.attribute import Attribute
 
 import pandas as pd
+
+from zen_europe.utils.constants import Constants
 
 class SciGridIGGIELGNC1(Dataset[pd.DataFrame]):
     """
@@ -159,79 +162,72 @@ class SciGridIGGIELGNC1(Dataset[pd.DataFrame]):
         import_gas_RU.index.name = "node"
         return import_gas, import_gas_RU
 
-# NOTE deprecated: The SciGrid GIE dataset is no longer used in the LNG availability calculations, 
-# as it has been replaced by the GIE LNG Map dataset. 
-# The SciGrid GIE dataset is retained here for reference and potential future use, 
-# but it is not actively utilized in the current implementation of LNG availability calculations.
-# The reason is that the data is outdated and the GIE LNG Map dataset provides more accurate and up-to-date information on LNG terminals.
-class SciGridGIE(Dataset[pd.DataFrame]):
-    """
-    SciGrid GIE dataset class for LNG.
+    def get_mean_gcv(self) -> pd.Series:
+        """
+        Get the mean gross calorific value of natural gas per country in kWh/m3.
 
-    This class implements the specific behavior for the SciGrid GIE dataset.
+        The value is averaged over the border points that deliver gas to the
+        country.
+        """
+        border_points = self.data["border_points"]
+        return border_points.groupby("to_country")["GCV_mean_kWh_per_m3"].mean()
 
-    We only use GIE for LNG terminals, as the other SciGrid datasets show inaccuracies
-    for LNG terminals.
-    """
+    def get_capacity_existing(self, element: Element, power: bool = True) -> Attribute:
+        """
+        Get the existing natural gas storage capacity per node and construction year.
 
-    name = "scigrid_gie"
-    _GCV_LNG = 11.65 # most common value in the scigrid database, in kWh/m3
-    def __init__(self, source_path: Path | str | None = None):
-        super().__init__(source_path=source_path)
+        Storages that start operating after the reference year or that are
+        decommissioned before it are dropped. Storages without a reported start
+        year are dropped as well, since they are either virtual storages that
+        aggregate the individual sites of an operator, or entries whose
+        capacities are filled with the median of the reported ones. The power
+        capacity is the larger of the injection and the withdrawal rate, the
+        energy capacity is the working gas volume. The volumes are converted
+        with the mean gross calorific value of the country the storage is in.
 
-    def _set_metadata(self) -> MetaData:
-        return MetaData(
-            name=self.name,
-            title=(
-                "SciGRID_gas GIE"
+        Args:
+            element: The element for which to get the existing capacity.
+            power: If True, returns the power capacity; if False, the energy capacity.
+        """
+        reference_year = element.settings.time.reference_year
+        storages = self.data["storages"].copy()
+        storages = storages[storages["start_year"] < reference_year]
+        storages = storages[~(storages["end_year"] <= reference_year)]
+        storages["start_year"] = storages["start_year"].astype(int)
+        storages = storages.groupby(["nuts_id_0", "start_year"]).sum(numeric_only=True)
+
+        if power:
+            # 1e6 m3/d * kWh/m3 = GWh/d
+            capacity = storages[["max_cap_pipe2store_M_m3_per_d",
+                                 "max_cap_store2pipe_M_m3_per_d"]].max(axis=1)
+            capacity = capacity / Constants.HOURS_PER_DAY
+            attr = element.capacity_existing
+            unit = "GW"
+        else:
+            # 1e6 m3 * kWh/m3 = GWh
+            capacity = storages["max_workingGas_M_m3"]
+            attr = element.capacity_existing_energy
+            unit = "GWh"
+
+        gcv = self.get_mean_gcv()
+        gcv_storages = gcv.reindex(
+            storages.index.get_level_values("nuts_id_0")).fillna(gcv.mean())
+        capacity = capacity * gcv_storages.to_numpy()
+
+        set_nodes = element.model.config.system.set_nodes
+        capacity = capacity[
+            capacity.index.get_level_values("nuts_id_0").isin(set_nodes)]
+        capacity = capacity[capacity > 0].sort_index()
+        capacity.index = capacity.index.set_names(["node", "year_construction"])
+        capacity.name = attr.name
+
+        source = SourceInformation(
+            description=(
+                f"The existing capacity of {element.name} is derived from the "
+                "storages of the SciGRID_gas IGGIELGNC-1 dataset. The volumes are "
+                "converted to energy with the mean gross calorific value of the "
+                "border points of the respective country."
             ),
-            author=["Jan Diettrich", 
-                    "Adam Pluta", 
-                    "Wided Medjroubi", 
-                    "Jan Dasenbrock", 
-                    "Javier Sandoval"],
-            publication="DLR - German Aerospace Center",
-            publication_year=2021,
-            url="https://zenodo.org/records/4750985",
-            note="We only use GIE for LNG terminals, "
-                "as the other SciGrid datasets show inaccuracies for LNG terminals.",
+            metadata=self.metadata,
         )
-
-    def _set_path(self) -> Path | None:
-        if self.source_path is None:
-            raise ValueError("source_path must be set to load the dataset.")
-        return self.source_path / "03-technology" / "lng" 
-
-    def _set_data(self) -> pd.DataFrame:
-        lng_terminals_raw = pd.read_csv(
-            self.path / "GIE_LNGs.csv", delimiter=";")
-        lng_terminals = lng_terminals_raw["param"].apply(lambda item: pd.Series(ast.literal_eval(str(item))))
-        lng_terminals["nuts_id_0"] = lng_terminals_raw["country_code"].replace({"GR": "EL", "GB": "UK"})
-        lng_terminals["name"] = lng_terminals_raw["name"]
-        return lng_terminals
-    
-    def _calculate_capacity_existing_lng(self,element: Element) -> pd.DataFrame:
-        """
-        Calculate the existing capacity of LNG terminals.
-
-        This method calculates the existing capacity of LNG terminals based on the
-        provided data and returns it as a DataFrame.
-
-        Returns:
-            A DataFrame containing the existing capacity of LNG terminals.
-        """
-        lng_terminals = self.data.copy()
-        lng_terminals["capa_GWh_per_d"] = (self._GCV_LNG * 
-            lng_terminals["median_cap_store2pipe_M_m3_per_d"])
-        lng_terminals["start_year"] = 2010 # assume all terminals are available from 2010 onwards, as we do not have data on the construction year
-        lng_terminals_scigrid = lng_terminals.groupby(
-            ["nuts_id_0", "start_year"]).sum(numeric_only=True)["capa_GWh_per_d"]
-        capacity_existing = pd.DataFrame(index=lng_terminals_scigrid.index)
-        capacity_existing["capacity_existing"] = lng_terminals_scigrid / 24
-        common_countries = capacity_existing.index.get_level_values(0).intersection(
-            element.model.config.system.set_nodes)
-        capacity_existing = capacity_existing.loc[common_countries]
-        capacity_existing.index.names = ["node", "year_construction"]
-
-        capacity_existing = capacity_existing.sort_index()
-        return capacity_existing
+        return attr.set_data(df=capacity, source=source, unit=unit)

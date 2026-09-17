@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.datasets.technology.dea_carbon_transport import (
+    DEACarbonTransport,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -10,23 +13,9 @@ from zen_europe.utils.constants import Constants
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.datasets.datasets.metadata import AssumptionInformation, MetaData
+from zen_creator.datasets.datasets.metadata import AssumptionInformation
 from zen_creator.elements import TransportTechnology
-from zen_creator.utils.attribute import Attribute, SourceInformation
-
-# The lifetime of CO2 pipelines is taken from the carbon capture, transport and
-# storage catalogue of the Danish Energy Agency.
-DEA_CCS = MetaData(
-    name="dea_ccs",
-    title="Technology Data for Carbon Capture, Transport and Storage",
-    author=["Danish Energy Agency"],
-    publication="Danish Energy Agency",
-    publication_year=2026,
-    url=(
-        "https://ens.dk/en/analyses-and-statistics/"
-        "technology-data-carbon-capture-transport-and-storage"
-    ),
-)
+from zen_creator.utils.attribute import Attribute
 
 
 class CarbonPipeline(TransportTechnology):
@@ -54,18 +43,8 @@ class CarbonPipeline(TransportTechnology):
         """
         Sets the lifetime of carbon pipeline.
         """
-        attr = self.lifetime
-        return attr.set_data(
-            default_value=50,
-            source=SourceInformation(
-                description=(
-                    "The lifetime of CO2 pipelines is based on the carbon "
-                    "capture, transport and storage catalogue of the Danish "
-                    "Energy Agency."
-                ),
-                metadata=DEA_CCS,
-            ),
-        )
+        carbon_transport = DEACarbonTransport(source_path=self.source_path)
+        return carbon_transport.get_lifetime(self)
 
     def _set_capacity_addition_unbounded(self) -> Attribute:
         """

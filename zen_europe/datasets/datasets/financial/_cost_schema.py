@@ -36,11 +36,15 @@ YEARS: list[int] = list(range(2015, 2050 + 5, 5))
 PLANT_SIZES: tuple[str, ...] = ("S", "M", "L")
 SCENARIOS: tuple[str, ...] = ("min", "ref", "max")
 
-COST_VARIABLES: tuple[str, ...] = ("capex", "fopex", "vopex")
+COST_VARIABLES: tuple[str, ...] = ("capex", "capex_energy", "fopex", "vopex")
 TECH_VARIABLES: tuple[str, ...] = ("efficiency", "lifetime", "construction_time")
 
+# `capex_energy` is the investment cost of a storage technology's energy
+# capacity; `capex` is its power capacity, on the same basis as every other
+# technology.
 STANDARD_UNITS: dict[str, str] = {
     "capex": "Euro/kW",
+    "capex_energy": "Euro/kWh",
     "fopex": "Euro/kW/year",
     "vopex": "Euro/MWh",
     "efficiency": "1",

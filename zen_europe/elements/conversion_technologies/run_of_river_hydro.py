@@ -179,7 +179,7 @@ class RunOfRiverHydro(ConversionTechnology):
             if self.settings.data_source.use_plant_level_hydro_capacity:
                 attr = hydro_capacity.get_capacity_existing_plant_level_data(self)
             else:
-                attr = hydro_capacity.get_capacity_existing_entsoe_data(self)
+                attr = hydro_capacity.get_capacity_existing_pecd_data(self)
             return attr
         else:
             attr = self.capacity_existing

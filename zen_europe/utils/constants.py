@@ -16,6 +16,8 @@ class Constants:
     SECONDS_PER_HOUR: float = 3600
 
     HOURS_PER_DAY: float = 24
+
+    HOURS_PER_WEEK: float = 168
     
     GJ_PER_MWH: float = 3.6
     """1 MWh = 3.6 GJ, from the definition 1 Wh = 3600 J."""

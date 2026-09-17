@@ -375,11 +375,60 @@ class PanEuropeanClimateDatabase(Dataset[pd.DataFrame]):
                 f"{missing_nodes}"
             )
         data = data[common_nodes]
+        return self._convert_weekly_energy_to_hourly_flow(data)
+
+    def get_flow_storage_inflow(self, element) -> Attribute:
+        """
+        Get the storage inflow for reservoir hydro.
+
+        Args:
+            element: The element for which to get the storage inflow.
+
+        Returns:
+            Attribute: The storage inflow attribute of the element.
+        """
+        assert element.name == "reservoir_hydro", (
+            f"Storage inflow data for {element.name} is not available in the "
+            "PanEuropeanClimateDatabase dataset."
+        )
+        data = self.data[element.name]
+        capacity_existing = element.capacity_existing.df
+        set_nodes_capacity = capacity_existing.index.get_level_values("node").unique()
+        common_nodes = data.columns.intersection(set_nodes_capacity)
+        missing_nodes = set(set_nodes_capacity).difference(common_nodes)
+        if len(missing_nodes) > 0:
+            logging.warning(
+                "No reservoir inflow reported in the PanEuropeanClimateDatabase "
+                f"data for {sorted(missing_nodes)}, for which capacity data is available."
+            )
+        data = self._convert_weekly_energy_to_hourly_flow(data[common_nodes])
+        source = SourceInformation(
+            description=(
+                "The storage inflow is the hydropower reservoir inflow of the "
+                "Pan-European Climate Database (PECD 4.2) dataset, converted from "
+                "a weekly energy to an hourly flow."
+            ),
+            metadata=self.metadata,
+        )
+        return element.flow_storage_inflow.set_data(
+            source=source,
+            df=data,
+            unit="GW",
+        )
+
+    @staticmethod
+    def _convert_weekly_energy_to_hourly_flow(data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Convert a weekly energy time series in MWh to an hourly flow in GW.
+
+        The weekly energy is spread evenly across the hours of the week.
+        """
+        hours_per_week = int(Constants.HOURS_PER_WEEK)
         data = data.reset_index(drop=True)
-        data.index = data.index*7*24 # convert from weekly to hourly time series
-        data = data.reindex(range(int(Constants.HOURS_PER_YEAR)), method="ffill") # fill missing hours
-        data = data/(7*24) # convert from weekly to hourly outflow
-        data = data/1000 # convert from MWh to GWh
+        data.index = data.index * hours_per_week
+        data = data.reindex(range(int(Constants.HOURS_PER_YEAR)), method="ffill")
+        data = data / hours_per_week / 1000
         data.index.name = "time"
         return data
-        
+
+    

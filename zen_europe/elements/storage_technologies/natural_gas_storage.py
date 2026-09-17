@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from zen_europe.datasets.datasets.technology.scigrid import SciGridIGGIELGNC1
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -46,13 +47,12 @@ class NaturalGasStorage(StorageTechnology):
         """
         attr = self.lifetime
         return attr.set_data(
-            default_value=100,
+            default_value=200,
             source=AssumptionInformation(
                 description=(
                     "The lifetime of natural gas storage is manually set to "
-                    "100 years. Only the existing storages are modeled, which "
-                    "are geological formations that do not retire within the "
-                    "modeling horizon."
+                    "200 years. Only the existing storages are modeled, which "
+                    "do not retire within the modeling horizon."
                 ),
             ),
         )
@@ -67,8 +67,7 @@ class NaturalGasStorage(StorageTechnology):
             source=AssumptionInformation(
                 description=(
                     "The round-trip efficiency of natural gas storage is "
-                    f"manually set to {self.EFFICIENCY_ROUND_TRIP}, accounting "
-                    "for the gas used to compress and inject the stored gas, "
+                    f"manually set to {self.EFFICIENCY_ROUND_TRIP}, "
                     "and is split evenly between charging and discharging."
                 ),
             ),
@@ -84,8 +83,7 @@ class NaturalGasStorage(StorageTechnology):
             source=AssumptionInformation(
                 description=(
                     "The round-trip efficiency of natural gas storage is "
-                    f"manually set to {self.EFFICIENCY_ROUND_TRIP}, accounting "
-                    "for the gas used to compress and inject the stored gas, "
+                    f"manually set to {self.EFFICIENCY_ROUND_TRIP}, "
                     "and is split evenly between charging and discharging."
                 ),
             ),
@@ -121,36 +119,6 @@ class NaturalGasStorage(StorageTechnology):
             ),
         )
 
-    def _set_capacity_addition_max(self) -> Attribute:
-        """
-        Sets the maximum power capacity addition of natural gas storage.
-        """
-        attr = self.capacity_addition_max
-        return attr.set_data(
-            default_value=0,
-            source=AssumptionInformation(
-                description=(
-                    "No new natural gas storage can be built, so the maximum "
-                    "power capacity addition is manually set to 0."
-                ),
-            ),
-        )
-
-    def _set_capacity_addition_max_energy(self) -> Attribute:
-        """
-        Sets the maximum energy capacity addition of natural gas storage.
-        """
-        attr = self.capacity_addition_max_energy
-        return attr.set_data(
-            default_value=0,
-            source=AssumptionInformation(
-                description=(
-                    "No new natural gas storage can be built, so the maximum "
-                    "energy capacity addition is manually set to 0."
-                ),
-            ),
-        )
-
     def _set_capex_specific_storage(self) -> Attribute:
         """
         Sets the power-specific capex of natural gas storage.
@@ -162,7 +130,7 @@ class NaturalGasStorage(StorageTechnology):
                 description=(
                     "The power-specific capex of natural gas storage is "
                     "manually set to 0, as only the existing storages are "
-                    "modeled and their investment cost is sunk."
+                    "modeled."
                 ),
             ),
         )
@@ -178,16 +146,37 @@ class NaturalGasStorage(StorageTechnology):
                 description=(
                     "The energy-specific capex of natural gas storage is "
                     "manually set to 0, as only the existing storages are "
-                    "modeled and their investment cost is sunk."
+                    "modeled."
                 ),
             ),
         )
 
-    def _set_max_diffusion_rate(self) -> Attribute:
+    def _set_capacity_existing(self) -> Attribute:
         """
-        Sets the maximum diffusion rate of natural gas storage.
+        Sets the existing power capacity of natural gas storage.
         """
-        if not self.settings.investment.use_diffusion_rates:
-            return self.max_diffusion_rate
-        diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
-        return diffusion_rates.get_max_diffusion_rate(self)
+        if not self.settings.investment.use_existing_capacities:
+            return self.capacity_existing.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description="We do not consider existing capacities.",
+                ),
+            )
+        scigrid = SciGridIGGIELGNC1(source_path=self.source_path)
+        return scigrid.get_capacity_existing(self)
+
+    def _set_capacity_existing_energy(self) -> Attribute:
+        """
+        Sets the existing energy capacity of natural gas storage.
+        """
+        if not self.settings.investment.use_existing_capacities:
+            return self.capacity_existing_energy.set_data(
+                default_value=0,
+                df=None,
+                source=AssumptionInformation(
+                    description="We do not consider existing capacities.",
+                ),
+            )
+        scigrid = SciGridIGGIELGNC1(source_path=self.source_path)
+        return scigrid.get_capacity_existing(self, power=False)

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, cast
 import pandas as pd
 from zen_europe.datasets.datasets.technology.glohydrores import GloHydroRes
+from zen_europe.datasets.datasets.technology.pecd_hydro_capacities import PECDHydroCapacities
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -51,8 +52,10 @@ class HydroExistingCapacity(DatasetCollection):
                 set_nodes=self.set_nodes, 
                 source_path=self.source_path),
             "glohydrores": GloHydroRes(self.source_path),
+            "pecd_hydro_capacity": PECDHydroCapacities(self.source_path),
         }
 
+    # TODO deprecated?
     def get_capacity_existing_entsoe_data(self, element: Element) -> Attribute:
         """
         Get the existing capacity for hydro technologies based on ENTSOE data.
@@ -80,6 +83,19 @@ class HydroExistingCapacity(DatasetCollection):
             unit="GW",
         )
         return attr
+
+    def get_capacity_existing_pecd_data(
+            self, element: Element, power: bool = True) -> Attribute:
+        """
+        Get the existing capacity for hydro technologies based on the pecd data.
+
+        This function retrieves the existing capacity data for the specified element from the PECD dataset.
+        Args:
+            element (Element): The element for which to retrieve the existing capacity.
+            power (bool): If True, returns the power capacity; if False, returns the energy capacity.
+        """
+        pecd_dataset = cast(PECDHydroCapacities, self.data["pecd_hydro_capacity"])
+        return pecd_dataset.get_capacity_existing(element, power=power)
     
     def get_capacity_existing_plant_level_data(
             self, 
@@ -93,6 +109,11 @@ class HydroExistingCapacity(DatasetCollection):
             element (Element): The element for which to retrieve the existing capacity.
             power (bool): If True, returns the power capacity; if False, returns the energy capacity.
         """
+        if not power:
+            raise NotImplementedError(
+                "Extracting energy capacity data is not "
+                "implemented for plant-level data."
+            )
         ppm_dataset = cast(PowerPlantMatching, self.data["powerplantmatching"])
         glohydrores_dataset = cast(GloHydroRes, self.data["glohydrores"])
         data_ppm = ppm_dataset.get_capacity_existing(element).df
