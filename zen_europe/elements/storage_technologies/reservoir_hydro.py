@@ -78,7 +78,7 @@ class ReservoirHydro(StorageTechnology):
         tech_db = TechnologyCostDatabase(
             settings=self.settings, source_path=self.source_path)
         return tech_db.get_capex_specific_storage_energy(
-            self, manual_element_name="pumped_hydro")
+            self, proxy_element_name="pumped_hydro")
 
     def _set_opex_specific_fixed(self) -> Attribute:
         """

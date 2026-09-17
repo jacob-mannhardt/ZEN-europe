@@ -252,7 +252,7 @@ class ENTSOE(Dataset[pd.DataFrame]):
         direct NTC series and are not included; callers modeling such edges
         need to substitute their own assumption.
         """
-        year = self.settings.time.reference_year
+        year = self.settings.time.reference_year-1
         monthly = self.settings.data_source.use_monthly_entsoe_ntc
         cache_name = f"transmission_capacity_{'monthly' if monthly else 'yearly'}_{year}"
         capacity = self._cached_query(cache_name, 

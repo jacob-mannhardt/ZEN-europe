@@ -20,7 +20,8 @@ class InvestmentSettings(SettingsCategory):
     cap_nuclear_capacity_to_past_investments: bool = True # NOTE DONE
     use_power_line_capacity_limit: bool = True
     use_chemical_pipelines: bool = False
-    account_for_offshore_transport: bool = False
+    allow_offshore_chemical_pipelines: bool = False
+    account_for_offshore_transport: bool = True
     use_battery_e2p_ratio: bool = False
     storage_charge_discharge_binary: Optional[bool] = None
     use_200y_lifetime_hydro: bool = True

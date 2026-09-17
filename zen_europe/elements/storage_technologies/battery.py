@@ -167,7 +167,7 @@ class Battery(StorageTechnology):
         e2p_ratio = battery_storage._get_e2p_ratio(self)
         capacity_existing_energy = capacity_existing * e2p_ratio
         return self.capacity_existing_energy.set_data(
-            default_value=capacity_existing_energy,
+            df=capacity_existing_energy,
             source=AssumptionInformation(
                 description=(
                     "The existing energy capacity of battery is calculated by "

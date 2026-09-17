@@ -6,14 +6,14 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pathlib import Path
 
-from zen_creator.elements import Element
+import pandas as pd
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData, SourceInformation
+from zen_creator.elements import Element
 from zen_creator.utils.attribute import Attribute
 
-import pandas as pd
-
 from zen_europe.utils.constants import Constants
+
 
 class SciGridIGGIELGNC1(Dataset[pd.DataFrame]):
     """
@@ -28,6 +28,10 @@ class SciGridIGGIELGNC1(Dataset[pd.DataFrame]):
     """
 
     name = "scigrid_iggielgnc1"
+
+    # the border points report no commissioning year, so all existing
+    # pipelines are assumed to be available from this year onwards
+    CONSTRUCTION_YEAR = 2010
 
     def __init__(self, source_path: Path | str | None = None):
         super().__init__(source_path=source_path)
@@ -78,6 +82,67 @@ class SciGridIGGIELGNC1(Dataset[pd.DataFrame]):
             "border_points": border_points,
             "storages": storages
         }
+
+    def get_capacity_existing_pipeline(self, element: Element) -> Attribute:
+        """
+        Get the existing cross-border pipeline capacity of each edge.
+
+        The capacity of an edge is the capacity of all border points in the
+        direction of the edge, plus the reverse capacity of all border points
+        in the opposite direction. The border points report their capacity in
+        million m3 per day, which the gross calorific value converts into
+        GWh per day.
+        """
+        set_edges = element.model.energy_system.set_edges.df
+        if set_edges is None:
+            raise ValueError(
+                "The existing pipeline capacity cannot be determined, because "
+                "the energy system of the model defines no edges."
+            )
+        border_points = self.data["border_points"]
+        capacity_from_to = (
+            border_points["max_cap_from_to_M_m3_per_d"]
+            * border_points["GCV_mean_kWh_per_m3"])
+        capacity_to_from = (
+            border_points["max_cap_to_from_M_m3_per_d"]
+            * border_points["GCV_mean_kWh_per_m3"])
+
+        capacity_existing = {}
+        for edge in set_edges.index:
+            node_from = set_edges.loc[edge, "node_from"]
+            node_to = set_edges.loc[edge, "node_to"]
+            along_edge = (
+                (border_points["from_country"] == node_from)
+                & (border_points["to_country"] == node_to))
+            against_edge = (
+                (border_points["from_country"] == node_to)
+                & (border_points["to_country"] == node_from))
+            capacity = (
+                capacity_from_to[along_edge].sum()
+                + capacity_to_from[against_edge].sum())
+            if capacity > 0:
+                capacity_existing[(edge, self.CONSTRUCTION_YEAR)] = (
+                    capacity / Constants.HOURS_PER_DAY)
+
+        data = pd.Series(capacity_existing, name="capacity_existing")
+        data.index = pd.MultiIndex.from_tuples(
+            data.index, names=["edge", "year_construction"])
+        attr = element.capacity_existing
+        return attr.set_data(
+            df=data,
+            unit="GW",
+            source=SourceInformation(
+                description=(
+                    f"The existing capacity of {element.name} is the "
+                    f"cross-border capacity of the border points of the "
+                    f"SciGRID_gas dataset, summed over both directions of "
+                    f"each edge. All pipelines are assumed to exist since "
+                    f"{self.CONSTRUCTION_YEAR}, as the border points report "
+                    f"no commissioning year."
+                ),
+                metadata=self.metadata,
+            ),
+        )
 
     def get_pipeline_availability(self,element: Element) -> tuple[pd.DataFrame, pd.Series]:
         """

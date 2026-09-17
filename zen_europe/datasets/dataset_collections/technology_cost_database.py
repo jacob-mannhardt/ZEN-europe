@@ -95,58 +95,58 @@ class TechnologyCostDatabase(DatasetCollection):
 
     def get_capex_specific_conversion(
         self, element: Element, plant_size: str = "M", metric: str = "mean",
-        manual_element_name: str | None = None
+        proxy_element_name: str | None = None
     ) -> Attribute:
         """Specific investment cost for `element`'s technology."""
         return self._set_technology_attribute(
             element, element.capex_specific_conversion, "capex", plant_size, metric,
             description="specific investment cost (CAPEX)", annual_values=True,
-            manual_element_name=manual_element_name
+            proxy_element_name=proxy_element_name
         )
 
     def get_opex_specific_fixed(
         self, element: Element, plant_size: str = "M", metric: str = "mean",
-        manual_element_name: str | None = None
+        proxy_element_name: str | None = None
     ) -> Attribute:
         """Fixed operational cost for `element`'s technology."""
         return self._set_technology_attribute(
             element, element.opex_specific_fixed, "fopex", plant_size, metric,
             description="fixed operational cost", annual_values=True,
-            manual_element_name=manual_element_name
+            proxy_element_name=proxy_element_name
         )
 
     def get_opex_specific_variable(
         self, element: Element, plant_size: str = "M", metric: str = "mean",
-        manual_element_name: str | None = None
+        proxy_element_name: str | None = None
     ) -> Attribute:
         """Variable operational cost for `element`'s technology."""
         return self._set_technology_attribute(
             element, element.opex_specific_variable, "vopex", plant_size, metric,
             description="variable operational cost", annual_values=False,
-            manual_element_name=manual_element_name
+            proxy_element_name=proxy_element_name
         )
 
     def get_capex_specific_storage(
         self, element: StorageTechnology, plant_size: str = "M",
-        metric: str = "mean", manual_element_name: str | None = None
+        metric: str = "mean", proxy_element_name: str | None = None
     ) -> Attribute:
         """Specific investment cost for `element`'s power capacity."""
         return self._set_technology_attribute(
             element, element.capex_specific_storage, "capex", plant_size, metric,
             description="specific investment cost (CAPEX) of the power capacity",
-            annual_values=True, manual_element_name=manual_element_name
+            annual_values=True, proxy_element_name=proxy_element_name
         )
 
     def get_capex_specific_storage_energy(
         self, element: StorageTechnology, plant_size: str = "M",
-        metric: str = "mean", manual_element_name: str | None = None
+        metric: str = "mean", proxy_element_name: str | None = None
     ) -> Attribute:
         """Specific investment cost for `element`'s energy capacity."""
         return self._set_technology_attribute(
             element, element.capex_specific_storage_energy, "capex_energy",
             plant_size, metric,
             description="specific investment cost (CAPEX) of the energy capacity",
-            annual_values=True, manual_element_name=manual_element_name
+            annual_values=True, proxy_element_name=proxy_element_name
         )
 
     def get_capex_specific_conversion_pyrolysis(
@@ -205,24 +205,24 @@ class TechnologyCostDatabase(DatasetCollection):
 
     def get_lifetime(
         self, element: Element, plant_size: str = "M", metric: str = "median",
-        manual_element_name: str | None = None
+        proxy_element_name: str | None = None
     ) -> Attribute:
         """Technical lifetime [years] for `element`'s technology."""
         return self._set_technology_attribute(
                     element, element.lifetime, "lifetime", plant_size, metric,
                     description="technical lifetime", annual_values=True,
-                    manual_element_name=manual_element_name
+                    proxy_element_name=proxy_element_name
                 )
 
     def get_construction_time(
         self, element: Element, plant_size: str = "M", metric: str = "median",
-        manual_element_name: str | None = None
+        proxy_element_name: str | None = None
     ) -> Attribute:
         """Construction time [years] for `element`'s technology."""
         return self._set_technology_attribute(
                     element, element.construction_time, "construction_time", plant_size, metric,
                     description="construction time", annual_values=True,
-                    manual_element_name=manual_element_name
+                    proxy_element_name=proxy_element_name
                 )
 
     def get_efficiency(
@@ -298,12 +298,12 @@ class TechnologyCostDatabase(DatasetCollection):
     def _get_attribute_data(
         self, element: Element, attribute: Attribute, variable: str,
         plant_size: str, metric: str, description: str, annual_values: bool = True,
-        manual_element_name: str | None = None
+        proxy_element_name: str | None = None
     ) -> tuple[pd.Series,float,pd.Series,list[str]]:
         """Get the data for a given attribute of a technology."""
         reference_year = element.settings.time.reference_year
-        if manual_element_name is not None:
-            element_name = manual_element_name
+        if proxy_element_name is not None:
+            element_name = proxy_element_name
         else:
             element_name = element.name
         series = self._aggregate(
@@ -340,11 +340,11 @@ class TechnologyCostDatabase(DatasetCollection):
         self, element: Element, attribute: Attribute, variable: str,
         plant_size: str, metric: str, description: str, annual_values: bool = True,
         multiplier: float = 1.0,
-        manual_element_name: str | None = None,
+        proxy_element_name: str | None = None,
     ) -> Attribute:
         df, default_value, yearly_variations, agencies = self._get_attribute_data(
             element, attribute, variable, plant_size, metric, description, annual_values,
-            manual_element_name=manual_element_name
+            proxy_element_name=proxy_element_name
         )
         default_value *= multiplier
         if df is not None:
@@ -354,9 +354,9 @@ class TechnologyCostDatabase(DatasetCollection):
             f" The agencies report the cost per unit of total plant output, so it is "
             f"rebased onto the reference carrier with a factor of {multiplier:.4g}."
         )
-        if manual_element_name is not None:
-            add_desc_str = f" ('{manual_element_name}' used as a proxy)"
-            element_name = manual_element_name
+        if proxy_element_name is not None:
+            add_desc_str = f" ('{proxy_element_name}' used as a proxy)"
+            element_name = proxy_element_name
         else:
             add_desc_str = ""
             element_name = element.name

@@ -78,3 +78,24 @@ class OilPipeline(TransportTechnology):
         pipeline_costs = TYNDPScenarioBuildingGuidelines(
             source_path=self.source_path)
         return pipeline_costs.get_capex_per_distance_transport(self)
+
+    # ---------- Attributes that still have to be ported ----------
+
+    # TODO: in the legacy pipeline the TYNDP cost above is overwritten by the
+    # entry of costs_additional_technologies.xlsx, which takes precedence. That
+    # workbook is not in data/raw_data, and TechnologyCostDatabase has no
+    # transport cost variables yet.
+
+    # NOTE: the oil pipeline keeps the TYNDP cost and the assumptions above.
+    # The gas pipeline figures of DEAEnergyTransport are not used as a proxy.
+
+    # TODO: capex_per_distance_transport and opex_specific_fixed per offshore
+    # edge are gated by investment.account_for_offshore_transport. This needs
+    # the "oil_pipeline_offshore" cost rows and an offshore edge set, neither
+    # of which is ported.
+
+    # TODO: capacity_existing has no data source in the legacy pipeline either,
+    # so the framework default of 0 applies.
+
+    # TODO: oil_pipeline has no diffusion category in Mannhardt et al. (2024),
+    # so max_diffusion_rate stays infinite, as in the legacy pipeline.

@@ -136,9 +136,6 @@ class FischerTropsch(ConversionTechnology):
             settings=self.settings, source_path=self.source_path)
         return tech_db.get_opex_specific_variable(self)
 
-    # TODO: capacity_existing has no ported data source for Fischer-Tropsch
-    # (legacy pipeline also leaves it at 0); framework default applies.
-
     def _set_max_diffusion_rate(self) -> Attribute:
         """
         Sets the maximum diffusion rate of fischer tropsch.

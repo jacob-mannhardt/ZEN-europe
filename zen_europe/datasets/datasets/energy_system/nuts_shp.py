@@ -41,24 +41,23 @@ class NUTSshp(Dataset[pd.DataFrame]):
 
     # -------- methods ------------------------
 
-    def get_set_edges(self, element: Element) -> Attribute:
+    def get_set_edges_adjacent(self, set_nodes: list[str]) -> pd.DataFrame:
         """
-        Creates edges between adjacent NUTS regions.
+        Creates the edges between adjacent NUTS regions.
 
-        There is an edge between any two regions that are touching.
+        There is an edge between any two regions that are touching, so these
+        are the edges that connect two countries over land.
 
         Returns:
-            Attribute: Attribute with no default value and the edges
-                listed as data.
+            pd.DataFrame: The nodes of each edge, indexed by the edge name.
         """
         # filter GeoDataFrame
-        nodes = element.model.config.system.set_nodes
         data = cast(gpd.GeoDataFrame, self.data)
-        regions = data[data["NUTS_ID"].isin(nodes)]
+        regions = data[data["NUTS_ID"].isin(set_nodes)]
 
         # build connectivity matrix
         connectivity_matrix = pd.DataFrame(
-            index=nodes, columns=nodes, data=0, dtype=int
+            index=set_nodes, columns=set_nodes, data=0, dtype=int
         )
         for _index, row in regions.iterrows():
             neighbors = regions[regions.geometry.touches(row["geometry"])]["NUTS_ID"]
@@ -72,7 +71,20 @@ class NUTSshp(Dataset[pd.DataFrame]):
         ]
         nodes_in_edges.index.names = ["node_from", "node_to"]
         set_edges = nodes_in_edges.drop(columns=0)
-        set_edges = set_edges.reset_index().set_index("edge")
+        return set_edges.reset_index().set_index("edge")
+
+    def get_set_edges(self, element: Element) -> Attribute:
+        """
+        Creates edges between adjacent NUTS regions.
+
+        There is an edge between any two regions that are touching.
+
+        Returns:
+            Attribute: Attribute with no default value and the edges
+                listed as data.
+        """
+        set_edges = self.get_set_edges_adjacent(
+            element.model.config.system.set_nodes)
 
         # create attribute
         attr = element.set_edges

@@ -76,3 +76,29 @@ class CarbonPipeline(TransportTechnology):
             return self.max_diffusion_rate
         diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
         return diffusion_rates.get_max_diffusion_rate(self)
+
+    # ---------- Attributes that still have to be ported ----------
+
+    # TODO: capex_per_distance_transport comes from the legacy
+    # costs_additional_technologies.xlsx, which is not in data/raw_data. The
+    # DEA carbon capture, transport and storage catalogue is available
+    # (data/raw_data/03-technology/cost/dea, "ccs" in dea.py) and holds the CO2
+    # transport data sheets that the lifetime above comes from, so its cost can
+    # be added to DEACarbonTransport. Note that the cost has to be expressed
+    # per tCO2 per hour and km rather than per MW and km.
+
+    # TODO: opex_specific_variable ends at 0 in the legacy pipeline: a value of
+    # 5.17 Euro per tCO2 from Smith et al. (2021) is computed and then
+    # overwritten by the variable O&M of the DEA catalogue, which is 0. The
+    # framework default of 0 therefore applies.
+
+    # TODO: transport_loss_factor_linear is never written in the legacy
+    # pipeline (only its unit is set), so the framework default of 0 applies.
+
+    # TODO: capex_per_distance_transport and opex_specific_fixed per offshore
+    # edge are gated by investment.account_for_offshore_transport. This needs
+    # the "carbon_pipeline_offshore" cost rows and an offshore edge set,
+    # neither of which is ported.
+
+    # TODO: capacity_existing and capacity_limit have no data source in the
+    # legacy pipeline, so the framework defaults of 0 and infinity apply.

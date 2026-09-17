@@ -162,6 +162,9 @@ elements:
       - natural_gas_pipeline
       - oil_pipeline
       - power_line
+      - ammonia_pipeline
+      - methanol_pipeline
+      - olefin_pipeline
     set_carriers:
       - ammonia
       - biomass
