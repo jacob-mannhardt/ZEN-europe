@@ -72,7 +72,7 @@ class HeatDemand(DatasetCollection):
             ),
             metadata=self.metadata,
         )
-        return element.price_import.set_data(
+        return element.demand.set_data(
             source=source,
             df=demand,
             unit="GW",
