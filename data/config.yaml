@@ -73,128 +73,28 @@ settings:
 elements:
   insert:
     energy_system: "energy_system_nuts0"
-    set_sectors: []
-    set_conversion_technologies:
-      # - BEV
-      # - BF_BOF
-      # - DAC
-      # - EAF
-      # - H2_DRI
-      # - HDT_BET
-      # - HDT_FCEV
-      # - HDT_diesel
-      # - ICE_diesel
-      # - ICE_petrol
-      # - NG_DRI
-      # - SMR
-      # - ammonia_ICE_ship
-      # - anaerobic_digestion
-      # - biomass_boiler
-      # - biomass_boiler_DH
-      # - biomass_plant
-      # - biomass_to_cement_fuel
-      # - biomethane_conversion
-      # - carbon_storage
-      # - cement_kiln
-      # - coal_to_cement_fuel
-      # - diesel_ICE_ship
-      # - district_heating_grid
-      # - electrode_boiler
-      # - electrode_boiler_DH
-      # - electrolysis
-      # - fischer_tropsch
-      # - fuel_cell
-      # - gasification
-      # - haber_bosch
-      # - hard_coal_boiler_DH
-      # - hard_coal_plant
-      # - heat_pump
-      # - heat_pump_DH
-      # - hydrogen_FC_ship
-      # - hydrogen_to_cement_fuel
-      # - lignite_coal_plant
-      # - lng_terminal
-      # - methanation
-      # - methanol_ICE_ship
-      # - methanol_from_biomass
-      # - methanol_from_hydrogen
-      # - methanol_from_natural_gas
-      # - natural_gas_boiler
-      # - natural_gas_boiler_DH
-      - natural_gas_turbine
-      # - nuclear
-      # - oil_boiler
-      # - oil_boiler_DH
-      # - oil_plant
-      # - oil_to_diesel_conversion
-      # - oil_to_gasoline_conversion
-      # - oil_to_kerosene_conversion
-      # - oil_to_naphtha_conversion
-      # - olefin_from_methanol
-      # - olefin_from_naphtha
-      # - photovoltaics
-      # - pyrolysis
-      # - refining
-      - run-of-river_hydro
-      # - waste_boiler_DH
-      # - waste_plant
-      # - waste_to_cement_fuel
-      # - wind_offshore
-      # - wind_onshore
-    set_retrofitting_technologies:
-      - natural_gas_turbine_CCS
-      # - biomass_plant_CCS
-      # - SMR_CCS
-      # - cement_post_comb
-      # - BF_BOF_CCS
-      # - NG_DRI_CCS
-    set_storage_technologies:
-      - battery
-      - natural_gas_storage
-      - oil_storage
-      - pumped_hydro
-      - reservoir_hydro
-      - salt_cavern_storage
-    set_transport_technologies:
-      - carbon_pipeline
-      - hydrogen_pipeline
-      - natural_gas_pipeline
-      - oil_pipeline
-      - power_line
-      - ammonia_pipeline
-      - methanol_pipeline
-      - olefin_pipeline
-    set_carriers:
-      - ammonia
-      - biomass
-      - biomethane
-      - carbon
-      - clinker
-      - crude_oil
-      - diesel
-      - district_heat
+    set_sectors:
       - electricity
-      - fuel_for_cement
-      - gasoline
-      - hard_coal
+      - carbon
+      - gas
       - heat
+      - district_heating
       - hydrogen
-      - kerosene
-      - lignite
-      - lng
+      - ammonia
+      - cement
       - methanol
-      - naphtha
-      - natural_gas
-      - oil
-      - olefin
-      - passenger_mileage
-      - primary_steel
-      - secondary_steel
+      - refining
+      - aviation
       - shipping
-      - truck_mileage
-      - uranium
-      - waste
-      - wet_biomass
+      - steel
+      - passenger_transport
+      - truck_transport
+    set_conversion_technologies: []
+    set_retrofitting_technologies: []
+    set_storage_technologies: []
+    set_transport_technologies: []
+    # extra individual elements not covered by a sector can still be listed here
+    set_carriers: []
   exclude:
     energy_system: ""
     set_sectors: []
@@ -253,4 +153,4 @@ energy_system:
           - tonne_product
   parameters_interpolation_off:
     parameter_name:
-      - carbon_emissions_limit
+      - carbon_emissions_annual_limit

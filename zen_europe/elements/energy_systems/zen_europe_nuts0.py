@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.dataset_collections.carbon_constraints import CarbonConstraints
+
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
@@ -157,36 +159,57 @@ class EnergySystemNuts0(EnergySystem):
             ),
         )
 
-    # ---------- Attributes that still have to be ported ----------
+    def _set_discount_rate(self) -> Attribute:
+        """
+        Sets the discount rate of the energy system.
+        """
+        attr = self.discount_rate
+        return attr.set_data(
+            default_value=0.05,
+            unit="1",
+            source=AssumptionInformation(
+                description=(
+                    "The discount rate is set to 0.05."
+                ),
+            ),
+        )
 
-    # NOTE: price_carbon_emissions (0 Euro/tons),
-    # carbon_emissions_cumulative_existing (0 gigatons) and the discount rate
-    # (0.05, cited in ZEN-creator) equal the values of the legacy pipeline, so
-    # they are left at the default of the framework.
+    def _set_carbon_emissions_budget(self) -> Attribute:
+        """
+        Sets the remaining carbon budget of the energy system.
+        """
+        attr = self.carbon_emissions_budget
+        if not self.settings.emissions.use_carbon_budget:
+            return attr.set_data(
+                default_value=np.inf,
+                unit="tCO2",
+                source=AssumptionInformation(
+                    description=(
+                        "The remaining carbon budget is infinite, because the "
+                        "carbon budget is not used in the model."
+                    ),
+                ),
+            )
+        carbon_constraints = CarbonConstraints(
+            settings=self.settings, source_path=self.source_path)
+        return carbon_constraints.calculate_carbon_budget(self)
 
-    # TODO: carbon_emissions_budget is the remaining European carbon budget of
-    # the modeled sectors, gated by emissions.use_carbon_budget. The legacy
-    # pipeline derives it from the IPCC remaining budget for
-    # emissions.temperature_increase at emissions.probability_carbon_budget,
-    # minus the global emissions since 2020, times a European share (equal per
-    # capita by default, with grandfathering, responsibility, ability to pay
-    # and human rights as alternatives), times the share of the modeled
-    # sectors in the European emissions. None of the underlying data (IPCC
-    # budgets, historical global emissions, population, EEA emissions per
-    # sector) is in data/raw_data, so the budget is infinite for now. With
-    # emissions.calculate_budget_from_ETS it is instead the sum of the annual
-    # limits below.
-
-    # TODO: carbon_emissions_annual_limit is the annual emission target,
-    # gated by emissions.use_carbon_annual_limit, and needs the EU emission
-    # trading cap (emissions.use_EU_ETS_cap, use_EU_ETS_cap_ETS1only,
-    # use_adjusted_ETS_to_keep_carbon_budget) and the intermediate reduction
-    # goals (emissions.use_intermediate_emission_goal), neither of which is in
-    # data/raw_data. The limit is infinite for now, while the legacy pipeline
-    # writes a trajectory that ends at net zero in the last year.
-
-    # TODO: the energy_system section of data/config.yaml switches the yearly
-    # interpolation off for "carbon_emissions_limit", while ZEN-garden reads
-    # the parameter as "carbon_emissions_annual_limit". Once the limit above
-    # is ported, the name has to be corrected, otherwise the trajectory is
-    # interpolated between the optimization years.
+    def _set_carbon_emissions_annual_limit(self) -> Attribute:
+        """
+        Sets the annual carbon emissions limit of the energy system.
+        """
+        attr = self.carbon_emissions_annual_limit
+        if not self.settings.emissions.use_carbon_annual_limit:
+            return attr.set_data(
+                default_value=np.inf,
+                unit="gigatons",
+                source=AssumptionInformation(
+                    description=(
+                        "The annual carbon emissions limit is infinite, "
+                        "because the annual limit is not used in the model."
+                    ),
+                ),
+            )
+        carbon_constraints = CarbonConstraints(
+            settings=self.settings, source_path=self.source_path)
+        return carbon_constraints.calculate_carbon_emissions_annual_limit(self)
