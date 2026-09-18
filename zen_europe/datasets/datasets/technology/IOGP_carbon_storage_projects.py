@@ -34,7 +34,7 @@ MAPPING_INDUSTRIAL_CLUSTERS = {
     "Viking CCS": [
         "natural_gas_turbine_CCS"], # Immingham Power Station
     "HyNet North West": ["SMR_CCS"],
-    "Net Zero Teeside": ["natural_gas_turbine_CCS"],
+    "Net Zero Teesside": ["natural_gas_turbine_CCS"],
 }
 class IOGPCarbonStorageProjects(Dataset[pd.DataFrame]):
     """

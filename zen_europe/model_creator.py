@@ -30,8 +30,8 @@ def create_model(
 
     # load crystal ball model as starting point
     # TODO: this should be remove in the long run and replaced
-    # with model.from_config()
-    model = Model.from_existing(crystal_ball_path, config=config)
+    model = Model.from_config(config)
+    # model = Model.from_existing(crystal_ball_path, config=config)
     model.output_folder = Path(output_folder) / "data"
     model.name = name
     # TODO move this somewhere else

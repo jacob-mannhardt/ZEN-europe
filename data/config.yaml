@@ -63,11 +63,7 @@ system:
 settings:
   time:
     reference_year: 2022
-    optimized_years: 15
     interval_between_years: 2
-    conduct_time_series_aggregation: true
-    aggregated_time_steps_per_year: 10
-    use_rolling_horizon: false
 
 # add and remove technologies/carriers from the model
 elements:

@@ -18,7 +18,7 @@ from zen_creator.utils.settings import Settings
 def test_time_settings_defaults() -> None:
     settings = Settings()
 
-    assert settings.time.years_in_rolling_horizon == 2
+    assert settings.time.interval_between_years == 2
     assert settings.time.reference_year == 2022
 
 
@@ -30,15 +30,15 @@ def test_investment_settings_defaults() -> None:
 
 
 def test_settings_override_from_dict() -> None:
-    settings = Settings.model_validate({"time": {"years_in_rolling_horizon": 5}})
+    settings = Settings.model_validate({"time": {"interval_between_years": 5}})
 
-    assert settings.time.years_in_rolling_horizon == 5
+    assert settings.time.interval_between_years == 5
     assert settings.time.reference_year == 2022
 
 
 def test_settings_rejects_wrong_type() -> None:
     with pytest.raises(ValidationError):
-        Settings.model_validate({"time": {"years_in_rolling_horizon": "five"}})
+        Settings.model_validate({"time": {"interval_between_years": "five"}})
 
 
 def test_settings_rejects_unknown_field() -> None:
@@ -51,7 +51,7 @@ def test_config_yaml_loads_time_settings() -> None:
     settings = Settings.load_from_yaml(config_path)
 
     assert settings.time.reference_year == 2022
-    assert settings.time.optimized_years == 15
+    assert settings.time.interval_between_years == 2
 
 
 if __name__ == "__main__":
