@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
 from zen_europe.datasets.datasets.financial.dea import DEA
 
 if TYPE_CHECKING:
@@ -69,7 +71,7 @@ class AnaerobicDigestion(ConversionTechnology):
         cf = dea_dataset.get_conversion_factor_anaerobic_digestion()
         source = SourceInformation(
             description=(
-                f"The conversion factor of anaerobic digestion is obtained from the DEA "
+                "The conversion factor of anaerobic digestion is obtained from the DEA "
                 "dataset for renewable fuels"
             ),
             metadata=dea_dataset.metadata,

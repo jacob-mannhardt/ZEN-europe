@@ -8,7 +8,12 @@ from zen_europe.datasets.datasets.carrier.aidres import Aidres
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
 
 
 class OlefinFromNaphtha(ConversionTechnology):

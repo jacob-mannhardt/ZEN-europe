@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
 from zen_europe.datasets.datasets.financial.dea import DEA
 from zen_europe.datasets.datasets.technology.hydrogen_europe import HydrogenEurope
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
@@ -12,7 +14,13 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
+
 
 class Electrolysis(ConversionTechnology):
     """Class containing all data and assumptions for electrolysis.
@@ -74,7 +82,7 @@ class Electrolysis(ConversionTechnology):
         cf = dea_dataset.get_conversion_factor_electrolysis()
         source = SourceInformation(
             description=(
-                f"The conversion factor of electrolysis is obtained from the DEA "
+                "The conversion factor of electrolysis is obtained from the DEA "
                 "dataset for renewable fuels"
             ),
             metadata=dea_dataset.metadata,
@@ -154,7 +162,7 @@ class Electrolysis(ConversionTechnology):
             attr = self.capacity_existing
             source = SourceInformation(
                 description=(
-                    f"The existing capacity of electrolysis is based on data from Hydrogen Europe (2024). "
+                    "The existing capacity of electrolysis is based on data from Hydrogen Europe (2024). "
                     "The data is reported in electricity units, so we convert it to H2 "
                     "quantities."
                 ),

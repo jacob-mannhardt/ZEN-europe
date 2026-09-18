@@ -3,13 +3,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.steel_demand import SteelDemand
-from zen_europe.datasets.datasets.technology.agora_industry_steel import AgoraIndustrySteel
-from zen_europe.datasets.datasets.technology.steel_technologies_woertler import SteelTechnologiesWoertler
+from zen_europe.datasets.datasets.technology.agora_industry_steel import (
+    AgoraIndustrySteel,
+)
+from zen_europe.datasets.datasets.technology.steel_technologies_woertler import (
+    SteelTechnologiesWoertler,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology
 
 
 class EAF(ConversionTechnology):

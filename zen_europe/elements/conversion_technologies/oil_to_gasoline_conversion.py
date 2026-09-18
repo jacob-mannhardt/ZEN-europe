@@ -10,9 +10,15 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
-from zen_europe.datasets.dataset_collections.existing_vehicle_capacity import ExistingVehicleCapacity
-from zen_europe.datasets.dataset_collections.gasoline_diesel_price import GasolineDieselPrice
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology
+
+from zen_europe.datasets.dataset_collections.existing_vehicle_capacity import (
+    ExistingVehicleCapacity,
+)
+from zen_europe.datasets.dataset_collections.gasoline_diesel_price import (
+    GasolineDieselPrice,
+)
+
 
 class OilToGasolineConversion(ConversionTechnology):
     """Class containing all data and assumptions for oil-to-gasoline

@@ -8,6 +8,7 @@ if TYPE_CHECKING:
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 
+
 class Biomethane(Carrier):
     """Biomethane carrier class.
 

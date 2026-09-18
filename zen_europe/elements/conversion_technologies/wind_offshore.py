@@ -2,11 +2,21 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.lifetime_expectation import LifetimeExpectation
-from zen_europe.datasets.dataset_collections.potential_capacity_renewables import PotentialCapacityRenewables
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
-from zen_europe.datasets.datasets.technology.pan_european_climate_database import PanEuropeanClimateDatabase
-from zen_europe.datasets.datasets.technology.powerplantmatching import PowerPlantMatching
+from zen_europe.datasets.dataset_collections.lifetime_expectation import (
+    LifetimeExpectation,
+)
+from zen_europe.datasets.dataset_collections.potential_capacity_renewables import (
+    PotentialCapacityRenewables,
+)
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
+from zen_europe.datasets.datasets.technology.pan_european_climate_database import (
+    PanEuropeanClimateDatabase,
+)
+from zen_europe.datasets.datasets.technology.powerplantmatching import (
+    PowerPlantMatching,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -14,7 +24,7 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology
 
 
 class WindOffshore(ConversionTechnology):
@@ -80,9 +90,18 @@ class WindOffshore(ConversionTechnology):
         """
         Return the conversion factor of wind offshore.
 
+        The conversion factor is empty, as wind offshore has no input carrier.
         """
         attr = self.conversion_factor
-        return attr
+        return attr.set_data(
+            default_value=[],
+            source=AssumptionInformation(
+                description=(
+                    "The conversion factor of wind offshore is manually set to an "
+                    "empty list, as it has no input carrier."
+                ),
+            ),
+        )
 
     def _set_capex_specific_conversion(self) -> Attribute:
         """

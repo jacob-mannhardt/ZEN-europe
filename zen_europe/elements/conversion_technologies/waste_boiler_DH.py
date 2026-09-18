@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.technology_cost_database import (
-    TechnologyCostDatabase)
-
+    TechnologyCostDatabase,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -12,8 +12,15 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
+
 from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
+
 
 class WasteBoilerDH(ConversionTechnology):
     """Class containing all data and assumptions for district heating waste boilers."""

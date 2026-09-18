@@ -5,9 +5,6 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from zen_europe.datasets.datasets.technology.scigrid import SciGridIGGIELGNC1
-from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
-    TechnologyDiffusionMannhardt,
-)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model

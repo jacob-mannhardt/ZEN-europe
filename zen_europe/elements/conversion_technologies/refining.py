@@ -2,10 +2,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_europe.datasets.datasets.technology.economics_of_oil_refining import (
+    EconomicsOfOilRefining,
+)
+from zen_europe.datasets.datasets.technology.energyinst_world_energy_review import (
+    EnergyInstituteWorldEnergyReview,
+)
+from zen_europe.datasets.datasets.technology.future_hydrogen_demand_neuwirth import (
+    FutureHydrogenDemandNeuwirth,
+)
 from zen_europe.datasets.datasets.technology.LCA_refining import LCARefining
-from zen_europe.datasets.datasets.technology.economics_of_oil_refining import EconomicsOfOilRefining
-from zen_europe.datasets.datasets.technology.energyinst_world_energy_review import EnergyInstituteWorldEnergyReview
-from zen_europe.datasets.datasets.technology.future_hydrogen_demand_neuwirth import FutureHydrogenDemandNeuwirth
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )

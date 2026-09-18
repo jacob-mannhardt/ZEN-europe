@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.carrier_availability import CarrierAvailability
+from zen_europe.datasets.dataset_collections.carrier_availability import (
+    CarrierAvailability,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model

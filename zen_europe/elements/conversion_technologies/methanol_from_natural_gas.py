@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.datasets.technology.methanol_production_collodi import MethanolProductionCollodi
 from zen_europe.datasets.dataset_collections.methanol_demand import MethanolDemand
+from zen_europe.datasets.datasets.technology.methanol_production_collodi import (
+    MethanolProductionCollodi,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )

@@ -1,11 +1,15 @@
 from __future__ import annotations
 
-import numpy as np
-
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.gasoline_diesel_price import GasolineDieselPrice
-from zen_europe.datasets.datasets.carrier.ipcc_emission_factors import IPCCEmissionFactors
+import numpy as np
+
+from zen_europe.datasets.dataset_collections.gasoline_diesel_price import (
+    GasolineDieselPrice,
+)
+from zen_europe.datasets.datasets.carrier.ipcc_emission_factors import (
+    IPCCEmissionFactors,
+)
 from zen_europe.datasets.datasets.financial.ECB import ECBDollar2Euro, ECBInflation
 
 if TYPE_CHECKING:
@@ -13,6 +17,7 @@ if TYPE_CHECKING:
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
+
 
 class Diesel(Carrier):
     """Diesel carrier class.

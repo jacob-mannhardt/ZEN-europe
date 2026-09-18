@@ -2,12 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.hydro_existing_capacity import HydroExistingCapacity
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.dataset_collections.hydro_existing_capacity import (
+    HydroExistingCapacity,
+)
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
 from zen_europe.datasets.datasets.technology.pan_european_climate_database import (
     PanEuropeanClimateDatabase,
 )
-from zen_europe.datasets.datasets.technology.storage_technologies_schmidt import StorageTechnologiesSchmidt
+from zen_europe.datasets.datasets.technology.storage_technologies_schmidt import (
+    StorageTechnologiesSchmidt,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -15,7 +21,10 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator.datasets.datasets.metadata import AssumptionInformation, SourceInformation
+from zen_creator.datasets.datasets.metadata import (
+    AssumptionInformation,
+    SourceInformation,
+)
 from zen_creator.elements import StorageTechnology
 from zen_creator.utils.attribute import Attribute
 

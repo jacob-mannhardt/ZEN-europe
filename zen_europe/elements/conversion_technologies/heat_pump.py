@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
 from zen_europe.datasets.datasets.carrier.when2heat import When2Heat
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
@@ -11,8 +13,15 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
+
 from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
+
 
 class HeatPump(ConversionTechnology):
     """Class containing all data and assumptions for heat pumps."""
@@ -78,7 +87,7 @@ class HeatPump(ConversionTechnology):
         ]
         source = SourceInformation(
             description=(
-                f"The conversion factor of heat pumps is based on data from "
+                "The conversion factor of heat pumps is based on data from "
                 "When2Heat. We assume that the heat pump shows the COP of a floor heat pump."
             ),
             metadata=when2heat_dataset.metadata,

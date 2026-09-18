@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
-from zen_europe.datasets.datasets.technology.rollout_hydrogen_ganter import HydrogenRolloutGanter
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
+from zen_europe.datasets.datasets.technology.rollout_hydrogen_ganter import (
+    HydrogenRolloutGanter,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -11,8 +15,15 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
+
 from zen_europe.utils.utils import account_for_decommissioned_capacity
+
 
 class SMR(ConversionTechnology):
     """Class containing all data and assumptions for Steam Methane Reforming (SMR).
@@ -75,7 +86,7 @@ class SMR(ConversionTechnology):
         cf = ganter_dataset.get_conversion_factor_SMR()
         source = SourceInformation(
             description=(
-                f"The conversion factor of SMR is based on data from Ganter et al. (2024). "
+                "The conversion factor of SMR is based on data from Ganter et al. (2024). "
             ),
             metadata=ganter_dataset.metadata,
         )
@@ -94,8 +105,8 @@ class SMR(ConversionTechnology):
             attr = self.construction_time
             source = AssumptionInformation(
                 description=(
-                    f"The construction time of SMR is assumed to be the same as for methanation, "
-                    f"as both are chemical conversion technologies."
+                    "The construction time of SMR is assumed to be the same as for methanation, "
+                    "as both are chemical conversion technologies."
                 )
             )   
             attr.set_data(default_value=construction_time, source=source)
@@ -154,7 +165,7 @@ class SMR(ConversionTechnology):
             attr = self.capacity_existing
             source = SourceInformation(
                 description=(
-                    f"The existing capacity of SMR is based on data from Ganter et al. (2024). "
+                    "The existing capacity of SMR is based on data from Ganter et al. (2024). "
                     "It is assumed that all current ammonia and refinery plants are "
                     "using SMR technology for hydrogen production."
                 ),

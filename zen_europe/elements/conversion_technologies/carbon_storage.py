@@ -2,10 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.datasets.technology.CO2_storage_costs_ZEP import CO2StorageCostsZEP
-from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import IOGPCarbonStorageProjects
-from zen_europe.datasets.datasets.technology.energyinst_world_energy_review import EnergyInstituteWorldEnergyReview
-from zen_europe.datasets.datasets.technology.northern_lights_costs import NorthernLightsCosts
+from zen_europe.datasets.datasets.technology.CO2_storage_costs_ZEP import (
+    CO2StorageCostsZEP,
+)
+from zen_europe.datasets.datasets.technology.energyinst_world_energy_review import (
+    EnergyInstituteWorldEnergyReview,
+)
+from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import (
+    IOGPCarbonStorageProjects,
+)
+from zen_europe.datasets.datasets.technology.northern_lights_costs import (
+    NorthernLightsCosts,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -13,7 +21,12 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
 
 
 class CarbonStorage(ConversionTechnology):

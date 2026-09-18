@@ -19,15 +19,18 @@ class DEAEnergyTransport(Dataset[pd.DataFrame]):
     Energy transport dataset class from the technology catalogue for energy
     transport of the Danish Energy Agency.
 
-    Hydrogen pipelines: from the data sheet of the main hydrogen distribution line (70 bar).
-    Natural gas pipelines: from the data sheet of the main natural gas distribution line (500-1000 MW).
+    Hydrogen pipelines: from the data sheet of the main 
+    hydrogen distribution line (70 bar).
+    Natural gas pipelines: from the data sheet of the 
+    main natural gas distribution line (500-1000 MW).
     Power lines: Overhead AC lines,
 
     The costs for hydrogen pipelines are not extracted from the data sheet,
     but from other data sources
 
-    All distance-specific costs are reported in Euro per MW and km, in MONEY_YEAR
-    Euro, and are corrected for inflation in the getters.
+    All distance-specific costs are reported in Euro per MW and km, in the
+    MONEY_YEARS Euro of the technology, and are corrected for inflation in the
+    getters.
 
     """
 
@@ -35,7 +38,12 @@ class DEAEnergyTransport(Dataset[pd.DataFrame]):
 
     # the index sheet of the catalogue states that the cost data for electricity
     # transmission, district heating, hydrogen pipelines and road is in 2025 Euro
-    MONEY_YEAR = 2025
+    MONEY_YEARS = {
+        "power_line": 2025,
+        "hydrogen_pipeline": 2025,
+        "natural_gas_pipeline": 2020,
+    }
+    
     COST_PER_DISTANCE_UNIT = "Euro/MW/km"
     HYDROGEN_PIPELINE_CAPACITY = 1.2 # GW for a 12 inch line at 90 bar
     LIFETIMES = {
@@ -55,12 +63,16 @@ class DEAEnergyTransport(Dataset[pd.DataFrame]):
         "power_line": 3,
     }
     CAPEX_PER_DISTANCE = {
-        "natural_gas_pipeline": 0.7*1000, # 0.7 Euro/MW/m -> 700 Euro/MW/km for a 500-1000 MW line
-        "power_line": 0.75*1000, # 0.75 kiloEuro/MW/km -> 750 Euro/MW/km for a 1000 MW line
+        # 0.7 Euro/MW/m -> 700 Euro/MW/km for a 500-1000 MW line
+        "natural_gas_pipeline": 0.7*1000,
+        # 0.75 kiloEuro/MW/km -> 750 Euro/MW/km for a 1000 MW line
+        "power_line": 0.75*1000, 
     }
     OPEX_FIXED_PER_DISTANCE = {
-        "natural_gas_pipeline": 0.13, # Euro/MW/km for a 500-1000 MW line # TODO seems low, check again
-        "power_line": CAPEX_PER_DISTANCE["power_line"]*0.015, # 1.5% of the capex
+        # Euro/MW/km for a 500-1000 MW line # TODO seems low, check again
+        "natural_gas_pipeline": 0.13, 
+        # 1.5% of the capex
+        "power_line": CAPEX_PER_DISTANCE["power_line"]*0.015, 
     }
     SOURCE_SHEET = {
         "hydrogen_pipeline": "Pipeline transp. 90 bar (12 inch line)",
@@ -222,6 +234,6 @@ class DEAEnergyTransport(Dataset[pd.DataFrame]):
                 f"available in the dataset '{self.name}'."
             )
         return costs[technology_name] * self.get_inflation_rate(
-            base_year=self.MONEY_YEAR,
+            base_year=self.MONEY_YEARS[technology_name],
             target_year=technology.settings.time.reference_year,
         )

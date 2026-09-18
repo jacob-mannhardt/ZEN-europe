@@ -8,6 +8,9 @@ from zen_europe.datasets.dataset_collections.edges import Edges
 from zen_europe.datasets.datasets.technology.ammonia_pipelines_galimova import (
     AmmoniaPipelinesGalimova,
 )
+from zen_europe.datasets.datasets.technology.dea_carbon_transport import (
+    DEACarbonTransport,
+)
 from zen_europe.datasets.datasets.technology.dea_energy_transport import (
     DEAEnergyTransport,
 )
@@ -46,21 +49,20 @@ class TransportTechnologiesCosts(DatasetCollection):
     SOURCES: Dict[str, str] = {
         "power_line": "dea_energy_transport",
         "natural_gas_pipeline": "dea_energy_transport",
+        "carbon_pipeline": "dea_carbon_transport",
         "hydrogen_pipeline": "hydrogen_pipelines_miao",
         "ammonia_pipeline": "ammonia_pipelines_galimova",
         "methanol_pipeline": "methanol_pipelines_galimova",
         "olefin_pipeline": "ammonia_pipelines_galimova",
     }
-    # The sources report the cost per unit of transported power, while an
-    # olefin pipeline is sized by the mass flow of its product. An olefin
-    # pipeline is assumed to cost as much as an ammonia pipeline transporting
-    # the same mass flow, so its cost is rebased with the energy content of
-    # ammonia, in MWh per ton.
+    # An olefin pipeline is sized by the mass flow of its product, while the
+    # ammonia pipeline its cost comes from is sized by the transported power,
+    # so that cost is rebased with the energy content of ammonia, in MWh per
+    # ton. An olefin pipeline is thereby assumed to cost as much as an ammonia
+    # pipeline that transports the same mass flow.
     ENERGY_CONTENT_PER_TON = {
         "olefin_pipeline": Constants.AMMONIA_GWH_PER_TON * 1000,
     }
-    COST_PER_DISTANCE_UNIT = "Euro/MW/km"
-    COST_PER_DISTANCE_UNIT_MASS = "Euro/(tproduct/h)/km"
     # the DEA energy transport catalogue reports no offshore cost for
     # natural gas pipelines, so the offshore cost increase of the ammonia
     # pipelines of Galimova et al. (2023) is used as a proxy. Replace it once
@@ -85,6 +87,8 @@ class TransportTechnologiesCosts(DatasetCollection):
 
         return {
             "dea_energy_transport": DEAEnergyTransport(
+                source_path=self.source_path),
+            "dea_carbon_transport": DEACarbonTransport(
                 source_path=self.source_path),
             "ammonia_pipelines_galimova": AmmoniaPipelinesGalimova(
                 source_path=self.source_path),
@@ -203,13 +207,13 @@ class TransportTechnologiesCosts(DatasetCollection):
 
     def _get_rebasing(
             self, technology: TransportTechnology) -> tuple[float, str]:
-        """Get the multiplier and the unit of the cost of a technology."""
-        if technology.name in self.ENERGY_CONTENT_PER_TON:
-            return (
-                self.ENERGY_CONTENT_PER_TON[technology.name],
-                self.COST_PER_DISTANCE_UNIT_MASS,
-            )
-        return 1.0, self.COST_PER_DISTANCE_UNIT
+        """Get the multiplier and the unit of the cost of a technology.
+
+        The cost is expressed per unit of the capacity the technology is sized
+        by, so its unit follows the power unit of the technology.
+        """
+        multiplier = self.ENERGY_CONTENT_PER_TON.get(technology.name, 1.0)
+        return multiplier, f"Euro/({technology.power_unit})/km"
 
     def _get_offshore_cost(
             self, technology: TransportTechnology, dataset: Dataset[Any],

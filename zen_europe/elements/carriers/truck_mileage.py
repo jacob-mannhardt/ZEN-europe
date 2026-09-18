@@ -7,8 +7,10 @@ if TYPE_CHECKING:
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
+
 from zen_europe.datasets.dataset_collections.truck_mileage_demand import (
-    TruckMileageDemand)
+    TruckMileageDemand,
+)
 
 
 class TruckMileage(Carrier):

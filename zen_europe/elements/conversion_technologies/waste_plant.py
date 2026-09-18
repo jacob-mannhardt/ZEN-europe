@@ -2,11 +2,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.lifetime_expectation import LifetimeExpectation
+from zen_europe.datasets.dataset_collections.lifetime_expectation import (
+    LifetimeExpectation,
+)
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
 from zen_europe.datasets.datasets.carrier.eurostat import Eurostat
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
 from zen_europe.datasets.datasets.financial.potencia import Potencia
-from zen_europe.datasets.datasets.technology.powerplantmatching import PowerPlantMatching
+from zen_europe.datasets.datasets.technology.powerplantmatching import (
+    PowerPlantMatching,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -14,7 +20,12 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
 
 
 class WastePlant(ConversionTechnology):

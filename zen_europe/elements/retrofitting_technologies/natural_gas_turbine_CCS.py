@@ -2,20 +2,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.ccs_conversion_factor import CCSConversionFactor
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
-from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import IOGPCarbonStorageProjects
+from zen_europe.datasets.dataset_collections.ccs_conversion_factor import (
+    CCSConversionFactor,
+)
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
+from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import (
+    IOGPCarbonStorageProjects,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
-
 from zen_europe.utils.constants import Constants
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator import AssumptionInformation, Attribute, RetrofittingTechnology
-
 
 
 class NaturalGasTurbineCCS(RetrofittingTechnology):

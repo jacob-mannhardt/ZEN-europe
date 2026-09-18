@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology
 
 
 class OilToNaphthaConversion(ConversionTechnology):

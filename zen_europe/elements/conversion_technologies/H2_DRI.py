@@ -2,8 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.datasets.technology.agora_industry_steel import AgoraIndustrySteel
-from zen_europe.datasets.datasets.technology.steel_technologies_woertler import SteelTechnologiesWoertler
+from zen_europe.datasets.datasets.technology.agora_industry_steel import (
+    AgoraIndustrySteel,
+)
+from zen_europe.datasets.datasets.technology.steel_technologies_woertler import (
+    SteelTechnologiesWoertler,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )

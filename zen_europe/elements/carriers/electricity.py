@@ -7,6 +7,7 @@ if TYPE_CHECKING:
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
+
 from zen_europe.datasets.dataset_collections.electricity_demand import ElectricityDemand
 
 

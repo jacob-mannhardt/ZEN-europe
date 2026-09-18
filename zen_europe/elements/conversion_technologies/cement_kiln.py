@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.clinker_data import ClinkerData
 from zen_europe.datasets.datasets.carrier.material_economics import MaterialEconomics
-from zen_europe.datasets.datasets.technology.cement_production_gardarsdottir import CementProductionGardarsdottir
+from zen_europe.datasets.datasets.technology.cement_production_gardarsdottir import (
+    CementProductionGardarsdottir,
+)
 
 if TYPE_CHECKING:
     from zen_creator.model import Model

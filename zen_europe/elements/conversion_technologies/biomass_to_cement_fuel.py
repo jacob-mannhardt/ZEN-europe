@@ -4,7 +4,9 @@ from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.clinker_data import ClinkerData
 from zen_europe.datasets.datasets.carrier.aidres import Aidres
-from zen_europe.datasets.datasets.technology.ecra_technology_papers import ECRATechnologyPapers
+from zen_europe.datasets.datasets.technology.ecra_technology_papers import (
+    ECRATechnologyPapers,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -12,7 +14,7 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology
+from zen_creator import AssumptionInformation, Attribute, ConversionTechnology
 
 
 class BiomassToCementFuel(ConversionTechnology):

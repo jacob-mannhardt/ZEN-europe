@@ -13,7 +13,6 @@ class EmissionsSettings(SettingsCategory):
     use_EU_ETS_cap: bool = False
     use_detailed_carbon_intensity: bool = True  # TODO remove
     use_only_CO2: bool = True
-    use_only_public_electricity_and_heat: bool = True
     use_precovid_aviation_shipping_emissions: bool = False
     allow_hard_coal_export_emission_credit: bool = False
     temperature_increase: float = 1.5

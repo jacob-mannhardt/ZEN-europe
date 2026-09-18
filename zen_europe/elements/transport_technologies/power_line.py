@@ -1,7 +1,12 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy as np
+
+from zen_europe.datasets.dataset_collections.power_line_capacity_limit import (
+    PowerLineCapacityLimit,
+)
 from zen_europe.datasets.dataset_collections.transport_technologies_costs import (
     TransportTechnologiesCosts,
 )
@@ -123,8 +128,9 @@ class PowerLine(TransportTechnology):
         set_edges = self.model.energy_system.set_edges.df
         capacity_existing = capacity_existing[
             capacity_existing.index.get_level_values("edge").isin(set_edges.index)]
-        # add DE-LU and LU-DE, which are not in the ENTSO-E Transparency Platform because they share a bidding zone
-        # they get the highest value of all edges
+        # DE-LU and LU-DE are not in the ENTSO-E Transparency Platform, as the
+        # two countries share a bidding zone, so they get the highest value of
+        # all edges
         max_capacity = capacity_existing["capacity_existing"].max()
         year = capacity_existing.index.get_level_values("year_construction").max()
         capacity_existing.loc[("DE-LU",year), "capacity_existing"] = max_capacity
@@ -144,6 +150,31 @@ class PowerLine(TransportTechnology):
             ),
         )
 
+    def _set_capacity_limit(self) -> Attribute:
+        """
+        Sets the capacity limit of power line.
+
+        The capacity limit is the capacity that the European network can reach
+        on an edge, so power lines can only be expanded on the edges that the
+        network studies cover.
+        """
+        attr = self.capacity_limit
+        if not self.settings.investment.use_power_line_capacity_limit:
+            return attr.set_data(
+                default_value=np.inf,
+                source=AssumptionInformation(
+                    description=(
+                        "We do not limit the capacity of the power lines."
+                    ),
+                ),
+            )
+        capacity_limit = PowerLineCapacityLimit(
+            settings=self.settings,
+            source_path=self.source_path,
+            set_nodes=self.model.config.system.set_nodes,
+        )
+        return capacity_limit.get_capacity_limit(self)
+
     def _set_max_diffusion_rate(self) -> Attribute:
         """
         Sets the maximum diffusion rate of power line.
@@ -152,13 +183,3 @@ class PowerLine(TransportTechnology):
             return self.max_diffusion_rate
         diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
         return diffusion_rates.get_max_diffusion_rate(self)
-
-    # ---------- Attributes that still have to be ported ----------
-
-    # TODO: capacity_limit is gated by investment.use_power_line_capacity_limit
-    # and data_source.potential_capacity_power_line ("tyndp", "candidates" or
-    # "both"): the TYNDP 2022 export capacities
-    # (220310_Updated_Electricity_Modelling_Results.xlsx) and the IoSN
-    # candidate units (IoSN_candidate_units_increase.xlsx) added to the
-    # existing capacity. Neither workbook is in data/raw_data. Without the flag
-    # the legacy pipeline leaves the limit at infinity.

@@ -9,7 +9,9 @@ if TYPE_CHECKING:
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
+
 from zen_europe.datasets.datasets.carrier.tyndp_fuel_prices import TYNDPFuelPrices
+
 
 class Uranium(Carrier):
     """Uranium carrier class.

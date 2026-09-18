@@ -2,9 +2,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
 from zen_europe.datasets.datasets.financial.dea import DEA
-from zen_europe.datasets.datasets.technology.european_biogas_association import EuropeanBiogasAssociation
+from zen_europe.datasets.datasets.technology.european_biogas_association import (
+    EuropeanBiogasAssociation,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -12,7 +16,12 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
 
 
 class BiomethaneConversion(ConversionTechnology):
@@ -70,7 +79,7 @@ class BiomethaneConversion(ConversionTechnology):
         cf = dea_dataset.get_conversion_factor_biomethane_conversion()
         source = SourceInformation(
             description=(
-                f"The conversion factor of biomethane conversion is obtained from """
+                "The conversion factor of biomethane conversion is obtained from """
                 "the DEA dataset for renewable fuels"
             ),
             metadata=dea_dataset.metadata,

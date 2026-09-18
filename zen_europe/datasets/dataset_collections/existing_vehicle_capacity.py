@@ -2,13 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Dict, cast
 
-from zen_europe.datasets.dataset_collections.passenger_mileage_demand import PassengerMileageDemand
-from zen_europe.datasets.dataset_collections.truck_mileage_demand import TruckMileageDemand
+from zen_europe.datasets.dataset_collections.passenger_mileage_demand import (
+    PassengerMileageDemand,
+)
+from zen_europe.datasets.dataset_collections.truck_mileage_demand import (
+    TruckMileageDemand,
+)
 from zen_europe.datasets.datasets.carrier.eurostat import Eurostat
 from zen_europe.datasets.datasets.technology.passenger_cars_cox import PassengerCarsCox
-from zen_europe.datasets.datasets.technology.truck_technologies_icct import TruckTechnologiesICCT
+from zen_europe.datasets.datasets.technology.truck_technologies_icct import (
+    TruckTechnologiesICCT,
+)
 from zen_europe.datasets.datasets.technology.unece import UNECE
-
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -16,15 +21,21 @@ if TYPE_CHECKING:
     from zen_creator import Dataset
 
 
-from zen_creator import ConversionTechnology, DatasetCollection, SourceInformation, Attribute
+import numpy as np
+import pandas as pd
+from zen_creator import (
+    Attribute,
+    ConversionTechnology,
+    DatasetCollection,
+    SourceInformation,
+)
 from zen_creator.utils.settings import Settings
 
 from zen_europe.utils.constants import Constants
-from zen_europe.utils.utils import account_for_decommissioned_capacity, format_capacity_existing
-
-
-import numpy as np
-import pandas as pd
+from zen_europe.utils.utils import (
+    account_for_decommissioned_capacity,
+    format_capacity_existing,
+)
 
 # The capacity of a passenger car is the mileage it delivers per hour.
 _PASSENGER_CAPEX_UNIT = "Euro/(vkm/h)"
@@ -351,8 +362,15 @@ class ExistingVehicleCapacity(DatasetCollection):
         truck_mileage = element.model.carriers["truck_mileage"]
         peak_demand_share = truck_transport_db._get_peak_demand_share(element=truck_mileage)
         capex = capex / peak_demand_share.mean()
+        default_value = None
+        if not element.settings.cost.use_learning_curves:
+            # the cost stays at the value of the reference year in all years
+            default_value = float(
+                capex.loc[element.settings.time.reference_year])
+            capex = None
         attr = element.capex_specific_conversion
         return attr.set_data(
+            default_value=default_value,
             df=capex,
             source=SourceInformation(
                 description=(

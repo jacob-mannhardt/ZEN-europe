@@ -29,7 +29,6 @@ from zen_creator import (
 from zen_creator.utils.attribute import SourceInformation
 from zen_creator.utils.settings import Settings
 
-from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 from zen_europe.datasets.datasets.financial._cost_schema import (
     CO2_BASIS_UNITS,
     COST_VARIABLES,
@@ -38,10 +37,13 @@ from zen_europe.datasets.datasets.financial._cost_schema import (
 )
 from zen_europe.datasets.datasets.financial.dea import DEA
 from zen_europe.datasets.datasets.financial.diw import DIW
+from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 from zen_europe.datasets.datasets.financial.euref import EUREF
 from zen_europe.datasets.datasets.financial.luw import LUW
 from zen_europe.datasets.datasets.financial.potencia import Potencia
-from zen_europe.datasets.datasets.financial.tyndp_technology_cost import TYNDPTechnologyCost
+from zen_europe.datasets.datasets.financial.tyndp_technology_cost import (
+    TYNDPTechnologyCost,
+)
 from zen_europe.datasets.datasets.technology.storage_technologies_schmidt import (
     StorageTechnologiesSchmidt,
 )
@@ -316,6 +318,12 @@ class TechnologyCostDatabase(DatasetCollection):
             )
         
         optimization_years = pd.Index(element.settings.time.get_optimization_years())
+        if not self.settings.cost.use_learning_curves:
+            # the cost stays at the value of the reference year in all years
+            default_value = float(
+                self._reindex_to_years(
+                    series, pd.Index([reference_year])).loc[reference_year])
+            return None, default_value, None, agencies
         if annual_values:
             df = self._reindex_to_years(series, optimization_years)
             default_value = float(df.loc[reference_year])
@@ -607,7 +615,11 @@ class TechnologyCostDatabase(DatasetCollection):
         at_reference_year = self._reindex_to_years(
             delta, pd.Index([reference_year]))
         default_value = float(at_reference_year.loc[reference_year])
-        if annual_values:
+        if not self.settings.cost.use_learning_curves:
+            # the cost stays at the value of the reference year in all years
+            df = None
+            yearly_variations = None
+        elif annual_values:
             # a delta that is flat across years is fully described by its default
             df = None if len(delta.unique()) == 1 else delta
             yearly_variations = None

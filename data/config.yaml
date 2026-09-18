@@ -112,7 +112,6 @@ elements:
       # - heat_pump_DH
       # - hydrogen_FC_ship
       # - hydrogen_to_cement_fuel
-      # - industrial_gas_consumer
       # - lignite_coal_plant
       # - lng_terminal
       # - methanation
@@ -186,7 +185,6 @@ elements:
       - methanol
       - naphtha
       - natural_gas
-      - natural_gas_industry
       - oil
       - olefin
       - passenger_mileage

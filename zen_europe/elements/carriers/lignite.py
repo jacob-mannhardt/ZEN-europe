@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-
-from zen_europe.datasets.dataset_collections.carrier_availability import CarrierAvailability 
-from zen_europe.datasets.datasets.carrier.ipcc_emission_factors import IPCCEmissionFactors
+from zen_europe.datasets.dataset_collections.carrier_availability import (
+    CarrierAvailability,
+)
+from zen_europe.datasets.datasets.carrier.ipcc_emission_factors import (
+    IPCCEmissionFactors,
+)
 from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 
 if TYPE_CHECKING:
@@ -12,7 +15,9 @@ if TYPE_CHECKING:
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
+
 from zen_europe.datasets.datasets.carrier.tyndp_fuel_prices import TYNDPFuelPrices
+
 
 class Lignite(Carrier):
     """Lignite carrier class.

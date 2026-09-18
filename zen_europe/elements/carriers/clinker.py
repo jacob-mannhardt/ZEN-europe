@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
+
 from zen_europe.datasets.dataset_collections.clinker_data import ClinkerData
+
 
 class Clinker(Carrier):
     """Clinker carrier class.

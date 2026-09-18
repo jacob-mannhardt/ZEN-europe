@@ -9,11 +9,19 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, SourceInformation
-from zen_europe.datasets.datasets.financial.dea import DEA
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
+
 from zen_europe.datasets.dataset_collections.district_heating_data import (
-    DistrictHeatingData)
+    DistrictHeatingData,
+)
 from zen_europe.datasets.dataset_collections.heat_demand import HeatDemand
+from zen_europe.datasets.datasets.financial.dea import DEA
+
 
 class DistrictHeatingGrid(ConversionTechnology):
     """Class containing all data and assumptions for district heating grids."""

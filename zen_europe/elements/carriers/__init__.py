@@ -1,30 +1,33 @@
-from .biomass import Biomass
-from .wet_biomass import WetBiomass
-from .electricity import Electricity
 from .ammonia import Ammonia
-from .clinker import Clinker
+from .biomass import Biomass
 from .biomethane import Biomethane
-from .methanol import Methanol
-from .hydrogen import Hydrogen
-from .primary_steel import PrimarySteel
-from .secondary_steel import SecondarySteel
 from .carbon import Carbon
+from .clinker import Clinker
+from .crude_oil import CrudeOil
+from .diesel import Diesel
 from .district_heat import DistrictHeat
-from .naphtha import Naphtha
+from .electricity import Electricity
+from .fuel_for_cement import FuelForCement
+from .gasoline import Gasoline
 from .hard_coal import HardCoal
+from .heat import Heat
+from .hydrogen import Hydrogen
+from .kerosene import Kerosene
 from .lignite import Lignite
+from .lng import LNG
+from .methanol import Methanol
+from .naphtha import Naphtha
 from .natural_gas import NaturalGas
 from .oil import Oil
-from .waste import Waste
-from .diesel import Diesel
-from .gasoline import Gasoline
 from .olefin import Olefin
-from .kerosene import Kerosene
-from .shipping import Shipping
-from .lng import LNG
-from .heat import Heat
 from .passenger_mileage import PassengerMileage
-from .truck_mileage import TruckMileage 
+from .primary_steel import PrimarySteel
+from .secondary_steel import SecondarySteel
+from .shipping import Shipping
+from .truck_mileage import TruckMileage
+from .uranium import Uranium
+from .waste import Waste
+from .wet_biomass import WetBiomass
 
 __all__ = [
     "Biomass",
@@ -54,4 +57,7 @@ __all__ = [
     "Heat",
     "PassengerMileage",
     "TruckMileage",
+    "CrudeOil",
+    "FuelForCement",
+    "Uranium",
 ]

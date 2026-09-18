@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.datasets.carrier.eurostat import Eurostat
-from zen_europe.datasets.datasets.technology.shipping_technologies_korberg import ShippingTechnologiesKorberg
+from zen_europe.datasets.datasets.technology.shipping_technologies_korberg import (
+    ShippingTechnologiesKorberg,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -12,7 +14,13 @@ from zen_europe.utils.utils import account_for_decommissioned_capacity
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
+
 from zen_europe.utils.constants import Constants
 
 

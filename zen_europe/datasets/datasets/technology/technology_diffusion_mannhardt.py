@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 import pandas as pd
-from zen_creator import Attribute, SourceInformation, Technology
+from zen_creator import Attribute, Element, SourceInformation, Technology
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
@@ -17,6 +17,11 @@ class TechnologyDiffusionMannhardt(Dataset[pd.DataFrame]):
 
     Technologies are grouped into four categories. Each category takes the
     historically observed diffusion rate of one reference technology.
+
+    The regression of the historical diffusion also yields the knowledge
+    spillover rate between the nodes and the market share that is exempt from
+    the diffusion limit, which are properties of the energy system rather than
+    of a single technology.
     """
 
     name = "technology_diffusion_mannhardt"
@@ -28,6 +33,13 @@ class TechnologyDiffusionMannhardt(Dataset[pd.DataFrame]):
         "HIGH": 0.29,
         "VERY_HIGH": 0.4,
     }
+    # knowledge spillover rate per knowledge depreciation rate
+    SPILLOVER_RATES = {
+        0.1: 0.07,
+        0.2: 0.056,
+    }
+    # market share that is exempt from the diffusion limit
+    MARKET_SHARE_UNBOUNDED = 0.02
     REFERENCE_TECHNOLOGIES = {
         "LOW": "wind offshore",
         "MEDIUM": "wind onshore",
@@ -190,3 +202,78 @@ class TechnologyDiffusionMannhardt(Dataset[pd.DataFrame]):
             ),
         )
         return attr
+
+    def get_knowledge_depreciation_rate(self, element: Element) -> Attribute:
+        """
+        Get the knowledge depreciation rate of the energy system.
+
+        The diffusion rates are regressed under the assumption of one of the
+        depreciation rates of the study, which is selected with
+        settings.investment.knowledge_depreciation_rate.
+        """
+        depreciation_rate = self._get_depreciation_rate(element)
+        attr = element.knowledge_depreciation_rate
+        return attr.set_data(
+            default_value=depreciation_rate,
+            unit="1",
+            source=SourceInformation(
+                description=(
+                    f"The knowledge depreciation rate is {depreciation_rate}, "
+                    f"one of the rates Mannhardt et al. (2024) assume when "
+                    f"they regress the diffusion rates."
+                ),
+                metadata=self.metadata,
+            ),
+        )
+
+    def get_knowledge_spillover_rate(self, element: Element) -> Attribute:
+        """
+        Get the knowledge spillover rate between the nodes.
+
+        The rate belongs to the knowledge depreciation rate the diffusion
+        rates were regressed with.
+        """
+        depreciation_rate = self._get_depreciation_rate(element)
+        attr = element.knowledge_spillover_rate
+        return attr.set_data(
+            default_value=self.SPILLOVER_RATES[depreciation_rate],
+            unit="1",
+            source=SourceInformation(
+                description=(
+                    f"The knowledge spillover rate between the nodes is the "
+                    f"rate that Mannhardt et al. (2024) regress together with "
+                    f"the diffusion rates, for a knowledge depreciation rate "
+                    f"of {depreciation_rate}."
+                ),
+                metadata=self.metadata,
+            ),
+        )
+
+    def _get_depreciation_rate(self, element: Element) -> float:
+        """
+        Get the knowledge depreciation rate the study is evaluated for.
+        """
+        depreciation_rate = element.settings.investment.knowledge_depreciation_rate
+        if depreciation_rate not in self.SPILLOVER_RATES:
+            raise ValueError(
+                f"Mannhardt et al. (2024) do not assume a knowledge "
+                f"depreciation rate of {depreciation_rate}."
+            )
+        return depreciation_rate
+
+    def get_market_share_unbounded(self, element: Element) -> Attribute:
+        """
+        Get the market share that is exempt from the diffusion limit.
+        """
+        attr = element.market_share_unbounded
+        return attr.set_data(
+            default_value=self.MARKET_SHARE_UNBOUNDED,
+            unit="1",
+            source=SourceInformation(
+                description=(
+                    "The market share that is exempt from the diffusion limit "
+                    "is taken from Mannhardt et al. (2024)."
+                ),
+                metadata=self.metadata,
+            ),
+        )

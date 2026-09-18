@@ -2,17 +2,28 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.existing_vehicle_capacity import ExistingVehicleCapacity
-from zen_europe.datasets.dataset_collections.truck_mileage_demand import TruckMileageDemand
-from zen_europe.datasets.datasets.technology.truck_technologies_icct import TruckTechnologiesICCT
+from zen_europe.datasets.dataset_collections.existing_vehicle_capacity import (
+    ExistingVehicleCapacity,
+)
+from zen_europe.datasets.dataset_collections.truck_mileage_demand import (
+    TruckMileageDemand,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
+)
+from zen_europe.datasets.datasets.technology.truck_technologies_icct import (
+    TruckTechnologiesICCT,
 )
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import AssumptionInformation, Attribute, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
 
 
 class HDT_FCEV(ConversionTechnology):

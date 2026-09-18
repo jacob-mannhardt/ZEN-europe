@@ -2,17 +2,22 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-
-from zen_europe.datasets.dataset_collections.carrier_availability import CarrierAvailability
-from zen_europe.datasets.datasets.carrier.ipcc_emission_factors import IPCCEmissionFactors
-from zen_europe.datasets.datasets.financial.ECB import ECBInflation,ECBDollar2Euro
+from zen_europe.datasets.dataset_collections.carrier_availability import (
+    CarrierAvailability,
+)
+from zen_europe.datasets.datasets.carrier.ipcc_emission_factors import (
+    IPCCEmissionFactors,
+)
+from zen_europe.datasets.datasets.financial.ECB import ECBDollar2Euro, ECBInflation
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
+
 from zen_europe.datasets.datasets.carrier.bnef_fuelprices import BNEFFuelPrices
+
 
 class Oil(Carrier):
     """Oil carrier class.

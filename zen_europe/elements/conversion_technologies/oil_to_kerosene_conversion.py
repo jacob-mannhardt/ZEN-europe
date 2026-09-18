@@ -2,16 +2,26 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.carrier_availability import CarrierAvailability
-from zen_europe.utils.utils import calculate_capacity_addition_from_cumulative, format_capacity_existing
+from zen_europe.datasets.dataset_collections.carrier_availability import (
+    CarrierAvailability,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
+)
+from zen_europe.utils.utils import (
+    calculate_capacity_addition_from_cumulative,
+    format_capacity_existing,
 )
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
 
 
 class OilToKeroseneConversion(ConversionTechnology):

@@ -2,10 +2,18 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from zen_europe.datasets.dataset_collections.hydro_existing_capacity import HydroExistingCapacity
-from zen_europe.datasets.dataset_collections.lifetime_expectation import LifetimeExpectation
-from zen_europe.datasets.dataset_collections.run_of_river_hydro_max_load import RunOfRiverHydroMaxLoad
-from zen_europe.datasets.dataset_collections.technology_cost_database import TechnologyCostDatabase
+from zen_europe.datasets.dataset_collections.hydro_existing_capacity import (
+    HydroExistingCapacity,
+)
+from zen_europe.datasets.dataset_collections.lifetime_expectation import (
+    LifetimeExpectation,
+)
+from zen_europe.datasets.dataset_collections.run_of_river_hydro_max_load import (
+    RunOfRiverHydroMaxLoad,
+)
+from zen_europe.datasets.dataset_collections.technology_cost_database import (
+    TechnologyCostDatabase,
+)
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
@@ -13,7 +21,12 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import Attribute, AssumptionInformation, ConversionTechnology, SourceInformation
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    ConversionTechnology,
+    SourceInformation,
+)
 
 
 class RunOfRiverHydro(ConversionTechnology):
@@ -97,9 +110,18 @@ class RunOfRiverHydro(ConversionTechnology):
         """
         Return the conversion factor of run-of-river hydro.
 
+        The conversion factor is empty, as run-of-river hydro has no input carrier.
         """
         attr = self.conversion_factor
-        return attr
+        return attr.set_data(
+            default_value=[],
+            source=AssumptionInformation(
+                description=(
+                    "The conversion factor of run-of-river hydro is manually set to an "
+                    "empty list, as it has no input carrier."
+                ),
+            ),
+        )
 
     def _set_capex_specific_conversion(self) -> Attribute:
         """
