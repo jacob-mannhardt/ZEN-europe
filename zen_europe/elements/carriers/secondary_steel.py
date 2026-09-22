@@ -9,6 +9,7 @@ from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 
 from zen_europe.datasets.dataset_collections.steel_demand import SteelDemand
+from zen_europe.utils.demand_sensitivity import demand_sensitivity_scenarios
 
 
 class SecondarySteel(Carrier):
@@ -58,4 +59,7 @@ class SecondarySteel(Carrier):
 
         """
         steel_demand = SteelDemand(source_path=self.model.source_path)
-        return steel_demand.get_steel_demand(element=self)
+        attr = steel_demand.get_steel_demand(element=self)
+        if self.settings.scenario.sensitivity_demand:
+            attr.add_scenarios(demand_sensitivity_scenarios(self.name))
+        return attr

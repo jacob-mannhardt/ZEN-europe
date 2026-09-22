@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from zen_europe.datasets.dataset_collections.olefin_demand import OlefinDemand
+from zen_europe.utils.demand_sensitivity import demand_sensitivity_scenarios
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -60,4 +61,7 @@ class Olefin(Carrier):
         """
         olefin_demand = OlefinDemand(
             source_path=self.model.source_path,settings=self.settings)
-        return olefin_demand.get_olefin_demand(element=self)
+        attr = olefin_demand.get_olefin_demand(element=self)
+        if self.settings.scenario.sensitivity_demand:
+            attr.add_scenarios(demand_sensitivity_scenarios(self.name))
+        return attr

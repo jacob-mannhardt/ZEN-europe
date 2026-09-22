@@ -9,6 +9,7 @@ from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 
 from zen_europe.datasets.dataset_collections.electricity_demand import ElectricityDemand
+from zen_europe.utils.demand_sensitivity import demand_sensitivity_scenarios
 
 
 class Electricity(Carrier):
@@ -27,10 +28,13 @@ class Electricity(Carrier):
 
         """
         electricity_demand_dataset = ElectricityDemand(
-            self.settings, 
-            self.model.config.system.set_nodes, 
+            self.settings,
+            self.model.config.system.set_nodes,
             self.source_path)
-        return electricity_demand_dataset.get_demand(self)
+        attr = electricity_demand_dataset.get_demand(self)
+        if self.settings.scenario.sensitivity_demand:
+            attr.add_scenarios(demand_sensitivity_scenarios(self.name))
+        return attr
     
     def _set_price_shed_demand(self) -> Attribute:
         """

@@ -258,7 +258,7 @@ class SciGridIGGIELGNC1(Dataset[pd.DataFrame]):
         storages = self.data["storages"].copy()
         storages = storages[storages["start_year"] < reference_year]
         storages = storages[~(storages["end_year"] <= reference_year)]
-        storages["start_year"] = storages["start_year"].astype(int)
+        storages.loc[:, "start_year"] = storages["start_year"].astype(int)
         storages = storages.groupby(["nuts_id_0", "start_year"]).sum(numeric_only=True)
 
         if power:

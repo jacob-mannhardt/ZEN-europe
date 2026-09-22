@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from zen_creator import Dataset
 
 
-from zen_creator import Attribute, Carrier, ConversionTechnology, DatasetCollection, Element
+from zen_creator import Attribute, Carrier, ConversionTechnology, DatasetCollection, Element, Scenario
 from zen_creator.utils.attribute import SourceInformation
 from zen_creator.utils.settings import Settings
 
@@ -75,7 +75,7 @@ class HeatDemand(DatasetCollection):
         return element.demand.set_data(
             source=source,
             df=demand,
-            unit="GW",
+            unit="GW"
         )
     
     def _calculate_demand(self, element: Element) -> pd.Series:

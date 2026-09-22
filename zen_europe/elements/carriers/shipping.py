@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING
 from zen_europe.datasets.dataset_collections.carrier_availability import (
     CarrierAvailability,
 )
+from zen_europe.utils.demand_sensitivity import demand_sensitivity_scenarios
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -61,4 +62,7 @@ class Shipping(Carrier):
         """
         carrier_availability = CarrierAvailability(
                 settings=self.settings, source_path=self.model.source_path)
-        return carrier_availability.get_shipping_demand(element=self)
+        attr = carrier_availability.get_shipping_demand(element=self)
+        if self.settings.scenario.sensitivity_demand:
+            attr.add_scenarios(demand_sensitivity_scenarios(self.name))
+        return attr

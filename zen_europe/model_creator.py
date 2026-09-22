@@ -10,6 +10,7 @@ from .elements.retrofitting_technologies import SMR_CCS  # noqa: F401
 from .elements.sectors import ElectricitySector  # noqa: F401
 from .elements.storage_technologies import PumpedHydro  # noqa: F401
 from .elements.transport_technologies import PowerLine  # noqa: F401
+from .global_scenarios import define_global_scenarios
 
 # import settings categories to register them in the registry (side effect)
 from . import settings  # noqa: F401
@@ -36,11 +37,17 @@ def create_model(
     model.name = name
     # TODO move this somewhere else
     model.config.system.allow_investment = model.settings.investment.allow_investment
+    model.config.system.run_default_scenario = (
+        model.settings.scenario.run_default_scenario
+    )
     # model.remove_element_by_name("crude_oil")
     # model.remove_element_by_name("refining")
 
     # apply changes
     model.build()
+
+    # register the system-, analysis-, solver-, and set-wide scenarios
+    model.apply_global_scenarios(define_global_scenarios)
 
     # save model output
     if write:

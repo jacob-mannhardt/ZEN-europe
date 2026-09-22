@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from zen_creator.model import Model
 
 import numpy as np
-from zen_creator import AssumptionInformation, Attribute, EnergySystem
+from zen_creator import AssumptionInformation, Attribute, EnergySystem, Scenario
 
 from zen_europe.datasets.dataset_collections.edges import Edges
 from zen_europe.datasets.datasets.energy_system.nuts_shp import NUTSshp
@@ -164,6 +164,9 @@ class EnergySystemNuts0(EnergySystem):
         Sets the discount rate of the energy system.
         """
         attr = self.discount_rate
+        scenarios = None
+        if self.settings.scenario.sensitivity_discount_rate:
+            scenarios = Scenario("discount_rate", default_op=[0.0, 0.5, 1.5])
         return attr.set_data(
             default_value=0.05,
             unit="1",
@@ -172,6 +175,7 @@ class EnergySystemNuts0(EnergySystem):
                     "The discount rate is set to 0.05."
                 ),
             ),
+            scenarios=scenarios,
         )
 
     def _set_carbon_emissions_budget(self) -> Attribute:

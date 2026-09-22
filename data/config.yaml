@@ -40,10 +40,10 @@ system:
   double_capex_transport: null
   unaggregated_time_steps_per_year: null
   conduct_time_series_aggregation: true
-  aggregated_time_steps_per_year: 10
+  aggregated_time_steps_per_year: 1
   reference_year: 2022
   total_hours_per_year: null
-  optimized_years: 15
+  optimized_years: 3
   interval_between_years: 2
   use_rolling_horizon: false
   years_in_rolling_horizon: null

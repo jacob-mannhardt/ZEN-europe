@@ -8,6 +8,7 @@ if TYPE_CHECKING:
     from zen_creator.elements.carriers.carrier import Carrier
 
 import pandas as pd
+from zen_creator import Scenario
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 from zen_creator.utils.attribute import Attribute, SourceInformation
@@ -81,23 +82,9 @@ class EnspresoBiomassAvailability(EnspresoBiomass):
             Attribute: the element's `availability_import` attribute, updated
                 with the computed data.
         """
-        potential = self._get_availability_import(
-            biomass_types=biomass_types, 
-            scenario=scenario)
-        potential = potential.groupby(["NUTS0", "Year"]).sum()["Value"].unstack()
-        potential = potential / Constants.GJ_PER_MWH * 1000 / Constants.HOURS_PER_YEAR  # PJ/a -> GW
-        potential = interpolate_missing_years(potential)
-
-        nodes = pd.Index(element.model.config.system.set_nodes)
-        common_nodes = nodes.intersection(potential.index)
-        potential = potential.loc[common_nodes].sort_index()
-        potential.index.name = "node"
-
-        reference_year = element.settings.time.reference_year
-        potential = potential.loc[:, reference_year:]
-        yearly_variation = potential.div(potential[reference_year], axis=0)
-        reference_year_values = potential[reference_year]
-        reference_year_values.name = "availability_import"
+        reference_year_values, yearly_variation = self._compute_availability_import(
+            element=element, biomass_types=biomass_types, scenario=scenario
+        )
 
         source = SourceInformation(
             description=(
@@ -115,7 +102,76 @@ class EnspresoBiomassAvailability(EnspresoBiomass):
             unit="GW",
             yearly_variations_df=yearly_variation,
         )
-    
+
+    def get_availability_import_scenario(
+        self,
+        element: Carrier,
+        biomass_types: list[str],
+        name: str,
+        ens_scenario: str,
+        suffix: str,
+    ) -> Scenario:
+        """
+        Build a scenario variation of the import availability for a
+        different ENSPRESO scenario, e.g. for a biomass sensitivity analysis.
+
+        :param element: The Carrier element for which to compute the availability.
+        :param biomass_types:
+            List of biomass energy-commodity codes to filter the ENSPRESO data.
+        :param name: The name of the scenario, e.g. 'biomass_low'.
+        :param ens_scenario: The ENSPRESO scenario to read, e.g. 'ENS_Low'.
+        :param suffix: Suffix of the generated files, e.g. 'low'.
+
+        Returns:
+            Scenario: Variation of `availability_import` for this ENSPRESO
+                scenario.
+        """
+        reference_year_values, yearly_variation = self._compute_availability_import(
+            element=element, biomass_types=biomass_types, scenario=ens_scenario
+        )
+        return Scenario(
+            name,
+            suffix=suffix,
+            df=reference_year_values,
+            yearly_variations_df=yearly_variation,
+        )
+
+    def _compute_availability_import(
+        self, element: Carrier, biomass_types: list[str], scenario: str
+    ) -> tuple[pd.Series, pd.DataFrame]:
+        """
+        Compute the reference-year import availability and its yearly
+        variation from ENSPRESO potentials.
+
+        :param element: The Carrier element for which to compute the availability.
+        :param biomass_types:
+            List of biomass energy-commodity codes to filter the ENSPRESO data.
+        :param scenario: The ENSPRESO scenario to read, e.g. 'ENS_Med'.
+
+        Returns:
+            tuple: The reference-year import availability (GW) per node, and
+                its yearly variation relative to that reference year.
+        """
+        potential = self._get_availability_import(
+            biomass_types=biomass_types,
+            scenario=scenario)
+        potential = potential.groupby(["NUTS0", "Year"]).sum()["Value"].unstack()
+        potential = potential / Constants.GJ_PER_MWH * 1000 / Constants.HOURS_PER_YEAR  # PJ/a -> GW
+        potential = interpolate_missing_years(potential)
+
+        nodes = pd.Index(element.model.config.system.set_nodes)
+        common_nodes = nodes.intersection(potential.index)
+        potential = potential.loc[common_nodes].sort_index()
+        potential.index.name = "node"
+
+        reference_year = element.settings.time.reference_year
+        potential = potential.loc[:, reference_year:]
+        yearly_variation = potential.div(potential[reference_year], axis=0)
+        reference_year_values = potential[reference_year]
+        reference_year_values.name = "availability_import"
+
+        return reference_year_values, yearly_variation
+
     def get_availability_import_yearly(
         self,
         element: Carrier,

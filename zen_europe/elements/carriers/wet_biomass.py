@@ -40,11 +40,23 @@ class WetBiomass(Carrier):
         """Return the import availability of wetbiomass from ENSPRESO potentials."""
         if self.settings.availability.annual_cap_biomass_import:
             return self.availability_import
-        else:
-            enspreso = EnspresoBiomassAvailability(self.source_path)
-            return enspreso.get_availability_import(
-                element=self, biomass_types=self._biomass_types
-            )
+
+        enspreso = EnspresoBiomassAvailability(self.source_path)
+        attr = enspreso.get_availability_import(
+            element=self, biomass_types=self._biomass_types
+        )
+        if self.settings.scenario.sensitivity_biomass:
+            attr.add_scenarios([
+                enspreso.get_availability_import_scenario(
+                    element=self, biomass_types=self._biomass_types,
+                    name="biomass_low", ens_scenario="ENS_Low", suffix="low",
+                ),
+                enspreso.get_availability_import_scenario(
+                    element=self, biomass_types=self._biomass_types,
+                    name="biomass_high", ens_scenario="ENS_High", suffix="high",
+                ),
+            ])
+        return attr
 
     def _set_availability_import_yearly(self) -> Attribute:
         """Return the import availability of wet biomass from ENSPRESO potentials."""

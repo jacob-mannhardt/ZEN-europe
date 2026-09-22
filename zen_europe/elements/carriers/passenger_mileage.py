@@ -11,6 +11,7 @@ from zen_creator.utils.attribute import Attribute
 from zen_europe.datasets.dataset_collections.passenger_mileage_demand import (
     PassengerMileageDemand,
 )
+from zen_europe.utils.demand_sensitivity import demand_sensitivity_scenarios
 
 
 class PassengerMileage(Carrier):
@@ -32,7 +33,10 @@ class PassengerMileage(Carrier):
             self.settings,
             self.source_path
         )
-        return passenger_mileage_dataset.get_demand(self)
+        attr = passenger_mileage_dataset.get_demand(self)
+        if self.settings.scenario.sensitivity_demand:
+            attr.add_scenarios(demand_sensitivity_scenarios(self.name))
+        return attr
     
     def _set_price_shed_demand(self) -> Attribute:
         """

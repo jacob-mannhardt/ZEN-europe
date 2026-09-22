@@ -9,6 +9,7 @@ from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 
 from zen_europe.datasets.dataset_collections.methanol_demand import MethanolDemand
+from zen_europe.utils.demand_sensitivity import demand_sensitivity_scenarios
 
 
 class Methanol(Carrier):
@@ -58,4 +59,7 @@ class Methanol(Carrier):
 
         """
         methanol_demand = MethanolDemand(source_path=self.model.source_path)
-        return methanol_demand.get_methanol_demand(element=self)
+        attr = methanol_demand.get_methanol_demand(element=self)
+        if self.settings.scenario.sensitivity_demand:
+            attr.add_scenarios(demand_sensitivity_scenarios(self.name))
+        return attr

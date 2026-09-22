@@ -8,6 +8,7 @@ from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 
 from zen_europe.datasets.datasets.carrier.ifa import IFA
+from zen_europe.utils.demand_sensitivity import demand_sensitivity_scenarios
 
 
 class Ammonia(Carrier):
@@ -29,7 +30,10 @@ class Ammonia(Carrier):
 
         """
         ifa = IFA(source_path=self.source_path)
-        return ifa.get_demand(element=self)
+        attr = ifa.get_demand(element=self)
+        if self.settings.scenario.sensitivity_demand:
+            attr.add_scenarios(demand_sensitivity_scenarios(self.name))
+        return attr
 
     def _set_availability_import(self) -> Attribute:
         """

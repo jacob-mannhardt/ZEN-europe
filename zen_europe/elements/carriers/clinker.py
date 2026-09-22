@@ -9,6 +9,7 @@ from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 
 from zen_europe.datasets.dataset_collections.clinker_data import ClinkerData
+from zen_europe.utils.demand_sensitivity import demand_sensitivity_scenarios
 
 
 class Clinker(Carrier):
@@ -42,4 +43,7 @@ class Clinker(Carrier):
 
         """
         clinker_data = ClinkerData(source_path=self.source_path)
-        return clinker_data.get_clinker_demand(element=self)
+        attr = clinker_data.get_clinker_demand(element=self)
+        if self.settings.scenario.sensitivity_demand:
+            attr.add_scenarios(demand_sensitivity_scenarios(self.name))
+        return attr
