@@ -5,6 +5,7 @@ from pathlib import Path
 from zen_creator import Attribute, ConversionTechnology, SourceInformation
 from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
+from zen_creator.utils.settings import Settings
 
 import pandas as pd
 
@@ -20,7 +21,8 @@ class DACCapacitiesZurbriggen(Dataset[pd.DataFrame]):
 
     name = "DAC_capacities_zurbriggen"
 
-    def __init__(self, source_path: Path | str | None = None):
+    def __init__(self, settings: Settings,source_path: Path | str | None = None):
+        self.settings = settings
         super().__init__(source_path=source_path)
 
     def _set_metadata(self) -> MetaData:
@@ -78,6 +80,10 @@ class DACCapacitiesZurbriggen(Dataset[pd.DataFrame]):
         attr = element.capacity_existing
         data = self.data[["node","year_construction","Capacity"]].groupby(
             ["node","year_construction"]).sum().squeeze()
+        if not self.settings.investment.set_future_CCS_investments:
+            reference_year = self.settings.time.reference_year
+            data = data[
+                data.index.get_level_values("year_construction") <= reference_year-1]
         data = format_capacity_existing(data)
         return attr.set_data(
             df=data,

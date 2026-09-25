@@ -114,7 +114,7 @@ class EUREF(Dataset[pd.DataFrame]):
                 block = raw.iloc[2:, segment_start:segment_end].reset_index(drop=True)
                 block.index = techs
                 multiplier = _convert_unit(unit_src, variable)
-                schema_unit = {"capex": "Euro/kW", "fopex": "Euro/kW/year", "vopex": "Euro/MWh"}[variable]
+                schema_unit = {"capex": "Euro/kW", "fopex": "Euro/kW", "vopex": "Euro/MWh"}[variable]
                 for tech_row, values in block.iterrows():
                     for year, value_src in zip(years, values):
                         value_src = pd.to_numeric(value_src, errors="coerce")

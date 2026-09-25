@@ -69,7 +69,9 @@ class ShippingTechnologiesKorberg(Dataset[pd.DataFrame]):
         conversion_factors = {
             "diesel_ICE_ship": {"diesel": 1 / 0.45},
             "hydrogen_FC_ship": {"hydrogen":1 / 0.55, 
-                                 "electricity": 1 / 0.55 * electricity_demand_LH2}, # alternative fuel mix
+                                 "electricity": (
+                                            1 / 0.55 * electricity_demand_LH2 
+                                            / Constants.HYDROGEN_KWH_PER_KG)}, 
             "methanol_ICE_ship": {"methanol": 1 / 0.45},
             "ammonia_ICE_ship": {"ammonia": 1 / 0.45},
         }
@@ -178,7 +180,7 @@ class ShippingTechnologiesKorberg(Dataset[pd.DataFrame]):
         and returns it as a float.
 
         Returns:
-            A float representing the fixed opex of the specified technology in Euro/kW/year.
+            A float representing the fixed opex of the specified technology in Euro/kW.
         """
         fixed_opex_values = {
             "diesel_ICE_ship": 0.025,

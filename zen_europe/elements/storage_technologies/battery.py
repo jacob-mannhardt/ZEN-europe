@@ -166,6 +166,7 @@ class Battery(StorageTechnology):
         battery_storage = BatteryStorageNREL(source_path=self.source_path)
         e2p_ratio = battery_storage._get_e2p_ratio(self)
         capacity_existing_energy = capacity_existing * e2p_ratio
+        capacity_existing_energy.name = "capacity_existing_energy"
         return self.capacity_existing_energy.set_data(
             df=capacity_existing_energy,
             source=AssumptionInformation(

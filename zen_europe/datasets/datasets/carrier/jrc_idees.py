@@ -15,6 +15,7 @@ from zen_creator.datasets.datasets.metadata import MetaData
 import pandas as pd
 import requests
 
+from zen_europe.settings.cache import get_active_cache_settings
 from zen_europe.utils.constants import Constants
 
 logger = logging.getLogger(__name__)
@@ -101,7 +102,7 @@ class JRCIDEES(Dataset[pd.DataFrame]):
         """
         cache_path = self._cache_path()
 
-        if cache_path.exists():
+        if cache_path.exists() and not get_active_cache_settings().overwrite_jrc_idees:
             logger.info(
                 f"Loading cached JRC-IDEES thermal energy service data from {cache_path}"
             )

@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_creator import AssumptionInformation
+
+from zen_europe.datasets.dataset_collections.carrier_availability import CarrierAvailability
 from zen_europe.datasets.datasets.financial.ECB import ECBDollar2Euro, ECBInflation
 
 if TYPE_CHECKING:
@@ -15,6 +18,7 @@ from zen_europe.datasets.datasets.carrier.ipcc_emission_factors import (
     IPCCEmissionFactors,
 )
 
+import numpy as np
 
 class CrudeOil(Carrier):
     """Crude oil carrier class.
@@ -35,7 +39,27 @@ class CrudeOil(Carrier):
         self.get_dollar2euro = ecb_dollar2euro.get_dollar2euro
 
     # ----Example of optional methods for overriding default attributes ------
-    
+    def _set_availability_import(self) -> Attribute:
+        """
+        Return the availability of crude oil.
+
+        """
+        if self.settings.availability.cap_oil_import:
+            carrier_availability = CarrierAvailability(
+                settings=self.settings, source_path=self.model.source_path)
+            return carrier_availability.get_oil_availability(element=self)
+        else:
+            attr = self.availability_import
+            return attr.set_data(
+                default_value=np.inf, df=None, 
+                source = AssumptionInformation(
+                    description=(
+                        "The import availability of oil is set to infinity, "
+                        "as the availability is not capped in the settings."
+                    )
+                )
+            )
+
     def _set_price_import(self) -> Attribute:
         """
         Return the import price of crude oil.

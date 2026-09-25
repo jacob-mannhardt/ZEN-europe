@@ -152,7 +152,7 @@ class Refining(ConversionTechnology):
                 ),
             )
             return attr
-
+        
     def _set_max_diffusion_rate(self) -> Attribute:
         """
         Sets the maximum diffusion rate of refining.

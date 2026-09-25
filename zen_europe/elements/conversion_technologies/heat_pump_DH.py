@@ -94,7 +94,7 @@ class HeatPumpDH(ConversionTechnology):
         )
         attr.set_data(
             default_value=cf, 
-            df=cop,
+            df=1/cop,
             source=source)
         return attr
     

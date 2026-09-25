@@ -93,7 +93,7 @@ class PanEuropeanClimateDatabase(Dataset[pd.DataFrame]):
         },
         "wind_offshore": {
             "variable": "wind_power_offshore_capacity_factor",
-            "technology": "20",  # offshore wind, existing technologies
+            "technology": "21",  # offshore wind, existing technologies
             "energy_scenario": "resource_grade_b",
             "spatial_resolution": "peof",
         },
@@ -128,7 +128,8 @@ class PanEuropeanClimateDatabase(Dataset[pd.DataFrame]):
             "offshore_wind_weights.csv",
             "https://raw.githubusercontent.com/ecmwf-training/dss-notebooks/main/"
             "datasets/sis-energy-pecd/aggregation-pecd-regions-into-nut0/weights/"
-            "PECD4.2/Offshore_Existing_run.csv",
+            # "PECD4.2/Offshore_Existing_run.csv",
+            "PECD4.2/Offshore_Future_tech_runs.csv", # because the "Existing" has no data for countries without capacity in 2020 (e.g., IT)
         ),
     }
 
@@ -175,7 +176,8 @@ class PanEuropeanClimateDatabase(Dataset[pd.DataFrame]):
         file per technology); subsequent calls just read that cache back.
         """
         cache_path = self.path / f"pecd_data_{technology}.feather"
-        if cache_path.exists():
+        if (cache_path.exists() 
+            and not self.settings.cache.overwrite_pan_european_climate_database):
             return pd.read_feather(cache_path).set_index("Date")
 
         zip_path = self.path / f"{technology}_{year}_raw.zip"
@@ -319,12 +321,15 @@ class PanEuropeanClimateDatabase(Dataset[pd.DataFrame]):
             "PanEuropeanClimateDatabase dataset."
         )
         data = self.data[element.name]
-        common_nodes = data.columns.intersection(element.model.config.system.set_nodes)
-        if element.name != "wind_offshore":
-            missing_nodes = set(
-                element.model.config.system.set_nodes).difference(common_nodes)
-            assert len(missing_nodes) == 0, (
-                f"Missing nodes in PanEuropeanClimateDatabase data for {element.name}: "
+        capacity_nodes = element.capacity_limit.df.index
+        capacity_nodes = capacity_nodes.intersection(
+            element.model.config.system.set_nodes)
+        common_nodes = data.columns.intersection(capacity_nodes)
+        missing_nodes = capacity_nodes.difference(common_nodes)
+        if len(missing_nodes) > 0:
+            logging.warning(
+                f"No max load of {element.name} in PanEuropeanClimateDatabase data "
+                "available for nodes that have capacity limits: "
                 f"{missing_nodes}"
             )
         if data.min().min() < 0 and data.max().max() > 1:
@@ -349,6 +354,7 @@ class PanEuropeanClimateDatabase(Dataset[pd.DataFrame]):
         return element.max_load.set_data(
             source=source,
             df=data,
+            default_value=0,
             unit="1",
         )
 
@@ -413,6 +419,7 @@ class PanEuropeanClimateDatabase(Dataset[pd.DataFrame]):
         return element.flow_storage_inflow.set_data(
             source=source,
             df=data,
+            default_value=0,
             unit="GW",
         )
 

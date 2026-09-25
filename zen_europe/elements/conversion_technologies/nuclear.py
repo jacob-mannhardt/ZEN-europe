@@ -237,7 +237,7 @@ class Nuclear(ConversionTechnology):
                     ),
                     metadata=nuclear_max_load.metadata,
                 ),
-                unit="GW",
+                unit="1",
             )
         return attr
 

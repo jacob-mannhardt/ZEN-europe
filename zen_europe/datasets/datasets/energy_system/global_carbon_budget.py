@@ -8,6 +8,8 @@ import requests
 from zen_creator import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
+from zen_europe.settings.cache import get_active_cache_settings
+
 # The workbook is downloaded once and then read back from this directory, so
 # that building a model does not depend on the Global Carbon Budget download
 # being reachable. Delete the cached file to pick up a newer data vintage.
@@ -68,7 +70,8 @@ class GlobalCarbonBudget(Dataset[pd.Series]):
         converts them to GtCO2/yr.
         """
         cache_path = self._cache_path()
-        if cache_path is not None and cache_path.exists():
+        overwrite = get_active_cache_settings().overwrite_global_carbon_budget
+        if cache_path is not None and cache_path.exists() and not overwrite:
             data = pd.read_csv(cache_path, index_col="year")["emissions"]
             data.index = data.index.astype(int)
             return data

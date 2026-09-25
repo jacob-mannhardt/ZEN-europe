@@ -48,7 +48,7 @@ class SecondarySteel(Carrier):
                 "price_shed_demand",
                 default_value=1e4,
                 element=self,
-                unit="EUR/tproduct",
+                unit="Euro/tproduct",
             )
         else:
             return self.price_shed_demand

@@ -16,6 +16,7 @@ from zen_europe.datasets.datasets.financial._cost_schema import (
     INDEX_NAMES,
     VALUE_COLUMNS,
 )
+from zen_europe.settings.cache import get_active_cache_settings
 from zen_europe.utils.constants import Constants
 
 # internal technology name -> DEA (Technology, category, input, size) row key.
@@ -268,11 +269,11 @@ def _dea_size(plant_size: str, technology: str) -> str:
 def _convert_main_unit(unit_src: str, variable: str) -> float:
     """Multiplier from a DEA source unit to this package's standard unit."""
     if variable == "capex" and unit_src in ("MEUR/MW_e", "MEUR/MW_h"):
-        return 1000.0  # MEUR/MW -> Euro/kW
+        return 1000.0  # MEUR/MW -> EUR/kW
     if variable == "fopex" and unit_src in ("EUR/MW_e/y", "EUR/MW_h/y"):
-        return 1 / 1000  # EUR/MW/y -> Euro/kW/year
+        return 1 / 1000  # EUR/MW/y -> EUR/kW/year
     if variable == "vopex" and unit_src in ("EUR/MWh_e", "EUR/MWh_h"):
-        return 1.0  # already Euro/MWh
+        return 1.0  # already EUR/MWh
     raise ValueError(f"Unexpected DEA unit '{unit_src}' for variable '{variable}'")
 
 
@@ -363,7 +364,7 @@ class DEA(Dataset[pd.DataFrame]):
 
     def _set_data(self) -> pd.DataFrame:
         cache_path = self.path / "dea_processed.feather"
-        if cache_path.exists():
+        if cache_path.exists() and not get_active_cache_settings().overwrite_dea:
             return pd.read_feather(cache_path).set_index(INDEX_NAMES)
 
         financial, technical = self._load("main")
@@ -453,7 +454,7 @@ class DEA(Dataset[pd.DataFrame]):
                     continue
                 unit_src = sel["unit"].iloc[0]
                 multiplier = _convert_main_unit(unit_src, variable)
-                schema_unit = {"capex": "Euro/kW", "fopex": "Euro/kW/year", "vopex": "Euro/MWh"}[variable]
+                schema_unit = {"capex": "Euro/kW", "fopex": "Euro/kW", "vopex": "Euro/MWh"}[variable]
                 for _, row in sel.iterrows():
                     rows.append(
                         (
@@ -470,7 +471,7 @@ class DEA(Dataset[pd.DataFrame]):
         """DEA reports electric- and heat-basis figures under different par
         strings; prefer the electric one, fall back to heat."""
         for suffix in ("MW_e", "MW_h") if var_label != "Variable O&M" else ("MWh_e", "MWh_h"):
-            money = "MEUR" if var_label == "Nominal investment" else "EUR"
+            money = "MEUR" if var_label == "Nominal investment" else "Euro"
             year_str = "/y" if var_label == "Fixed O&M" else ""
             par = f"{var_label} (*total) [{money}/{suffix}{year_str}]"
             if (tech_rows["par"] == par).any():
@@ -490,7 +491,7 @@ class DEA(Dataset[pd.DataFrame]):
             "lifetime": ["Technical lifetime [years]"],
             "construction_time": ["Construction time [years]"],
         }
-        schema_units = {"efficiency": "-", "lifetime": "1", "construction_time": "1"}
+        schema_units = {"efficiency": "1", "lifetime": "1", "construction_time": "1"}
         source_units = {"efficiency": "-", "lifetime": "years", "construction_time": "years"}
         for variable, candidate_pars in tech_pars.items():
             for par in candidate_pars:
@@ -573,8 +574,8 @@ class DEA(Dataset[pd.DataFrame]):
                     value = value_src * 1000 / capacity_kw  # k Euro/unit -> Euro/kW
                     unit = "Euro/kW"
                 elif variable == "fopex":
-                    value = value_src / capacity_kw  # Euro/unit/y -> Euro/kW/year
-                    unit = "Euro/kW/year"
+                    value = value_src / capacity_kw  # Euro/unit/y -> Euro/kW
+                    unit = "Euro/kW"
                 else:
                     value = value_src * 1000  # Euro/kWh -> Euro/MWh
                     unit = "Euro/MWh"
@@ -649,7 +650,7 @@ class DEA(Dataset[pd.DataFrame]):
             tech_rows = technical[technical["Technology"] == dea_label]
             if fin_rows.empty:
                 continue
-            schema_units = {"capex": "Euro/kW", "fopex": "Euro/kW/year", "vopex": "Euro/MWh"}
+            schema_units = {"capex": "Euro/kW", "fopex": "Euro/kW", "vopex": "Euro/MWh"}
             for scenario, est in scenarios.items():
                 for variable, (par, multiplier) in _RF_COST_PARS[technology].items():
                     sel = fin_rows[(fin_rows["par"] == par) & (fin_rows["est"] == est)]

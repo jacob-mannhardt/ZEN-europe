@@ -8,6 +8,8 @@ import requests
 from zen_creator import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
+from zen_europe.settings.cache import get_active_cache_settings
+
 # The inventory is downloaded once, reduced to a single pollutant and then read
 # back from this directory, so that building a model does not depend on the EEA
 # datastore being reachable. Delete the cached file to pick up a newer version.
@@ -118,7 +120,8 @@ class EEAGreenhouseGasInventory(Dataset[pd.DataFrame]):
         nodes are the reporting countries, with Greece renamed from GR to EL.
         """
         cache_path = self._cache_path()
-        if cache_path is not None and cache_path.exists():
+        overwrite = get_active_cache_settings().overwrite_eea_ghg_inventory
+        if cache_path is not None and cache_path.exists() and not overwrite:
             data = pd.read_csv(cache_path, index_col=["sector_code", "node"])
             data.columns = data.columns.astype(int)
             data.columns.name = "year"

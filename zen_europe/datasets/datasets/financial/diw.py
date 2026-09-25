@@ -64,8 +64,8 @@ _LIFETIME_TECHS: dict[str, str] = {
     "oil_plant": "OilPowerPlant(CCGT)",
 }
 _MONEY_YEAR_SRC = 2018
-# The "costs" sheet is numerically in TEUR/MW, which equals Euro/kW 1:1.
-_SOURCE_CAPEX_UNIT = "TEUR/MW"
+# The "costs" sheet is numerically in kEuro/MW, which equals Euro/kW 1:1.
+_SOURCE_CAPEX_UNIT = "kEuro/MW"
 
 
 class DIW(Dataset[pd.DataFrame]):

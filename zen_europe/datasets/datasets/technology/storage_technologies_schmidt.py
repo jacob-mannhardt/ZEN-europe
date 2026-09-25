@@ -109,7 +109,7 @@ class StorageTechnologiesSchmidt(Dataset[pd.DataFrame]):
                     rows.append((
                         technology, "M", "ref", variable, int(year),
                         float(cost_2015 * relative), STANDARD_UNITS[variable],
-                        self.MONEY_YEAR, float(cost_2015),
+                        self.MONEY_YEAR, float(cost_2015 * relative),
                         self._source_unit(variable),
                     ))
         data = pd.DataFrame(rows, columns=INDEX_NAMES + VALUE_COLUMNS)

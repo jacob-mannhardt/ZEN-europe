@@ -10,6 +10,7 @@ from zen_europe.datasets.datasets.technology.hydrogen_europe import HydrogenEuro
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
+from zen_europe.utils.utils import format_capacity_existing
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -158,7 +159,8 @@ class Electrolysis(ConversionTechnology):
             hydrogen_europe_dataset = HydrogenEurope(source_path=self.source_path)
             capacity_existing = hydrogen_europe_dataset.get_capacity_existing()
             cf = self.conversion_factor.default_value[0]["electricity"]["default_value"]
-            capacity_existing = capacity_existing / cf
+            capacity_existing = capacity_existing.squeeze() / cf
+            capacity_existing = format_capacity_existing(capacity_existing)
             attr = self.capacity_existing
             source = SourceInformation(
                 description=(

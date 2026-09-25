@@ -7,7 +7,7 @@ class ScenarioSettings(SettingsCategory):
     name: str = "scenario"
 
     run_default_scenario: bool = True
-    sensitivity_demand: bool = True
+    sensitivity_demand: bool = False
     sensitivity_discount_rate: bool = False
     sensitivity_biomass: bool = False
-    sensitivity_no_diffusion_rate: bool = True
+    sensitivity_no_diffusion_rate: bool = False

@@ -22,7 +22,7 @@ from zen_creator import (
     SourceInformation,
 )
 
-from zen_europe.utils.utils import account_for_decommissioned_capacity
+from zen_europe.utils.utils import account_for_decommissioned_capacity, format_capacity_existing
 
 
 class SMR(ConversionTechnology):
@@ -162,6 +162,7 @@ class SMR(ConversionTechnology):
             capacity_existing = account_for_decommissioned_capacity(
                 capacity_existing, self)
             capacity_existing.index.name = "node"
+            capacity_existing = format_capacity_existing(capacity_existing)
             attr = self.capacity_existing
             source = SourceInformation(
                 description=(
@@ -171,7 +172,7 @@ class SMR(ConversionTechnology):
                 ),
                 metadata=ganter_dataset.metadata,
             )
-            attr.set_data(df=capacity_existing, source=source)
+            attr.set_data(df=capacity_existing, source=source,unit="GW")
             return attr
         else:
             attr = self.capacity_existing

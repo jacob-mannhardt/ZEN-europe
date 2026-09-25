@@ -8,6 +8,7 @@ import requests
 from zen_creator import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
+from zen_europe.settings.cache import get_active_cache_settings
 from zen_europe.utils.utils import convert_ISO3_to_ISO2
 
 # The World Bank series is downloaded once and then read back from this
@@ -68,7 +69,8 @@ class WorldBankCO2Emissions(Dataset[pd.DataFrame]):
         The world total is in the row `World`, all other rows are NUTS0 nodes.
         """
         cache_path = self._cache_path()
-        if cache_path is not None and cache_path.exists():
+        overwrite = get_active_cache_settings().overwrite_worldbank_co2_emissions
+        if cache_path is not None and cache_path.exists() and not overwrite:
             data = pd.read_csv(cache_path, index_col="node")
             data.columns = data.columns.astype(int)
             data.columns.name = "year"

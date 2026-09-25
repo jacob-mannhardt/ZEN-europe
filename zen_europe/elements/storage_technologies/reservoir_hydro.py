@@ -84,10 +84,19 @@ class ReservoirHydro(StorageTechnology):
         but not for the energy capacity. So, we use the energy capacity data of 
         pumped hydro as a proxy for reservoir hydro.
         """
-        tech_db = TechnologyCostDatabase(
-            settings=self.settings, source_path=self.source_path)
-        return tech_db.get_capex_specific_storage_energy(
-            self, proxy_element_name="pumped_hydro")
+        attr = self.capex_specific_storage_energy
+        return attr.set_data(
+            default_value=0,
+            df=None,
+            source=AssumptionInformation(
+                description=(
+                    "The specific capex of the energy capacity of reservoir hydro is "
+                    "manually set to 0, since this is a natural storage. "
+                    "The costs of the energy capacity are assumed to be included "
+                    "in the costs of the power capacity."
+                ),
+            ),
+        )
 
     def _set_opex_specific_fixed(self) -> Attribute:
         """

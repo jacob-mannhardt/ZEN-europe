@@ -158,7 +158,7 @@ class UNECE(Dataset[dict[str, pd.DataFrame]]):
         """
         cache_path = self._cache_path(table)
 
-        if cache_path.exists():
+        if cache_path.exists() and not self.settings.cache.overwrite_unece:
             logger.info(f"Loading cached UNECE data for '{table}' from {cache_path}")
             data = pd.read_feather(cache_path).set_index(
                 ["vehicle_type", "fuel_type", "country"])

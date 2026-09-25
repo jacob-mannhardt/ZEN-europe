@@ -92,8 +92,8 @@ class TYNDPTechnologyCost(Dataset[pd.DataFrame]):
                                 scenario,
                                 variable,
                                 year,
-                                float(value_src),  # TEUR/MW == Euro/kW (and Euro/kW/year for fopex)
-                                "Euro/kW" if variable == "capex" else "Euro/kW/year",
+                                float(value_src),  # kEuro/MW == Euro/kW (and Euro/kW for fopex)
+                                "Euro/kW" if variable == "capex" else "Euro/kW",
                                 _MONEY_YEAR_SRC,
                                 float(value_src),
                                 unit_src,

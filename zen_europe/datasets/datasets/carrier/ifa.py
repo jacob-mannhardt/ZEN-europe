@@ -134,7 +134,7 @@ class IFA(Dataset[pd.DataFrame]):
         """
         d = self._prepare_data()
         reference_year = element.settings.time.reference_year
-        d = d[reference_year].to_frame(name=reference_year)
+        d = d[reference_year].to_frame(name=reference_year-1)
         capacity_existing = calculate_capacity_addition_from_cumulative(d,element)
         capacity_existing = format_capacity_existing(capacity_existing)
         source = SourceInformation(

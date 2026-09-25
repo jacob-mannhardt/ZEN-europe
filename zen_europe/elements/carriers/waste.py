@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_creator import AssumptionInformation
+
 from zen_europe.datasets.dataset_collections.carrier_availability import (
     CarrierAvailability,
 )
@@ -15,6 +17,7 @@ if TYPE_CHECKING:
 from zen_creator.elements import Carrier
 from zen_creator.utils.attribute import Attribute
 
+import numpy as np
 
 class Waste(Carrier):
     """Waste carrier class.
@@ -35,15 +38,22 @@ class Waste(Carrier):
 
         """
         if self.settings.availability.cap_waste_import:
-            # TODO make more general by checking if industry sector is included
-            include_industry = (
-                "waste_to_cement_fuel" in self.model.conversion_technologies)
+            include_industry = "cement" in self.model.sectors
             carrier_availability = CarrierAvailability(
                 settings=self.settings, source_path=self.model.source_path)
             return carrier_availability.get_waste_availability(
                 element=self,include_industry=include_industry)
         else:
-            return self.availability_import
+            attr = self.availability_import
+            return attr.set_data(
+                default_value=np.inf, df=None, 
+                source = AssumptionInformation(
+                    description=(
+                        "The import availability of waste is set to infinity, "
+                        "as the availability is not capped in the settings."
+                    )
+                )
+            )
     
     def _set_price_import(self) -> Attribute:
         """

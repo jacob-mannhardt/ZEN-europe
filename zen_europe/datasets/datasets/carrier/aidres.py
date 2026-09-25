@@ -194,16 +194,19 @@ class Aidres(Dataset[pd.DataFrame]):
         """
         attr = element.conversion_factor
         consumption_hard_coal = 2.13 # GJ/ton, 
-        cf = {"hydrogen_to_cement_fuel": 2.46/consumption_hard_coal, # alternative fuel mix
-            "biomass_to_cement_fuel": 2.77/consumption_hard_coal, # biomass
-            "waste_to_cement_fuel": 2.46/consumption_hard_coal, # waste
-            "coal_to_cement_fuel": 1, # coal
+        cf = {"hydrogen_to_cement_fuel": {"hydrogen": 2.46/consumption_hard_coal}, # alternative fuel mix
+            "biomass_to_cement_fuel": {"biomass": 2.77/consumption_hard_coal}, # biomass
+            "waste_to_cement_fuel": {"waste": 2.46/consumption_hard_coal}, # waste
+            "coal_to_cement_fuel": {"hard_coal": 1}, # coal
             }
         assert element.name in cf, f"Conversion factor for {element.name} not found."
 
+        cf_car = cf[element.name]
+        cf_car = [{cf_car_key: {"default_value": cf_car_value, "unit": "GW/GW"}} 
+                  for cf_car_key, cf_car_value in cf_car.items()]
+
         attr.set_data(
-            default_value=cf[element.name],
-            unit="GW/GW",
+            default_value=cf_car,
             source=SourceInformation(
                 description=(
                     f"The conversion factor for cement fuel technologies is based"

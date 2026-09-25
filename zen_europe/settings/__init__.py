@@ -2,6 +2,7 @@
 # zen_creator's SettingsCategory registry, so they become queryable as
 # model.settings.<name> (e.g. model.settings.time).
 from .availability import AvailabilitySettings  # noqa: F401
+from .cache import CacheSettings  # noqa: F401
 from .cost import CostSettings  # noqa: F401
 from .data_source import DataSourceSettings  # noqa: F401
 from .emissions import EmissionsSettings  # noqa: F401
@@ -19,4 +20,5 @@ __all__ = [
     "AvailabilitySettings",
     "MaxLoadSettings",
     "ScenarioSettings",
+    "CacheSettings",
 ]

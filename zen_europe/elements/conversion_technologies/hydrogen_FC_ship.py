@@ -167,7 +167,7 @@ class HydrogenFCShip(ConversionTechnology):
         Sets the specific fixed operational expenditure (opex) for hydrogen FC ships.
 
         The fixed opex is obtained from Korberg et al. (2021) 
-        and is expressed in Euro/kW/year.
+        and is expressed in Euro/kW.
 
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
@@ -177,7 +177,7 @@ class HydrogenFCShip(ConversionTechnology):
         fixed_opex = korberg_dataset.get_opex_fixed(self)
         attr.set_data(
             default_value=fixed_opex,
-            unit="Euro/kW/year",
+            unit="Euro/kW",
             source=SourceInformation(
                 description=(
                     "The specific fixed opex of hydrogen FC ships is obtained "

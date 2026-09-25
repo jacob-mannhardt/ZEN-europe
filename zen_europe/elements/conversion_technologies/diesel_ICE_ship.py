@@ -9,7 +9,7 @@ from zen_europe.datasets.datasets.technology.shipping_technologies_korberg impor
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
-from zen_europe.utils.utils import account_for_decommissioned_capacity
+from zen_europe.utils.utils import account_for_decommissioned_capacity, format_capacity_existing
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
@@ -162,9 +162,10 @@ class DieselICEShip(ConversionTechnology):
             capacity_existing = demand / diesel_cf / max_load
             
             capacity_existing.index.name = "node"
-            capacity_existing.name = self.settings.time.reference_year
+            capacity_existing.name = self.settings.time.reference_year - 1
             capacity_existing = account_for_decommissioned_capacity(
                 capacity_existing.to_frame(),self)
+            capacity_existing = format_capacity_existing(capacity_existing)
             attr = self.capacity_existing
             source = SourceInformation(
                 description=(
@@ -221,7 +222,7 @@ class DieselICEShip(ConversionTechnology):
         Sets the specific fixed operational expenditure (opex) for diesel ICE ships.
 
         The fixed opex is obtained from Korberg et al. (2021) 
-        and is expressed in Euro/kW/year.
+        and is expressed in Euro/kW.
 
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
@@ -231,7 +232,7 @@ class DieselICEShip(ConversionTechnology):
         fixed_opex = korberg_dataset.get_opex_fixed(self)
         attr.set_data(
             default_value=fixed_opex,
-            unit="Euro/kW/year",
+            unit="Euro/kW",
             source=SourceInformation(
                 description=(
                     "The specific fixed opex of diesel ICE ships is obtained "

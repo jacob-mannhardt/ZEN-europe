@@ -8,6 +8,8 @@ import scipy.stats as stats
 from zen_creator import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
+from zen_europe.settings.cache import get_active_cache_settings
+
 # The ECB series are downloaded once and then read back from this directory,
 # so that building a model does not depend on the ECB API being reachable.
 # Delete the cached file to pick up newer observations.
@@ -24,8 +26,9 @@ def _cache_directory(source_path: Path | str | None) -> Path | None:
 
 
 def _read_cache(path: Path | None) -> pd.DataFrame | None:
-    """Return the cached yearly series, or None if it has not been cached yet."""
-    if path is None or not path.exists():
+    """Return the cached yearly series, or None if it has not been cached yet
+    or the cache should be overwritten."""
+    if path is None or not path.exists() or get_active_cache_settings().overwrite_ecb:
         return None
     return pd.read_csv(path, index_col="year")
 

@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Dict, cast
 
 import pandas as pd
+import numpy as np
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -71,7 +72,7 @@ _METRICS = ("mean", "median", "min", "max")
 _RETROFIT_COUPLING_UNITS = ("tCO2eq/MWh", "tCO2/MWh")
 _RETROFIT_UNIT_CONVERSION: dict[tuple[str, str], tuple[float, str]] = {
     ("capex", "Euro/kW"): (1e3, CO2_BASIS_UNITS["capex"]),
-    ("fopex", "Euro/kW/year"): (1e3, CO2_BASIS_UNITS["fopex"]),
+    ("fopex", "Euro/kW"): (1e3, CO2_BASIS_UNITS["fopex"]),
     ("vopex", "Euro/MWh"): (1.0, CO2_BASIS_UNITS["vopex"]),
 }
 
@@ -96,7 +97,7 @@ class TechnologyCostDatabase(DatasetCollection):
     # -------- outward-facing accessors ------------------
 
     def get_capex_specific_conversion(
-        self, element: Element, plant_size: str = "M", metric: str = "mean",
+        self, element: Element, plant_size: str | None = None, metric: str = "mean",
         proxy_element_name: str | None = None
     ) -> Attribute:
         """Specific investment cost for `element`'s technology."""
@@ -107,7 +108,7 @@ class TechnologyCostDatabase(DatasetCollection):
         )
 
     def get_opex_specific_fixed(
-        self, element: Element, plant_size: str = "M", metric: str = "mean",
+        self, element: Element, plant_size: str | None = None, metric: str = "mean",
         proxy_element_name: str | None = None
     ) -> Attribute:
         """Fixed operational cost for `element`'s technology."""
@@ -118,7 +119,7 @@ class TechnologyCostDatabase(DatasetCollection):
         )
 
     def get_opex_specific_variable(
-        self, element: Element, plant_size: str = "M", metric: str = "mean",
+        self, element: Element, plant_size: str | None = None, metric: str = "mean",
         proxy_element_name: str | None = None
     ) -> Attribute:
         """Variable operational cost for `element`'s technology."""
@@ -129,7 +130,7 @@ class TechnologyCostDatabase(DatasetCollection):
         )
 
     def get_capex_specific_storage(
-        self, element: StorageTechnology, plant_size: str = "M",
+        self, element: StorageTechnology, plant_size: str | None = None,
         metric: str = "mean", proxy_element_name: str | None = None
     ) -> Attribute:
         """Specific investment cost for `element`'s power capacity."""
@@ -140,7 +141,7 @@ class TechnologyCostDatabase(DatasetCollection):
         )
 
     def get_capex_specific_storage_energy(
-        self, element: StorageTechnology, plant_size: str = "M",
+        self, element: StorageTechnology, plant_size: str | None = None,
         metric: str = "mean", proxy_element_name: str | None = None
     ) -> Attribute:
         """Specific investment cost for `element`'s energy capacity."""
@@ -152,7 +153,7 @@ class TechnologyCostDatabase(DatasetCollection):
         )
 
     def get_capex_specific_conversion_pyrolysis(
-        self, element: ConversionTechnology, plant_size: str = "M",
+        self, element: ConversionTechnology, plant_size: str | None = None,
         metric: str = "mean"
     ) -> Attribute:
         """Specific investment cost for pyrolysis, per unit of reference carrier."""
@@ -163,7 +164,7 @@ class TechnologyCostDatabase(DatasetCollection):
         )
 
     def get_opex_specific_fixed_pyrolysis(
-        self, element: ConversionTechnology, plant_size: str = "M",
+        self, element: ConversionTechnology, plant_size: str | None = None,
         metric: str = "mean"
     ) -> Attribute:
         """Fixed operational cost for pyrolysis, per unit of reference carrier."""
@@ -174,7 +175,7 @@ class TechnologyCostDatabase(DatasetCollection):
         )
 
     def get_opex_specific_variable_pyrolysis(
-        self, element: ConversionTechnology, plant_size: str = "M",
+        self, element: ConversionTechnology, plant_size: str | None = None,
         metric: str = "mean"
     ) -> Attribute:
         """Variable operational cost for pyrolysis, per unit of reference carrier."""
@@ -206,29 +207,29 @@ class TechnologyCostDatabase(DatasetCollection):
         return 1.0 + sum(conversion_factor[carrier] for carrier in co_products)
 
     def get_lifetime(
-        self, element: Element, plant_size: str = "M", metric: str = "median",
+        self, element: Element, plant_size: str | None = None, metric: str = "median",
         proxy_element_name: str | None = None
     ) -> Attribute:
         """Technical lifetime [years] for `element`'s technology."""
         return self._set_technology_attribute(
                     element, element.lifetime, "lifetime", plant_size, metric,
                     description="technical lifetime", annual_values=True,
-                    proxy_element_name=proxy_element_name
+                    proxy_element_name=proxy_element_name, make_int=True
                 )
 
     def get_construction_time(
-        self, element: Element, plant_size: str = "M", metric: str = "median",
+        self, element: Element, plant_size: str | None = None, metric: str = "median",
         proxy_element_name: str | None = None
     ) -> Attribute:
         """Construction time [years] for `element`'s technology."""
         return self._set_technology_attribute(
                     element, element.construction_time, "construction_time", plant_size, metric,
                     description="construction time", annual_values=True,
-                    proxy_element_name=proxy_element_name
+                    proxy_element_name=proxy_element_name, make_int=True
                 )
 
     def get_efficiency(
-        self, element: Element, plant_size: str = "M", metric: str = "mean",
+        self, element: Element, plant_size: str | None = None, metric: str = "mean",
         reference_year: int | None = None
     ) -> tuple[pd.Series, list[str]]:
         """Conversion efficiency [-] for `technology`, indexed by year.
@@ -266,7 +267,7 @@ class TechnologyCostDatabase(DatasetCollection):
 
     def export_cost_table(
         self, path: Path, technologies: list[str] | None = None,
-        plant_size: str = "M", reference_year: int | None = None,
+        plant_size: str | None = None, reference_year: int | None = None,
     ) -> pd.DataFrame:
         """Export a min/mean/max cost table (capex, fopex, vopex) to Excel.
 
@@ -299,7 +300,7 @@ class TechnologyCostDatabase(DatasetCollection):
     # -------- aggregation internals ------------------
     def _get_attribute_data(
         self, element: Element, attribute: Attribute, variable: str,
-        plant_size: str, metric: str, description: str, annual_values: bool = True,
+        plant_size: str | None, metric: str, description: str, annual_values: bool = True,
         proxy_element_name: str | None = None
     ) -> tuple[pd.Series,float,pd.Series,list[str]]:
         """Get the data for a given attribute of a technology."""
@@ -346,8 +347,8 @@ class TechnologyCostDatabase(DatasetCollection):
     
     def _set_technology_attribute(
         self, element: Element, attribute: Attribute, variable: str,
-        plant_size: str, metric: str, description: str, annual_values: bool = True,
-        multiplier: float = 1.0,
+        plant_size: str | None, metric: str, description: str, annual_values: bool = True,
+        multiplier: float = 1.0, make_int: bool = False,
         proxy_element_name: str | None = None,
     ) -> Attribute:
         df, default_value, yearly_variations, agencies = self._get_attribute_data(
@@ -357,6 +358,11 @@ class TechnologyCostDatabase(DatasetCollection):
         default_value *= multiplier
         if df is not None:
             df = df * multiplier
+        if make_int:
+            default_value = int(np.round(default_value))
+        # If the attribute is lifetime or construction_time, we don't want to provide a df, since these are not time-varying attributes.
+        if attribute.name == "lifetime" or attribute.name == "construction_time":
+            df = None
         reference_year = element.settings.time.reference_year
         rebasing = "" if multiplier == 1.0 else (
             f" The agencies report the cost per unit of total plant output, so it is "
@@ -374,7 +380,7 @@ class TechnologyCostDatabase(DatasetCollection):
                 f"is the {metric} across "
                 f"all available data for the agencies {', '.join(agencies)} reporting data for this "
                 f"technology at plant size '{plant_size}'. Monetary values are rebased to "
-                f"{reference_year} EUR using ECB HICP inflation.{rebasing}"
+                f"{reference_year} Euro using ECB HICP inflation.{rebasing}"
             ),
             metadata=self.metadata,
         )
@@ -439,9 +445,9 @@ class TechnologyCostDatabase(DatasetCollection):
             result = candidate.max(axis=1)
             result = result.where(result >= reference, reference)
         elif metric == "median":
-            result = pivoted.median(axis=1)
+            result = pivoted.T.groupby(level="agency").median().median(axis=0)
         else:
-            result = pivoted.mean(axis=1)
+            result = pivoted.T.groupby(level="agency").mean().mean(axis=0)
         result.index.name = "year"
         return result
 
@@ -450,11 +456,18 @@ class TechnologyCostDatabase(DatasetCollection):
         rows = self._collect_rows(technology, variable, plant_size)
         return set(rows["agency"].unique())
     
-    def _collect_rows(self, technology: str, variable: str, plant_size: str) -> pd.DataFrame:
+    def _collect_rows(
+            self, 
+            technology: str, 
+            variable: str, 
+            plant_size: str | None) -> pd.DataFrame:
         frames = []
         for agency, dataset in self.data.items():
             df = cast(Any, dataset).get_costs()
-            key = (technology, plant_size, slice(None), variable, slice(None))
+            if plant_size is None:
+                key = (technology, slice(None), slice(None), variable, slice(None))
+            else:
+                key = (technology, plant_size, slice(None), variable, slice(None))
             try:
                 sel = df.loc[key]
             except KeyError:
@@ -481,6 +494,9 @@ class TechnologyCostDatabase(DatasetCollection):
         rows = self._collect_rows(technology, variable, plant_size)
         if rows.empty:
             return STANDARD_UNITS[variable]
+        assert rows["unit"].nunique() == 1, (
+            f"Multiple units reported for {variable} of {technology} at"
+            f" plant size {plant_size}: {rows['unit'].unique()}")
         return str(rows["unit"].iloc[0])
 
     def _available_technologies(self) -> set[str]:
@@ -641,7 +657,7 @@ class TechnologyCostDatabase(DatasetCollection):
                 f"plant size '{plant_size}', divided by the retrofit flow "
                 f"coupling factor ({coupling_factor.default_value:.4g} "
                 f"{coupling_factor.unit}) to express it per unit of captured "
-                f"CO2. Monetary values are rebased to {reference_year} EUR "
+                f"CO2. Monetary values are rebased to {reference_year} Euro "
                 f"using ECB HICP inflation."
             ),
             metadata=self.metadata,

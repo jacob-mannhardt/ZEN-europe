@@ -164,7 +164,8 @@ class ENTSOE(Dataset[pd.DataFrame]):
         recording how to restore the original index/columns."""
         data_path, meta_path = self._cache_paths(name)
 
-        if data_path.exists() and meta_path.exists():
+        overwrite = self.settings.cache.overwrite_entsoe
+        if data_path.exists() and meta_path.exists() and not overwrite:
             logger.info(f"Loading cached ENTSO-E data for '{name}' from {data_path}")
             frame = pd.read_feather(data_path)
             meta = json.loads(meta_path.read_text())

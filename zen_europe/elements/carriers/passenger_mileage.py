@@ -48,7 +48,7 @@ class PassengerMileage(Carrier):
                 "price_shed_demand",
                 default_value=1e4,
                 element=self,
-                unit="EUR/vkm",
+                unit="Euro/vkm",
             )
         else:
             return self.price_shed_demand

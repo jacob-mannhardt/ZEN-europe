@@ -85,7 +85,7 @@ class OlefinDemand(DatasetCollection):
         return element.demand.set_data(
             source=source,
             df=d,
-            unit="t/h",
+            unit="tproduct/h",
         )
     
     def get_capacity_existing_olefin(self, element: Element) -> Attribute:

@@ -148,7 +148,7 @@ class DistrictHeatingData(DatasetCollection):
             base_year=int(money_year_src), 
             target_year=self.settings.time.reference_year)
         cost = cost * inflation
-        
+        default_value = cost.iloc[0]
         source = SourceInformation(
             description=(
                 "The variable operational expenditure (opex) for district heating grids "
@@ -159,7 +159,7 @@ class DistrictHeatingData(DatasetCollection):
         )
         return element.opex_specific_variable.set_data(
             source=source,
-            df=cost,
+            default_value=default_value,
             unit="Euro/MWh",
         )
     

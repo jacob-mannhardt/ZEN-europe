@@ -45,7 +45,7 @@ class Electricity(Carrier):
             "price_shed_demand",
             default_value=1e4,
             element=self,
-            unit="EUR/MWh",
+            unit="Euro/MWh",
         )
 
     def _set_availability_import(self) -> Attribute:

@@ -9,7 +9,7 @@ from zen_creator.datasets.datasets.metadata import MetaData
 import pandas as pd
 
 from zen_europe.datasets.datasets.financial.dea import DEA
-from zen_europe.utils.utils import convert_country_names, calculate_capacity_addition_from_cumulative
+from zen_europe.utils.utils import convert_country_names, calculate_capacity_addition_from_cumulative, format_capacity_existing
 from zen_europe.utils.constants import Constants
 
 class BiocharMarketReport(Dataset[pd.DataFrame]):
@@ -102,7 +102,8 @@ class BiocharMarketReport(Dataset[pd.DataFrame]):
         biochar_per_oil = biochar_per_oil["hard_coal"]["default_value"]
 
         capacity_existing = data/biochar_per_oil 
-
+        capacity_existing = capacity_existing.stack()
+        capacity_existing = format_capacity_existing(capacity_existing)
         return attr.set_data(
             default_value=0,
             df = capacity_existing,

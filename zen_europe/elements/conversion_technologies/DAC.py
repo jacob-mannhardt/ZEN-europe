@@ -141,7 +141,8 @@ class DAC(ConversionTechnology):
             Attribute: An Attribute object containing the existing capacity data.
         """
         if self.settings.investment.use_existing_capacities:
-            dac_db = DACCapacitiesZurbriggen(source_path=self.source_path)        
+            dac_db = DACCapacitiesZurbriggen(
+                settings=self.settings, source_path=self.source_path)        
             return dac_db.get_capacity_existing(self)
         else:
             attr = self.capacity_existing

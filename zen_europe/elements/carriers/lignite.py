@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_creator import AssumptionInformation
+
 from zen_europe.datasets.dataset_collections.carrier_availability import (
     CarrierAvailability,
 )
@@ -18,7 +20,7 @@ from zen_creator.utils.attribute import Attribute
 
 from zen_europe.datasets.datasets.carrier.tyndp_fuel_prices import TYNDPFuelPrices
 
-
+import numpy as np
 class Lignite(Carrier):
     """Lignite carrier class.
 
@@ -47,7 +49,16 @@ class Lignite(Carrier):
                 settings=self.settings, source_path=self.model.source_path)
             return carrier_availability.get_coal_availability(element=self)
         else:
-            return self.availability_import
+            attr = self.availability_import
+            return attr.set_data(
+                default_value=np.inf, df=None, 
+                source = AssumptionInformation(
+                    description=(
+                        "The import availability of lignite is set to infinity, "
+                        "as the availability is not capped in the settings."
+                    )
+                )
+            )
     
     def _set_price_import(self) -> Attribute:
         """

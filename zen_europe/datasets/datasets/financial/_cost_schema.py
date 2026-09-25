@@ -45,7 +45,7 @@ TECH_VARIABLES: tuple[str, ...] = ("efficiency", "lifetime", "construction_time"
 STANDARD_UNITS: dict[str, str] = {
     "capex": "Euro/kW",
     "capex_energy": "Euro/kWh",
-    "fopex": "Euro/kW/year",
+    "fopex": "Euro/kW",
     "vopex": "Euro/MWh",
     "efficiency": "1",
     "lifetime": "1",
@@ -63,7 +63,7 @@ CO2_BASIS_TECHNOLOGIES: frozenset[str] = frozenset(
 )
 CO2_BASIS_UNITS: dict[str, str] = {
     "capex": "Euro/(tCO2/h)",
-    "fopex": "Euro/(tCO2/h)/year",
+    "fopex": "Euro/(tCO2/h)",
     "vopex": "Euro/tCO2",
 }
 

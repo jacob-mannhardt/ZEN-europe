@@ -180,6 +180,7 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
         attr = element.capacity_existing.set_data(
             df=data,
             source=source,
+            unit="GW"
         )
         return attr
 

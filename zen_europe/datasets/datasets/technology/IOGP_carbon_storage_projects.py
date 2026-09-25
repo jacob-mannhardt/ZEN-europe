@@ -12,6 +12,7 @@ import pandas as pd
 
 from zen_europe.utils.constants import Constants
 from zen_europe.utils.utils import convert_country_names, format_capacity_existing
+from zen_creator.utils.settings import Settings
 
 MAPPING_CCS = {
     "Hard to abate industry (cement plant)": "cement_post_comb",
@@ -45,7 +46,8 @@ class IOGPCarbonStorageProjects(Dataset[pd.DataFrame]):
 
     name = "IOGP_carbon_storage_projects"
 
-    def __init__(self, source_path: Path | str | None = None):
+    def __init__(self, settings: Settings, source_path: Path | str | None = None):
+        self.settings = settings
         super().__init__(source_path=source_path)
 
     def _set_metadata(self) -> MetaData:
@@ -83,7 +85,7 @@ class IOGPCarbonStorageProjects(Dataset[pd.DataFrame]):
         data["country"] = data["country"].replace({"Iceland": "Norway"})
         data["project"] = data["node"]
         data["node"] = convert_country_names(data["country"])
-        data = data[data["year_construction"].notna()]
+        data = data[data["year_construction"]!="no data"]
         data = data.set_index(["node","year_construction"])
 
         return data
@@ -95,7 +97,15 @@ class IOGPCarbonStorageProjects(Dataset[pd.DataFrame]):
         """
         attr = element.capacity_existing
         data = self.data["co2_storage_injection_capacity_mtpa"]
-        data = data/Constants.HOURS_PER_YEAR*1e6 # convert from Mtpa to tCO2/h
+        data = data/Constants.HOURS_PER_YEAR*1e6 # convert from Mtpa to tCO2/h 
+        data.index = data.index.set_levels(
+            data.index.levels[data.index.names.index("year_construction")].astype(int),
+            level="year_construction",
+        )
+        if not self.settings.investment.set_future_CCS_investments:
+            reference_year = self.settings.time.reference_year
+            data = data[
+                data.index.get_level_values("year_construction") <= reference_year-1]
         data = format_capacity_existing(data)
         return attr.set_data(
             default_value=0,

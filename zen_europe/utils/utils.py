@@ -1,3 +1,5 @@
+import logging
+
 import numpy as np
 import pandas as pd
 from typing import Union
@@ -228,7 +230,15 @@ def account_for_decommissioned_capacity(df: pd.DataFrame, element: Technology) -
     Returns:
         pd.DataFrame: DataFrame with decommissioned capacity accounted for.
     """
+    
     df.columns = df.columns.astype(int)
+    if df.columns.min() >= element.settings.time.reference_year:
+        logging.warning(
+            f"The first year of the capacity data for {element.name} is "
+            f"{df.columns.min()}, which is greater than or equal to the reference year "
+            f"{element.settings.time.reference_year}.\n"
+            "There is no capacity built before the reference year."
+        )
     df = df.sort_index(axis=1)
     # get years
     start_year = df.columns.min()
@@ -262,7 +272,7 @@ def account_for_decommissioned_capacity(df: pd.DataFrame, element: Technology) -
     # scale to match total capacity again
     df_tot = df_tot[df_tot.sum(axis=1)!=0]
     df = df[df.sum(axis=1)!=0]
-    df_tot = df_tot.mul(df.sum(axis=1)/df_tot.sum(axis=1),axis=0)
+    df_tot = df_tot.mul(df.loc[:,:reference_year-1].sum(axis=1)/df_tot.sum(axis=1),axis=0)
     return df_tot
 
 def format_capacity_existing(df: Union[pd.DataFrame, pd.Series]) -> pd.Series:

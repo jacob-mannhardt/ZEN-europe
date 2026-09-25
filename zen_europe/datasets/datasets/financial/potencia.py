@@ -65,7 +65,7 @@ _COST_VAR_LABELS: dict[str, str] = {
     "Variable O&M  costs €2010/MWh gross": "vopex",
 }
 _EFFICIENCY_LABEL = "Efficiency"
-_SCHEMA_UNITS: dict[str, str] = {"capex": "Euro/kW", "fopex": "Euro/kW/year", "vopex": "Euro/MWh"}
+_SCHEMA_UNITS: dict[str, str] = {"capex": "Euro/kW", "fopex": "Euro/kW", "vopex": "Euro/MWh"}
 _SRC_UNITS: dict[str, str] = {"capex": "€2010/kW gross", "fopex": "€2010/kW gross", "vopex": "€2010/MWh gross"}
 _MONEY_YEAR_SRC = 2010
 _START_YEAR = 2010

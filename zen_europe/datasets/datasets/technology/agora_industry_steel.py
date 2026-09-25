@@ -145,7 +145,7 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
         Returns:
             Attribute: An Attribute object containing the lifetime data.
         """
-        lifetime = (50 + 18) / 2 # years
+        lifetime = int((50 + 18) / 2) # years
         attr = element.lifetime
         attr.set_data(
             default_value=lifetime,
@@ -294,7 +294,7 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
             default_value=[{"electricity": {
                 "default_value": (
                     electricity_demand / Constants.GJ_PER_MWH / capture_rate),
-                "unit": "GWh/kilotons"}}],
+                "unit": "GWh/kilotonCO2"}}],
             source=SourceInformation(
                 description=(
                     f"The conversion factor of {element.name} is derived from "

@@ -14,6 +14,7 @@ from .global_scenarios import define_global_scenarios
 
 # import settings categories to register them in the registry (side effect)
 from . import settings  # noqa: F401
+from .settings.cache import set_active_cache_settings
 
 
 def create_model(
@@ -33,6 +34,7 @@ def create_model(
     # TODO: this should be remove in the long run and replaced
     model = Model.from_config(config)
     # model = Model.from_existing(crystal_ball_path, config=config)
+    set_active_cache_settings(model.settings.cache)
     model.output_folder = Path(output_folder) / "data"
     model.name = name
     # TODO move this somewhere else

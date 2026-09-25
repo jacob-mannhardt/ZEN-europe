@@ -202,7 +202,7 @@ class MethanolProductionCollodi(Dataset[pd.DataFrame]):
         Returns:
             Attribute: An Attribute object containing the specific fixed opex data.
         """
-        attr = element.opex_specific_variable
+        attr = element.opex_specific_fixed
         opex_fixed = 26677400 # Euro
         methanol_production = self._calculate_hourly_methanol_production()
         inflation = ECBInflation(source_path=self.source_path).get_inflation_rate(

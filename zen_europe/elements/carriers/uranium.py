@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from zen_creator import AssumptionInformation
+
+from zen_europe.datasets.dataset_collections.carrier_availability import CarrierAvailability
 from zen_europe.datasets.datasets.financial.ECB import ECBInflation
 
 if TYPE_CHECKING:
@@ -12,6 +15,7 @@ from zen_creator.utils.attribute import Attribute
 
 from zen_europe.datasets.datasets.carrier.tyndp_fuel_prices import TYNDPFuelPrices
 
+import numpy as np
 
 class Uranium(Carrier):
     """Uranium carrier class.
@@ -38,3 +42,19 @@ class Uranium(Carrier):
         """
         tyndp_fuel_prices = TYNDPFuelPrices(source_path=self.model.source_path)
         return tyndp_fuel_prices.get_price_import(element=self)
+
+    def _set_availability_import(self) -> Attribute:
+        """
+        Return the availability of uranium.
+
+        """
+        attr = self.availability_import
+        return attr.set_data(
+            default_value=np.inf, df=None, 
+            source = AssumptionInformation(
+                description=(
+                    "The import availability of uranium is set to infinity, "
+                    "as the availability is not capped in the settings."
+                )
+            )
+        )

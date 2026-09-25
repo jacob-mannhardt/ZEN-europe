@@ -213,6 +213,26 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         base = Path(self.source_path) / "02-carrier" / "eurostat" / name
         return base.with_suffix(".feather"), base.with_suffix(".json")
 
+    def _get_par_values(self, dataset: str, par: str) -> list[str]:
+        """Return the cached allowed values of a Eurostat dataset parameter
+        (e.g. "geo", "siec", "nrg_bal"), querying and caching them on first
+        use."""
+        if self.source_path is None:
+            raise ValueError("source_path must be set to cache Eurostat data.")
+        path = Path(self.source_path) / "02-carrier" / "eurostat" / f"{dataset}_{par}.json"
+        if path.exists():
+            return json.loads(path.read_text())
+
+        values = es.get_par_values(dataset, par)
+        if not values:
+            raise ValueError(
+                f"No values found for Eurostat dataset '{dataset}' parameter '{par}'\n"
+                "Check that the eurostat server is available and "
+                "that the dataset/parameter names are correct.")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(values))
+        return values
+
     def _cached_query(
         self, name: str, query: Callable[[], Union[pd.Series, pd.DataFrame]]
     ) -> Union[pd.Series, pd.DataFrame]:
@@ -227,7 +247,8 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         """
         data_path, meta_path = self._cache_paths(name)
 
-        if data_path.exists() and meta_path.exists():
+        overwrite = self.settings.cache.overwrite_eurostat
+        if data_path.exists() and meta_path.exists() and not overwrite:
             logger.info(f"Loading cached Eurostat data for '{name}' from {data_path}")
             frame = pd.read_feather(data_path)
             meta = json.loads(meta_path.read_text())
@@ -596,16 +617,16 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         """
         filter_pars: dict[str, Any] = {"start_period": start_period, "unit": unit}
 
-        eurostat_countries = es.get_par_values(dataset, "geo")
+        eurostat_countries = self._get_par_values(dataset, "geo")
         common_geo = sorted(set(geo or eurostat_countries).intersection(eurostat_countries))
         assert common_geo, f"None of the locations {geo} are in Eurostat database"
         filter_pars["geo"] = common_geo
 
-        common_siec = sorted(set(es.get_par_values(dataset, "siec")).intersection(siec))
+        common_siec = sorted(set(self._get_par_values(dataset, "siec")).intersection(siec))
         assert common_siec, f"None of the siec {siec} are in Eurostat database"
         filter_pars["siec"] = common_siec
 
-        common_bal = sorted(set(es.get_par_values(dataset, "nrg_bal")).intersection(nrg_bal))
+        common_bal = sorted(set(self._get_par_values(dataset, "nrg_bal")).intersection(nrg_bal))
         assert common_bal, f"None of the nrg_bal {nrg_bal} are in Eurostat database"
         filter_pars["nrg_bal"] = common_bal
 
@@ -631,13 +652,13 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         """
         filter_pars: dict[str, Any] = {"start_period": start_period, "unit": unit}
 
-        eurostat_countries = es.get_par_values(dataset, "geo")
+        eurostat_countries = self._get_par_values(dataset, "geo")
         common_geo = sorted(set(geo or eurostat_countries).intersection(eurostat_countries))
         assert common_geo, f"None of the locations {geo} are in Eurostat database"
         filter_pars["geo"] = common_geo
 
         for param, values in (params or {}).items():
-            common_param = sorted(set(es.get_par_values(dataset, param)).intersection(values))
+            common_param = sorted(set(self._get_par_values(dataset, param)).intersection(values))
             assert common_param, f"None of the param {param} ({values}) are in Eurostat database"
             filter_pars[param] = common_param
 
@@ -663,21 +684,21 @@ class Eurostat(Dataset[dict[str, pd.DataFrame]]):
         """
         filter_pars: dict[str, Any] = {"start_period": start_period}
 
-        eurostat_countries = es.get_par_values(dataset, "geo")
+        eurostat_countries = self._get_par_values(dataset, "geo")
         common_geo = sorted(set(geo or eurostat_countries).intersection(eurostat_countries))
         assert common_geo, f"None of the locations {geo} are in Eurostat database"
         filter_pars["geo"] = common_geo
 
-        common_risk_of_pov = sorted(set(es.get_par_values(dataset, "rskpovth")).intersection(risk_of_pov))
+        common_risk_of_pov = sorted(set(self._get_par_values(dataset, "rskpovth")).intersection(risk_of_pov))
         assert common_risk_of_pov, f"None of the risk_of_pov {risk_of_pov} are in Eurostat database"
         filter_pars["rskpovth"] = common_risk_of_pov
 
-        common_building = sorted(set(es.get_par_values(dataset, "building")).intersection(building))
+        common_building = sorted(set(self._get_par_values(dataset, "building")).intersection(building))
         assert common_building, f"None of the building {building} are in Eurostat database"
         filter_pars["building"] = common_building
 
         common_deg_urb = sorted(
-            set(es.get_par_values(dataset, "deg_urb")).intersection(deg_urb)
+            set(self._get_par_values(dataset, "deg_urb")).intersection(deg_urb)
         )
         assert common_deg_urb, f"None of the deg_urb {deg_urb} are in Eurostat database"
         filter_pars["deg_urb"] = common_deg_urb

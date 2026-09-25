@@ -6,15 +6,15 @@ class InvestmentSettings(SettingsCategory):
 
     name: str = "investment"
 
-    allow_investment: bool = True # NOTE: DONE
+    allow_investment: bool = True 
     use_existing_capacities: bool = True
     # keeps the existing hydro capacities even if use_existing_capacities is False
     keep_existing_hydro_capacities: bool = False
     use_existing_oil_to_x_capacities: bool = False
-    use_construction_times: bool = True # NOTE: DONE
+    use_construction_times: bool = False 
     # takes precedence over cap_nuclear_capacity_to_past_investments
-    use_nuclear_phase_out: bool = True # NOTE DONE
-    cap_nuclear_capacity_to_past_investments: bool = True # NOTE DONE
+    use_nuclear_phase_out: bool = True 
+    cap_nuclear_capacity_to_past_investments: bool = True 
     use_power_line_capacity_limit: bool = True
     allow_offshore_chemical_pipelines: bool = False
     account_for_offshore_transport: bool = True

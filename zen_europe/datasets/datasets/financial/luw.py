@@ -171,7 +171,7 @@ class LUW(Dataset[pd.DataFrame]):
                 else:
                     multiplier = _convert_to_schema_unit(unit_src, variable)
                     schema_unit = "Euro/MWh" if variable == "vopex" else (
-                        "Euro/kW" if variable == "capex" else "Euro/kW/year")
+                        "Euro/kW" if variable == "capex" else "Euro/kW")
                 for year in year_columns:
                     year = int(year)
                     value_src = values[year]

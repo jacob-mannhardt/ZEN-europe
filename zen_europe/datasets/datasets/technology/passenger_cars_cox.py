@@ -10,6 +10,7 @@ from zen_creator.datasets.datasets.dataset import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
 from zen_europe.datasets.datasets.financial.ECB import ECBInflation
+from zen_europe.settings.cache import get_active_cache_settings
 
 logger = logging.getLogger(__name__)
 
@@ -193,7 +194,8 @@ class PassengerCarsCox(Dataset[pd.DataFrame]):
         """Return the calculated vehicle parameters, computing and caching them
         on first use."""
         cache_path = self.path / _CACHE_FILE
-        if cache_path.exists():
+        overwrite = get_active_cache_settings().overwrite_passenger_cars_cox
+        if cache_path.exists() and not overwrite:
             cached = pd.read_csv(cache_path, index_col="tech")
             # a cache written before a parameter was added is stale
             if list(cached.columns) == _OUTPUT_COLUMNS:
@@ -675,7 +677,7 @@ class PassengerCarsCox(Dataset[pd.DataFrame]):
         """
         attr = element.lifetime
         return attr.set_data(
-            default_value=float(self.get_parameter(element.name, "lifetime")),
+            default_value=int(self.get_parameter(element.name, "lifetime")),
             source=SourceInformation(
                 description=(
                     f"The lifetime of {element.name} is obtained by dividing "
@@ -750,7 +752,7 @@ class PassengerCarsCox(Dataset[pd.DataFrame]):
                     "(2020), taken at the manufacturing cost rather than at "
                     "the consumer price, i.e. divided by the markup factor. "
                     f"Monetary values are rebased from {self.MONEY_YEAR} to "
-                    f"{element.settings.time.reference_year} EUR using ECB "
+                    f"{element.settings.time.reference_year} Euro using ECB "
                     "HICP inflation."
                 ),
                 metadata=self.metadata,

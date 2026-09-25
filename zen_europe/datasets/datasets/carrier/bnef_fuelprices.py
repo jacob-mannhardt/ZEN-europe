@@ -107,6 +107,7 @@ class BNEFFuelPrices(Dataset[pd.DataFrame]):
             element.settings.time.get_optimization_years()
         )
         data = data.loc[common_years]
+        data.index = data.index.astype(int)
         dollar_to_euro = element.get_dollar2euro(
             year=2021
         )

@@ -19,7 +19,7 @@ class MaterialEconomics(Dataset[pd.DataFrame]):
     This class implements the specific behavior for the Material Economics dataset.
     """
 
-    _CARBON_INTENSITY_CEMENT_KILN = 0.54  # tCO2/tclinker
+    _CARBON_INTENSITY_CEMENT_KILN = 0.54  # tCO2/tproduct
     name = "material_economics"
 
     def __init__(self, source_path: Path | str | None = None):
@@ -70,7 +70,7 @@ class MaterialEconomics(Dataset[pd.DataFrame]):
 
         This method retrieves the clinker carbon intensity and returns it as an Attribute.
 
-        unit: tonCO2/tclinker
+        unit: tonCO2/tproduct
 
         Returns:
             An Attribute object representing the clinker carbon intensity.
@@ -78,7 +78,7 @@ class MaterialEconomics(Dataset[pd.DataFrame]):
         attr = element.carbon_intensity_technology
         attr.set_data(
             default_value=self._CARBON_INTENSITY_CEMENT_KILN,
-            unit="tonCO2/tclinker",
+            unit="ton/tproduct",
             source=SourceInformation(
                 description=(
                     "The clinker carbon intensity is based on Material Economics "
@@ -97,7 +97,7 @@ class MaterialEconomics(Dataset[pd.DataFrame]):
 
         This method retrieves the fuel consumption for cement kilns and returns it as a float.
 
-        unit: GJ/tclinker
+        unit: GJ/tproduct
 
         Returns:
             A float representing the fuel consumption for cement kilns.

@@ -22,15 +22,3 @@ class Biomethane(Carrier):
         super().__init__(model=model, power_unit=power_unit)
 
     # ----Example of optional methods for overriding default attributes ------
-
-    def _set_availability_import(self) -> Attribute:
-        """
-        Return the import availability of biomethane.
-
-        """
-        return Attribute(
-                "availability_import",
-                default_value=0,
-                element=self,
-                unit=self.power_unit,
-            )
