@@ -91,22 +91,35 @@ class IOGPCarbonStorageProjects(Dataset[pd.DataFrame]):
         return data
 
     # -------- methods ------------------------    
-    def get_capacity_existing(self, element: ConversionTechnology) -> Attribute:
+    def get_capacity_existing_data(self) -> pd.DataFrame:
         """
-        Returns the existing carbon storage capacity from the IOGP report.
+        Returns the existing carbon storage capacity data from the IOGP report.
+
+        Returns:
+            pd.DataFrame: A pandas DataFrame containing the existing carbon storage capacity data.
         """
-        attr = element.capacity_existing
-        data = self.data["co2_storage_injection_capacity_mtpa"]
+        data = self.data.copy()
+        if not self.settings.investment.consider_carbon_storage_expansion:
+            data = data[~data["project"].str.contains("Expansion")]
+        data = data["co2_storage_injection_capacity_mtpa"]
         data = data/Constants.HOURS_PER_YEAR*1e6 # convert from Mtpa to tCO2/h 
         data.index = data.index.set_levels(
             data.index.levels[data.index.names.index("year_construction")].astype(int),
             level="year_construction",
         )
+        return data
+    
+    def get_capacity_existing(self, element: ConversionTechnology) -> Attribute:
+        """
+        Returns the existing carbon storage capacity from the IOGP report.
+        """
+        data = self.get_capacity_existing_data()
         if not self.settings.investment.set_future_CCS_investments:
             reference_year = self.settings.time.reference_year
             data = data[
                 data.index.get_level_values("year_construction") <= reference_year-1]
         data = format_capacity_existing(data)
+        attr = element.capacity_existing
         return attr.set_data(
             default_value=0,
             df=data,

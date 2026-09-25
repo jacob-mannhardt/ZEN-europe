@@ -165,3 +165,34 @@ class DAC(ConversionTechnology):
             return self.max_diffusion_rate
         diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
         return diffusion_rates.get_max_diffusion_rate(self)
+
+    
+    def _set_capacity_addition_unbounded(self) -> Attribute:
+        """
+        Sets the unbounded capacity addition of carbon storage.
+
+        Returns:
+            Attribute: An Attribute object containing the unbounded capacity addition data.
+        """
+        dac_db = DACCapacitiesZurbriggen(
+            settings=self.settings, source_path=self.source_path)
+        data = dac_db.data.copy()
+        data = data[["node","year_construction","Capacity"]].groupby(
+            ["node","year_construction"]).sum().squeeze()
+        median_add = data.median()
+        n_nodes = len(data.index.get_level_values("node").unique())
+        addition = median_add / n_nodes
+        attr = self.capacity_addition_unbounded
+        return attr.set_data(
+            default_value=addition,
+            unit="tCO2/h",
+            source=SourceInformation(
+                description=(
+                    "The unbounded capacity addition of carbon storage is "
+                    "based on the median planned capacity from the "
+                    "Zurbriggen et al. paper, "
+                    "divided by the number of nodes in the dataset."
+                ),
+                metadata=dac_db.metadata,
+            ),
+        )

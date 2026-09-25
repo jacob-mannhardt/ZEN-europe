@@ -116,8 +116,6 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
 
     def _set_data(self) -> dict[str, pd.Series | pd.DataFrame]:
         if (
-            not os.path.exists(self.path / "processed_powerplantmatching_data.feather")
-            or 
             not os.path.exists(self.path / "processed_powerplantmatching_data_raw.feather")
         ):
             data = ppm.powerplants(from_url=True)
@@ -131,26 +129,15 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
             data["technology"] = self._assign_technology(data, self.TECHNOLOGY_MAPPING)
             data = data[data["technology"].notna()]
             logging.info(f"After assigning technologies: {len(data)} power plants")
-            data_agg = data.groupby(["technology","node","year"])["Capacity"].sum()
-            data_agg = data_agg.sort_index()
-            data_agg = data_agg.to_frame("capacity_existing")
-            data_agg.to_feather(
-                self.path / "processed_powerplantmatching_data.feather")
             data_raw = data[['Name', 'Country', 'Capacity','DateIn', 
                              'DateRetrofit', 'DateOut', 'lat', 'lon',
                             'StorageCapacity_MWh',
                             'year', 'node', 'technology']]
             data_raw.to_feather(self.path / "processed_powerplantmatching_data_raw.feather")
         else:
-            data_agg = pd.read_feather(
-                self.path / "processed_powerplantmatching_data.feather")
             data = pd.read_feather(
                 self.path / "processed_powerplantmatching_data_raw.feather")
-        compiled_data = {
-            "data_agg": data_agg / 1000,
-            "data_raw": data
-        }
-        return compiled_data 
+        return data 
 
     # -------- methods ------------------------    
     def get_capacity_existing(self, element) -> pd.Series:
@@ -163,7 +150,12 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
         Returns:
             pd.Series: A pandas Series containing the existing capacity data.
         """
-        data = self.data["data_agg"].squeeze()
+        data_raw = self.data.copy()
+        data_raw = data_raw[
+            data_raw["DateOut"].isna() | 
+            (data_raw["DateOut"] > element.settings.time.reference_year)]
+        data = data_raw.groupby(["technology","node","year"])["Capacity"].sum()
+        data = data.sort_index() / 1000  # convert MW to GW
         assert element.name in data.index.get_level_values(0), (
             f"Existing capacity data for {element.name} is not available in the PowerPlantMatching dataset."
         )
@@ -197,7 +189,7 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
         Returns:
             int: The estimated lifetime of the technology in years. 
         """
-        data = self.data["data_raw"]
+        data = self.data.copy()
         assert element.name in data["technology"].unique(), (
             f"Existing capacity data for {element.name} is "
             "not available in the PowerPlantMatching dataset."

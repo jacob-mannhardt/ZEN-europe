@@ -87,6 +87,7 @@ class DACCapacitiesZurbriggen(Dataset[pd.DataFrame]):
         data = format_capacity_existing(data)
         return attr.set_data(
             df=data,
+            unit="tCO2/h",
             source=SourceInformation(
                 description=(
                     "The existing DAC capacity is based on the Zurbriggen et al. paper "

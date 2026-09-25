@@ -25,4 +25,5 @@ class InvestmentSettings(SettingsCategory):
     use_unbounded_market_share: bool = True
     use_unbounded_capacity_addition_carbon: bool = True
     knowledge_depreciation_rate: float = 0.1
-    set_future_CCS_investments: bool = False
+    set_future_CCS_investments: bool = True
+    consider_carbon_storage_expansion: bool = False

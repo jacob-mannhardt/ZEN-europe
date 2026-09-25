@@ -207,3 +207,31 @@ class CarbonStorage(ConversionTechnology):
             return self.max_diffusion_rate
         diffusion_rates = TechnologyDiffusionMannhardt(source_path=self.source_path)
         return diffusion_rates.get_max_diffusion_rate(self)
+
+    def _set_capacity_addition_unbounded(self) -> Attribute:
+        """
+        Sets the unbounded capacity addition of carbon storage.
+
+        Returns:
+            Attribute: An Attribute object containing the unbounded capacity addition data.
+        """
+        iogp_projects = IOGPCarbonStorageProjects(
+            settings=self.settings, source_path=self.source_path)
+        data = iogp_projects.get_capacity_existing_data()
+        median_add = data.median()
+        n_nodes = len(data.index.get_level_values("node").unique())
+        addition = median_add / n_nodes
+        attr = self.capacity_addition_unbounded
+        return attr.set_data(
+            default_value=addition,
+            unit="tCO2/h",
+            source=SourceInformation(
+                description=(
+                    "The unbounded capacity addition of carbon storage is "
+                    "based on the median existing and future capacity from the IOGP report, "
+                    "divided by the number of nodes in the dataset."
+                ),
+                metadata=iogp_projects.metadata,
+            ),
+        )
+        

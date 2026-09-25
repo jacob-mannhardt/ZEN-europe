@@ -117,7 +117,7 @@ class EnergyInstituteWorldEnergyReview(Dataset[pd.DataFrame]):
         return attr.set_data(
             default_value=0,
             df=data,
-            unit="tCO2/h",
+            unit="ktCO2/h",
             source=SourceInformation(
                 description=(
                     "The limit on carbon storage capacity is based on historic "
