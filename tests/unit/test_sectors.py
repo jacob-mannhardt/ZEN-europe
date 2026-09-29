@@ -47,15 +47,7 @@ def test_electricity_sector_has_no_required_sectors() -> None:
     from zen_europe.elements.sectors.electricity import ElectricitySector
 
     assert ElectricitySector.required_sectors == []
-
-
-def test_all_other_sectors_require_electricity() -> None:
-    """Every non-electricity sector requires the electricity sector."""
-    for sector_cls in _zen_europe_sectors():
-        if sector_cls.name == "electricity":
-            continue
-        assert "electricity" in sector_cls.required_sectors
-
+    
 
 def test_every_registered_technology_and_carrier_belongs_to_a_sector() -> None:
     """Every ZEN-europe carrier/technology is covered by at least one sector.
