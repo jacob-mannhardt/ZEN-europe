@@ -219,11 +219,11 @@ class CarbonStorage(ConversionTechnology):
             settings=self.settings, source_path=self.source_path)
         data = iogp_projects.get_capacity_existing_data()
         median_add = data.median()
-        n_nodes = len(data.index.get_level_values("node").unique())
-        addition = median_add / n_nodes
+        # n_nodes = len(data.index.get_level_values("node").unique())
+        # addition = median_add / n_nodes
         attr = self.capacity_addition_unbounded
         return attr.set_data(
-            default_value=addition,
+            default_value=median_add,
             unit="tCO2/h",
             source=SourceInformation(
                 description=(

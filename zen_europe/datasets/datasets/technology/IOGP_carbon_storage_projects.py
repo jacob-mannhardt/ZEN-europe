@@ -100,7 +100,8 @@ class IOGPCarbonStorageProjects(Dataset[pd.DataFrame]):
         """
         data = self.data.copy()
         if not self.settings.investment.consider_carbon_storage_expansion:
-            data = data[~data["project"].str.contains("Expansion")]
+            data = data[data["entry_type"]!="expansion"]
+            data = data[data["status"].isin(["In operation","FID"])]
         data = data["co2_storage_injection_capacity_mtpa"]
         data = data/Constants.HOURS_PER_YEAR*1e6 # convert from Mtpa to tCO2/h 
         data.index = data.index.set_levels(
