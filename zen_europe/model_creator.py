@@ -28,7 +28,7 @@ def create_model(
     crystal_ball_path = zen_europe_package_dir / "data" / "crystal_ball"
 
     if config is None:
-        config = zen_europe_package_dir / "data" / "config.yaml"
+        config = Path(__file__).resolve().parent / "settings" / "config.yaml"
 
     # load crystal ball model as starting point
     # TODO: this should be remove in the long run and replaced

@@ -47,7 +47,9 @@ def test_settings_rejects_unknown_field() -> None:
 
 
 def test_config_yaml_loads_time_settings() -> None:
-    config_path = Path(__file__).parents[2] / "data" / "config.yaml"
+    config_path = (
+        Path(__file__).parents[2] / "zen_europe" / "settings" / "config.yaml"
+    )
     settings = Settings.load_from_yaml(config_path)
 
     assert settings.time.reference_year == 2022

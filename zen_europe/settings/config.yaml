@@ -1,9 +1,8 @@
 # global settings
-name: crystal_ball
 source_path: "./data/raw_data"
-output_folder: null
 
-# all settings in the system.json file with the exception of technology lists
+# all settings in the system file with the exception of technology lists.
+# settings that are not listed keep ZEN-garden's defaults.
 system:
   set_nodes:
     - AT
@@ -34,28 +33,12 @@ system:
     - SI
     - SK
     - UK
-  set_transport_technologies_loss_exponential: null
-  use_existing_capacities: null
-  allow_investment: null
-  double_capex_transport: null
-  unaggregated_time_steps_per_year: null
   conduct_time_series_aggregation: true
   aggregated_time_steps_per_year: 3
   reference_year: 2022
-  total_hours_per_year: null
   optimized_years: 8
   interval_between_years: 4
   use_rolling_horizon: false
-  years_in_rolling_horizon: null
-  years_in_decision_horizon: null
-  conduct_scenario_analysis: null
-  run_default_scenario: null
-  clean_sub_scenarios: null
-  storage_periodicity: null
-  multiyear_periodicity: null
-  exclude_parameters_from_TSA: null
-  knowledge_depreciation_rate: null
-  storage_charge_discharge_binary: null
 
 # TODO: remove redundancy
 # dataset-specific, type-checked settings (see zen_europe/settings/).
