@@ -30,10 +30,7 @@ def create_model(
     if config is None:
         config = Path(__file__).resolve().parent / "settings" / "config.yaml"
 
-    # load crystal ball model as starting point
-    # TODO: this should be remove in the long run and replaced
     model = Model.from_config(config)
-    # model = Model.from_existing(crystal_ball_path, config=config)
     set_active_cache_settings(model.settings.cache)
     model.output_folder = Path(output_folder) / "data"
     model.name = name
@@ -42,9 +39,6 @@ def create_model(
     model.config.system.run_default_scenario = (
         model.settings.scenario.run_default_scenario
     )
-    # model.remove_element_by_name("crude_oil")
-    # model.remove_element_by_name("refining")
-
     # apply changes
     model.build()
 
