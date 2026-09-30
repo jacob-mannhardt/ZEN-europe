@@ -15,7 +15,7 @@ import zen_europe.settings  # noqa: F401  (registers the categories)
 from zen_creator.utils.config import Config
 from zen_creator.utils.settings import Settings
 
-CONFIG_PATH = Path(__file__).parents[2] / "zen_europe" / "settings" / "config.yaml"
+CONFIG_PATH = Path(__file__).parents[2] / "data" / "zen_europe_config.yaml"
 
 
 def test_time_settings_defaults() -> None:

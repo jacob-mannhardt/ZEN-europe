@@ -1,7 +1,6 @@
-data/
+data/created_models
 test.py
 tests/end_to_end/outputs
-IMPLEMENTATION_TODO.md
 CLAUDE.md
 *.ipynb
 # Byte-compiled / optimized / DLL files

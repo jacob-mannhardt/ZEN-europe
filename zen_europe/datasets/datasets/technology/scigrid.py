@@ -52,7 +52,9 @@ class SciGridIGGIELGNC1(Dataset[pd.DataFrame]):
             url="https://zenodo.org/records/5509988",
             note="Significant data inaccuracies are observed for storage data "
                 "points that are only found in the INET dataset, especially for the UK. "
-                "Thus, we exclude those storages with only an INET source ID.",
+                "Thus, we exclude those storages with only an INET source ID." \
+                "The original folder has more files "
+                "(PipeSegments, Nodes, Compressors,...), which are not used here." 
         )
 
     def _set_path(self) -> Path | None:

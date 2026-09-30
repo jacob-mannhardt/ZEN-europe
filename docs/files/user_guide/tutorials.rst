@@ -29,9 +29,9 @@ From the folder that contains ``data/raw_data``, run:
    zen-europe
 
 This generates the dataset ``zen-europe`` with the default configuration file
-``zen_europe/settings/config.yaml`` and all default settings. The result is
-written to ``./data/zen-europe``, together with ``./data/config.yaml`` for
-ZEN-garden.
+``data/zen_europe_config.yaml`` and all default settings. The result is written
+to ``./data/created_models/zen-europe``, together with
+``./data/created_models/config.yaml`` for ZEN-garden.
 
 To choose the dataset name and the output location:
 
@@ -39,18 +39,18 @@ To choose the dataset name and the output location:
 
    zen-europe --name my_dataset --output_path ./datasets
 
-This writes ``./datasets/data/my_dataset`` and ``./datasets/data/config.yaml``.
+This writes ``./datasets/my_dataset`` and ``./datasets/config.yaml``.
 
 After a run, open ``sources.md`` in any element folder, for example
-``data/zen-europe/set_technologies/set_conversion_technologies/photovoltaics/sources.md``,
+``data/created_models/zen-europe/set_technologies/set_conversion_technologies/photovoltaics/sources.md``,
 to see where each value comes from.
 
 
 Tutorial 2: Use your own configuration file
 ===========================================
 
-Instead of editing the configuration file inside the package, create your own
-copy and pass it to the CLI:
+Instead of editing ``data/zen_europe_config.yaml``, create your own copy and
+pass it to the CLI:
 
 .. code-block:: shell
 
@@ -71,7 +71,7 @@ The configuration file has the following blocks:
      use_rolling_horizon: false
 
    # optional: ZEN-garden's analysis and solver settings, written to
-   # data/config.yaml
+   # data/created_models/config.yaml
    analysis: {}
    solver: {}
 
@@ -97,8 +97,8 @@ Two rules apply:
   ``system.set_nodes``, and the time horizon with ``time.*`` and not with
   ``system.reference_year``. The error message names the setting to use
   instead.
-- ZEN-europe writes ``<output_path>/data/config.yaml``. Your configuration
-  file must not be located there, since it would be overwritten.
+- ZEN-europe writes ``<output_path>/config.yaml``. Your configuration file must
+  not be located there, since it would be overwritten.
 
 
 Tutorial 3: Change settings
@@ -237,7 +237,7 @@ Tutorial 5: Generate several variants with a models file
 
 A models file declares named variants of the dataset. Each variant is a
 sparse patch of the ``settings:`` block. Create ``models.yaml`` next to your
-configuration file:
+configuration file, that is ``data/models.yaml`` by default:
 
 .. code-block:: yaml
 
@@ -270,13 +270,14 @@ Generate one variant, or all of them:
 
 .. code-block:: shell
 
-   zen-europe --config_path ./my_config.yaml --model central_europe
-   zen-europe --config_path ./my_config.yaml --all
-   zen-europe --config_path ./my_config.yaml --all --jobs 2
+   zen-europe --model central_europe
+   zen-europe --all
+   zen-europe --all --jobs 2
 
 Each variant is written as its own dataset, named after the variant:
-``data/base``, ``data/no_road_transport``, and so on. If the models file is
-not next to the configuration file, pass it with ``--models_path``.
+``data/created_models/base``, ``data/created_models/no_road_transport``, and so
+on. If the models file is not next to the configuration file, pass it with
+``--models_path``.
 
 How a variant is resolved:
 

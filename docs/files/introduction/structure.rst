@@ -184,7 +184,6 @@ Code layout
      model_creator.py        create_model(): settings, build, scenarios, write
      global_scenarios.py     system-, analysis-, solver- and set-wide scenarios
      settings/
-       config.yaml           default configuration file
        <category>.py         one settings category per file
      elements/
        energy_systems/       the energy system (nodes, edges, carbon budget, ...)
@@ -202,6 +201,16 @@ Code layout
          financial/
        dataset_collections/  combinations of several data sources
      utils/                  helper functions shared by datasets
+
+The ``data`` folder holds the configuration and the data:
+
+.. code-block:: text
+
+   data/
+     zen_europe_config.yaml  default configuration file
+     models.yaml             optional: the model variants to generate
+     raw_data/               the raw data, not part of the repository
+     created_models/         the generated datasets and ZEN-garden's config.yaml
 
 The raw data is not part of the repository. By default it is read from
 ``./data/raw_data`` relative to the working directory, with the subfolders

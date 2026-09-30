@@ -56,7 +56,7 @@ Describe how the default dataset changes. If it does not change, state that. If 
   ```bash
   pip install git+https://github.com/ZEN-universe/ZEN-garden.git@main
   zen-europe
-  zen_garden --config ./data/config.yaml --dataset ./data/zen-europe
+  zen_garden --config ./data/created_models/config.yaml --dataset ./data/created_models/zen-europe
   ```
 
 - [ ] The ZEN-garden run is feasible, and the objective value is plausible compared to `main`.

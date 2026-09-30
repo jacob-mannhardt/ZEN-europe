@@ -31,6 +31,7 @@ from zen_creator.utils.settings import ModelSet, Settings
 
 from zen_europe.model_creator import (
     DEFAULT_CONFIG_PATH,
+    DEFAULT_OUTPUT_PATH,
     create_model,
     default_models_path,
 )
@@ -46,8 +47,8 @@ def zen_europe_cli() -> None:
         required=False,
         default=None,
         help=(
-            "Path to the model configuration file (default: the config.yaml "
-            "shipped in zen_europe/settings)."
+            "Path to the model configuration file "
+            "(default: data/zen_europe_config.yaml)."
         ),
     )
     parser.add_argument(
@@ -104,8 +105,12 @@ def zen_europe_cli() -> None:
         "--output_path",
         type=Path,
         required=False,
-        default=Path("."),
-        help="Output directory to which the model will be saved.",
+        default=DEFAULT_OUTPUT_PATH,
+        help=(
+            "Directory the datasets are written to, together with the "
+            f"config.yaml that ZEN-garden is run with (default: "
+            f"{DEFAULT_OUTPUT_PATH})."
+        ),
     )
     args = parser.parse_args()
 
@@ -269,7 +274,7 @@ def _command_for(name: str, args: argparse.Namespace, models_path: Path) -> list
 
 def _log_success(name: str, output_folder: Path) -> None:
     """Report where a generated model was saved."""
-    path = (Path(output_folder) / "data" / name).resolve()
+    path = (Path(output_folder) / name).resolve()
     logger.info(
         COLOR_SUCCESS
         + f"Successfully generated model '{name}' and saved to {path}/"

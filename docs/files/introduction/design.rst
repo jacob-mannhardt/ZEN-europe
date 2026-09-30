@@ -32,7 +32,7 @@ The two packages
        ``SettingsCategory``, ``Sector``), the ``Model``, validation,
        scenario handling and the writer.
      - Concrete subclasses of these classes, the settings categories, the
-       default ``config.yaml`` and the command line interface.
+       default ``zen_europe_config.yaml`` and the command line interface.
    * - Reused by
      - Any project that builds ZEN-garden input data.
      - Users who want the base European dataset, or a variant of it.

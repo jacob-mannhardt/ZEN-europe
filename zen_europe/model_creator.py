@@ -18,7 +18,11 @@ from . import settings  # noqa: F401
 from .settings.cache import set_active_cache_settings
 
 
-DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "settings" / "config.yaml"
+# the data folder of the repository, which holds the configuration, the models
+# file, the raw data and the generated datasets
+DATA_PATH = Path(__file__).resolve().parent.parent / "data"
+DEFAULT_CONFIG_PATH = DATA_PATH / "zen_europe_config.yaml"
+DEFAULT_OUTPUT_PATH = Path("data") / "created_models"
 
 
 def default_models_path(config: Path | str) -> Path:
@@ -31,14 +35,14 @@ def create_model(
     models: Path | str | None = None,
     model_name: str | None = None,
     name: str = "zen-europe",
-    output_folder: Path | str = ".",
+    output_folder: Path | str = DEFAULT_OUTPUT_PATH,
     write: bool = True,
 ) -> Model:
     """Generate a ZEN-europe dataset.
 
     Args:
-        config: The configuration file to read. Defaults to the one shipped
-            in zen_europe/settings.
+        config: The configuration file to read. Defaults to
+            data/zen_europe_config.yaml.
         models: The models file declaring the model variants. Defaults to
             models.yaml next to the configuration file. Only read when
             model_name is given.
@@ -46,7 +50,8 @@ def create_model(
             patch is applied on top of the configuration file's settings,
             and the dataset is named after it.
         name: The name of the dataset, used when model_name is not given.
-        output_folder: The directory the dataset is written to.
+        output_folder: The directory the dataset is written to, together with
+            the config.yaml that ZEN-garden is run with.
         write: Whether to write the dataset to disk.
     """
     if config is None:
@@ -62,7 +67,7 @@ def create_model(
 
     model = Model.from_config(config, settings=model_settings)
     set_active_cache_settings(model.settings.cache)
-    model.output_folder = Path(output_folder) / "data"
+    model.output_folder = Path(output_folder)
     model.name = name
 
     # apply changes

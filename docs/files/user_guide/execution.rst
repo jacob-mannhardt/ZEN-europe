@@ -26,7 +26,7 @@ used directly from Python:
 
    from zen_europe.model_creator import create_model
 
-   model = create_model(output_folder="./runs")
+   model = create_model(output_folder="./data/created_models")
 
 
 Command line options
@@ -39,10 +39,10 @@ Command line options
    * - Option
      - Meaning
    * - ``--config_path``
-     - Configuration file. Default: ``zen_europe/settings/config.yaml``.
+     - Configuration file. Default: ``data/zen_europe_config.yaml``.
    * - ``--models_path``
      - Models file that declares the variants. Default: ``models.yaml`` next to
-       the configuration file.
+       the configuration file, that is ``data/models.yaml``.
    * - ``--model <name>``
      - Generate one variant of the models file.
    * - ``--all``
@@ -57,8 +57,8 @@ Command line options
      - Name of the dataset when no variant is selected. Default:
        ``zen-europe``.
    * - ``--output_path``
-     - Folder in which the ``data`` folder with the datasets is created.
-       Default: the working directory.
+     - Folder the datasets are written to, together with the ``config.yaml``
+       that ZEN-garden is run with. Default: ``data/created_models``.
 
 
 Generating several variants
@@ -91,7 +91,7 @@ The following steps are executed for every generated dataset.
 --------------------
 
 The ``settings:`` block of the configuration file is read. If a variant is
-selected, its patch from the ``models.yaml`` file is merged into this block (see
+selected, its patch from the models file is merged into this block (see
 :ref:`tutorials.models_file`). The result is validated against the settings
 categories in ``zen_europe/settings/``. Every field that is not given keeps
 its default. Unknown categories, unknown fields and values of the wrong type
@@ -178,11 +178,12 @@ If the dataset folder already exists, its content is deleted first.
 Output
 ======
 
-The datasets are written to ``<output_path>/data``:
+The datasets are written to ``<output_path>``, by default
+``data/created_models``:
 
 .. code-block:: text
 
-   <output_path>/data/
+   data/created_models/
      config.yaml                     ZEN-garden configuration
      <dataset name>/
        system.yaml
@@ -218,8 +219,11 @@ The datasets are written to ``<output_path>/data``:
   values of scenarios.
 - ``config.yaml`` contains the ``analysis`` and ``solver`` settings of the
   configuration file and sets ``analysis.dataset`` to the name of the dataset
-  written last. The configuration file of ZEN-europe must therefore not be
-  located at ``<output_path>/data/config.yaml``.
+  written last. With ``--all`` it therefore names an arbitrary one of the
+  generated datasets; select the one to run with ZEN-garden's ``--dataset``
+  option. The configuration file of ZEN-europe is kept apart from it, at
+  ``data/zen_europe_config.yaml``, and must not be located at
+  ``<output_path>/config.yaml``.
 
 The dataset is named after ``--name``, or after the variant when ``--model``
 or ``--all`` is used.
