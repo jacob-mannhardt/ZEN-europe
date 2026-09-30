@@ -67,7 +67,7 @@ class LNGAvailability(DatasetCollection):
             index=fraction_lng.index, columns=availability.index,dtype=float)
         
         
-        opti_years = element.settings.time.get_optimization_years()
+        opti_years = element.settings.time.years
         lng_availability = lng_availability.reindex(
             columns=opti_years, fill_value=np.nan)
         lng_availability = lng_availability.ffill(axis=1).bfill(axis=1)

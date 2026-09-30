@@ -1,20 +1,28 @@
+from typing import ClassVar
+
 from zen_creator.utils.settings import SettingsCategory
 
 
 class InvestmentSettings(SettingsCategory):
     """Investment and capacity settings."""
 
-    name: str = "investment"
+    name: ClassVar[str] = "investment"
+    controls: ClassVar[dict[str, str]] = {
+        "allow_investment": "system.allow_investment",
+        # ZEN-garden calls this setting use_capacities_existing
+        "use_existing_capacities": "system.use_capacities_existing",
+        "knowledge_depreciation_rate": "system.knowledge_depreciation_rate",
+    }
 
-    allow_investment: bool = True 
+    allow_investment: bool = True
     use_existing_capacities: bool = True
     # keeps the existing hydro capacities even if use_existing_capacities is False
     keep_existing_hydro_capacities: bool = False
     use_existing_oil_to_x_capacities: bool = False
-    use_construction_times: bool = False 
+    use_construction_times: bool = False
     # takes precedence over cap_nuclear_capacity_to_past_investments
-    use_nuclear_phase_out: bool = True 
-    cap_nuclear_capacity_to_past_investments: bool = True 
+    use_nuclear_phase_out: bool = True
+    cap_nuclear_capacity_to_past_investments: bool = True
     use_power_line_capacity_limit: bool = True
     allow_offshore_chemical_pipelines: bool = False
     account_for_offshore_transport: bool = True

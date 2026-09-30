@@ -67,7 +67,7 @@ class NaturalGasAvailability(DatasetCollection):
         entsog_gas_availability = entsog_gas_availability.droplevel(0,axis=1)
         entsog_gas_availability.columns = entsog_gas_availability.columns.astype(int)
         linked_areas = link_natural_gas_countries()
-        optimization_years = element.settings.time.get_optimization_years()
+        optimization_years = element.settings.time.years
         availability_yearly_variation = pd.DataFrame(
             index=import_gas.index, columns=optimization_years)
         for linked_area in linked_areas:

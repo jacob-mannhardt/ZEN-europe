@@ -66,7 +66,7 @@ class NuclearMaxLoad(DatasetCollection):
             set_nodes=self.set_nodes, 
             source_path=self.source_path)
         
-        ref_year = element.model.config.system.reference_year
+        ref_year = element.settings.time.reference_year
         years = range(ref_year - self.NUM_PAST_YEARS, ref_year + 1)
         nodal_ml_by_year = {}
         total_ml_by_year = {}

@@ -341,7 +341,7 @@ class ExistingVehicleCapacity(DatasetCollection):
         capex_battery_current = cars.get_cost(element, "capex_bat_cur")
         capex_battery_future = cars.get_cost(element, "capex_bat_fut")
         reference_year = element.settings.time.reference_year
-        years = pd.Index(element.settings.time.get_optimization_years()).union(
+        years = pd.Index(element.settings.time.years).union(
             [reference_year, _BATTERY_COST_FUTURE_YEAR])
 
         evolution = pd.Series(index=years, dtype=float)

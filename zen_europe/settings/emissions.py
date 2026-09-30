@@ -1,10 +1,12 @@
+from typing import ClassVar
+
 from zen_creator.utils.settings import SettingsCategory
 
 
 class EmissionsSettings(SettingsCategory):
     """Emissions and carbon-budget settings."""
 
-    name: str = "emissions"
+    name: ClassVar[str] = "emissions"
 
     use_carbon_budget: bool = True
     use_carbon_annual_limit: bool = False

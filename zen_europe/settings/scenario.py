@@ -1,10 +1,15 @@
+from typing import ClassVar
+
 from zen_creator.utils.settings import SettingsCategory
 
 
 class ScenarioSettings(SettingsCategory):
     """Scenario settings."""
 
-    name: str = "scenario"
+    name: ClassVar[str] = "scenario"
+    controls: ClassVar[dict[str, str]] = {
+        "run_default_scenario": "system.run_default_scenario",
+    }
 
     run_default_scenario: bool = True
     sensitivity_demand: bool = False

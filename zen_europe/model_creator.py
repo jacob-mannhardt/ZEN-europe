@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from zen_creator import Model
+from zen_creator.utils.settings import ModelSet, Settings
 
 # import custom element classes to register them in the registry (side effect)
 from .elements.carriers import Biomass, Electricity  # noqa: F401
@@ -17,28 +18,53 @@ from . import settings  # noqa: F401
 from .settings.cache import set_active_cache_settings
 
 
+DEFAULT_CONFIG_PATH = Path(__file__).resolve().parent / "settings" / "config.yaml"
+
+
+def default_models_path(config: Path | str) -> Path:
+    """The models file that sits next to the given configuration file."""
+    return Path(config).resolve().parent / "models.yaml"
+
+
 def create_model(
     config: Path | str | None = None,
+    models: Path | str | None = None,
+    model_name: str | None = None,
     name: str = "zen-europe",
     output_folder: Path | str = ".",
     write: bool = True,
 ) -> Model:
-    # Get path to crystal ball model
-    zen_europe_package_dir = Path(__file__).resolve().parent.parent
-    crystal_ball_path = zen_europe_package_dir / "data" / "crystal_ball"
+    """Generate a ZEN-europe dataset.
 
+    Args:
+        config: The configuration file to read. Defaults to the one shipped
+            in zen_europe/settings.
+        models: The models file declaring the model variants. Defaults to
+            models.yaml next to the configuration file. Only read when
+            model_name is given.
+        model_name: The variant in the models file to generate. Its settings
+            patch is applied on top of the configuration file's settings,
+            and the dataset is named after it.
+        name: The name of the dataset, used when model_name is not given.
+        output_folder: The directory the dataset is written to.
+        write: Whether to write the dataset to disk.
+    """
     if config is None:
-        config = Path(__file__).resolve().parent / "settings" / "config.yaml"
+        config = DEFAULT_CONFIG_PATH
 
-    model = Model.from_config(config)
+    patch = None
+    if model_name is not None:
+        model_set = ModelSet.load_from_yaml(models or default_models_path(config))
+        patch = model_set.settings_patch(model_name)
+        name = model_name
+
+    model_settings = Settings.load_from_yaml(config, patch=patch)
+
+    model = Model.from_config(config, settings=model_settings)
     set_active_cache_settings(model.settings.cache)
     model.output_folder = Path(output_folder) / "data"
     model.name = name
-    # TODO move this somewhere else
-    model.config.system.allow_investment = model.settings.investment.allow_investment
-    model.config.system.run_default_scenario = (
-        model.settings.scenario.run_default_scenario
-    )
+
     # apply changes
     model.build()
 

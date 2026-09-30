@@ -67,7 +67,7 @@ class TYNDPFuelPrices(Dataset[pd.DataFrame]):
                              "is not available in the TYNDP 2020 dataset.")
         default_value = self.data.loc[element.name] * Constants.GJ_PER_MWH  # convert from €/GJ to €/MWh
         inflation = element.get_inflation_rate(
-            base_year=2020, target_year=element.model.config.system.reference_year)
+            base_year=2020, target_year=element.settings.time.reference_year)
         source = SourceInformation(
             description=(
                 f"Import price of {element.name} from the TYNDP 2020 dataset, "

@@ -1,95 +1,19 @@
 # global settings
 source_path: "./data/raw_data"
 
-# all settings in the system file with the exception of technology lists.
-# settings that are not listed keep ZEN-garden's defaults.
+# all settings in the system file with the exception of technology lists and
+# set_nodes. settings that are not listed keep ZEN-garden's defaults.
 system:
-  set_nodes:
-    - AT
-    - BE
-    - BG
-    - CH
-    - CZ
-    - DE
-    - DK
-    - EE
-    - EL
-    - ES
-    - FI
-    - FR
-    - HR
-    - HU
-    - IE
-    - IT
-    - LT
-    - LU
-    - LV
-    - NL
-    - "NO"
-    - PL
-    - PT
-    - RO
-    - SE
-    - SI
-    - SK
-    - UK
   conduct_time_series_aggregation: true
   aggregated_time_steps_per_year: 3
-  reference_year: 2022
-  optimized_years: 8
-  interval_between_years: 4
   use_rolling_horizon: false
 
-# TODO: remove redundancy
 # dataset-specific, type-checked settings (see zen_europe/settings/).
-# categories/fields not listed here keep their class defaults.
-settings:
-  time:
-    reference_year: 2022
-    interval_between_years: 2
-
-# add and remove technologies/carriers from the model
-elements:
-  insert:
-    energy_system: "energy_system_nuts0"
-    set_sectors:
-      - electricity
-      - carbon
-      - gas
-      - heat
-      - district_heating
-      - hydrogen
-      - ammonia
-      - cement
-      - methanol
-      - refining
-      - aviation
-      - shipping
-      - steel
-      - passenger_transport
-      - truck_transport
-    set_conversion_technologies: []
-    set_retrofitting_technologies: []
-    set_storage_technologies: []
-    set_transport_technologies: []
-    # extra individual elements not covered by a sector can still be listed here
-    set_carriers: []
-  exclude:
-    energy_system: ""
-    set_sectors: []
-    set_conversion_technologies: []
-    set_storage_technologies: []
-    set_transport_technologies: []
-    set_retrofitting_technologies: []
-    set_carriers: []
-
-# # settings for individual data sources
-# TODO commented out because results in error and unclear to me
-# data:
-#   datasets:
-#     setting: true
-#   dataset_collections:
-#     setting: true
+# their defaults live in the category classes, so only overrides belong here.
+# a setting that controls a system value (e.g. region.set_nodes) is set here
+# and not under `system:` above; structure.* replaces the old `elements:`
+# block for the same reason.
+settings: {}
 
 # settings that go into the energy_system folder
 energy_system:

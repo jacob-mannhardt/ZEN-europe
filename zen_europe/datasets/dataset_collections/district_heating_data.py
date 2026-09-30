@@ -73,7 +73,7 @@ class DistrictHeatingData(DatasetCollection):
             base_year=int(money_year_src), target_year=self.settings.time.reference_year)
         capex = capex * inflation 
         capex = interpolate_missing_years(capex)
-        capex = capex.loc[element.settings.time.get_optimization_years()]
+        capex = capex.loc[element.settings.time.years]
         capex.index.name = "year"
         capex.name = "capex_specific_conversion"
 
@@ -109,7 +109,7 @@ class DistrictHeatingData(DatasetCollection):
         cost = cost["value"] # in €/MW/year
         cost = cost / 1000 # in €/kW/year
         cost = interpolate_missing_years(cost)
-        cost = cost.loc[element.settings.time.get_optimization_years()]
+        cost = cost.loc[element.settings.time.years]
         ecb_dataset = cast(ECBInflation, self.data["ecb"])
         inflation = ecb_dataset.get_inflation_rate(
             base_year=int(money_year_src), 
@@ -142,7 +142,7 @@ class DistrictHeatingData(DatasetCollection):
         assert unit == "€/MWh", f"Unexpected unit for district heating cost: {unit}"
         cost = cost["value"] # in €/MWh
         cost = interpolate_missing_years(cost)
-        cost = cost.loc[element.settings.time.get_optimization_years()]
+        cost = cost.loc[element.settings.time.years]
         ecb_dataset = cast(ECBInflation, self.data["ecb"])
         inflation = ecb_dataset.get_inflation_rate(
             base_year=int(money_year_src), 

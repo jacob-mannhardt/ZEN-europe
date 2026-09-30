@@ -104,7 +104,7 @@ class BNEFFuelPrices(Dataset[pd.DataFrame]):
         assert unit == "$/MWh (2021 real)", (f"Unexpected unit for" 
                                             f"BNEF carrier prices: {unit}")
         common_years = data.index.intersection(
-            element.settings.time.get_optimization_years()
+            element.settings.time.years
         )
         data = data.loc[common_years]
         data.index = data.index.astype(int)

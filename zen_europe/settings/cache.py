@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from zen_creator.utils.settings import SettingsCategory
 
 
@@ -7,7 +9,7 @@ class CacheSettings(SettingsCategory):
     """Settings controlling which dataset caches are reloaded from source and
     overwritten on disk, instead of being read from an existing cache file."""
 
-    name: str = "cache"
+    name: ClassVar[str] = "cache"
 
     overwrite_dea: bool = False
     overwrite_entsoe: bool = False

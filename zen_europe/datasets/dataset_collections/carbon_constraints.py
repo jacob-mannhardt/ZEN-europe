@@ -223,7 +223,7 @@ class CarbonConstraints(DatasetCollection):
         trajectory = pd.Series(target_emissions, index=target_years)
 
         optimization_years = pd.Index(
-            self.settings.time.get_optimization_years(), name="year")
+            self.settings.time.years, name="year")
         trajectory = trajectory.reindex(
             optimization_years.union(target_years)).interpolate(method="index")
         return trajectory.loc[optimization_years]

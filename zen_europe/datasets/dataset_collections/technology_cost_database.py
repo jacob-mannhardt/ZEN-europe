@@ -244,7 +244,7 @@ class TechnologyCostDatabase(DatasetCollection):
             plant_size, metric, 
             reference_year or self.settings.time.reference_year
         )
-        optimization_years = pd.Index(element.settings.time.get_optimization_years())
+        optimization_years = pd.Index(element.settings.time.years)
         data = self._reindex_to_years(data, optimization_years)
         agencies = self._extract_agencies(element.name, "efficiency", plant_size)
         assert not data.empty, (
@@ -318,7 +318,7 @@ class TechnologyCostDatabase(DatasetCollection):
                 f"at plant size '{plant_size}' in any agency dataset."
             )
         
-        optimization_years = pd.Index(element.settings.time.get_optimization_years())
+        optimization_years = pd.Index(element.settings.time.years)
         if not self.settings.cost.use_learning_curves:
             # the cost stays at the value of the reference year in all years
             default_value = float(
@@ -568,7 +568,7 @@ class TechnologyCostDatabase(DatasetCollection):
                 f"No {description} data found for technology '{element.name}' "
                 f"at plant size '{plant_size}' in any agency dataset."
             )
-        optimization_years = pd.Index(element.settings.time.get_optimization_years())
+        optimization_years = pd.Index(element.settings.time.years)
         return (
             self._reindex_to_years(series, optimization_years),
             self._extract_agencies(element.name, variable, plant_size),
