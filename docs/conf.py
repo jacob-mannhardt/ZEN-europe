@@ -141,8 +141,11 @@ html_favicon = "files/figures/general/zen_garden_logo_text.png"
 def copy_changelog(app):
     src = Path(app.confdir).parent / "CHANGELOG.md"
     dst = Path(app.confdir) / "files" / "generated" / "changelog.md"
+    dst.parent.mkdir(parents=True, exist_ok=True)
     if src.exists():
         shutil.copy(src, dst)
+    elif not dst.exists():
+        dst.write_text("# Changelog\n\nNo changelog found in repository root.\n")
 
 
 def setup(app):
