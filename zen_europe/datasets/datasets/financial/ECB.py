@@ -4,7 +4,6 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
-import scipy.stats as stats
 from zen_creator import Dataset
 from zen_creator.datasets.datasets.metadata import MetaData
 
@@ -93,6 +92,10 @@ class ECBInflation(Dataset[pd.DataFrame]):
         cached = _read_cache(cache_path)
         if cached is not None:
             return cached
+
+        # imported here because scipy is slow to import and this is the only
+        # use of it, on the path that is skipped whenever the cache exists
+        import scipy.stats as stats
 
         df = _read_yearly_observations(self.URL)
         df["inflation_factor"] = 1.0 + df["obs_value"] / 100.0

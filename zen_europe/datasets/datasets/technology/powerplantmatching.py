@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import powerplantmatching as ppm
 from pathlib import Path
 
 from zen_creator.datasets.datasets.dataset import Dataset
@@ -118,6 +117,10 @@ class PowerPlantMatching(Dataset[pd.DataFrame]):
         if (
             not os.path.exists(self.path / "processed_powerplantmatching_data_raw.feather")
         ):
+            # imported here because powerplantmatching pulls in matplotlib and
+            # is only needed when the processed file has not been cached yet
+            import powerplantmatching as ppm
+
             data = ppm.powerplants(from_url=True)
             data_orig = data.copy()
             logging.info(f"Before filtering: {len(data)} power plants")

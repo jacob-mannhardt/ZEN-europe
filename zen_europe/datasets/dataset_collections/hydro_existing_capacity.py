@@ -20,8 +20,6 @@ from zen_europe.datasets.datasets.technology.jrc_hydro_db import (
 from zen_europe.datasets.datasets.carrier.entsoe import ENTSOE
 from zen_creator.utils.settings import Settings
 
-import matplotlib.pyplot as plt
-
 class HydroExistingCapacity(DatasetCollection):
     """Extracting existing capacity data for hydro technologies."""
 
@@ -185,6 +183,10 @@ class HydroExistingCapacity(DatasetCollection):
                 "ppm + glohydrores", 
                 "ppm + glohydrores (without retired)"])
         total_capacity = total_capacity.loc[element.model.config.system.set_nodes]
+        # imported here because matplotlib is slow to import and this is the
+        # only use of it
+        import matplotlib.pyplot as plt
+
         fig, ax = plt.subplots(figsize=(12, 6))
         total_capacity.plot.bar(
             stacked=False, 

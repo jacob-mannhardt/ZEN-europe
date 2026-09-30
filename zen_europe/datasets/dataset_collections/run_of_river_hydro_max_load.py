@@ -88,7 +88,8 @@ class RunOfRiverHydroMaxLoad(DatasetCollection):
         missing_nodes = set(
             element.model.config.system.set_nodes).difference(max_load.columns)
 
-        for node in missing_nodes:
+        # sorted, so that the appended columns keep a stable order on disk
+        for node in sorted(missing_nodes):
             if node == "SE":
                 max_load[node] = max_load["NO"]
             elif node == "DK":

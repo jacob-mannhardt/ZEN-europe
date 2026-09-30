@@ -84,6 +84,7 @@ class TechnologyCostDatabase(DatasetCollection):
 
     def __init__(self, settings: Settings, source_path: Path | str):
         self.settings = settings
+        self._rows_cache: dict[tuple[str, str, str | None], pd.DataFrame] = {}
         super().__init__(source_path=source_path)
         self._inflation = ECBInflation(source_path=self.source_path)
 
@@ -451,15 +452,35 @@ class TechnologyCostDatabase(DatasetCollection):
         result.index.name = "year"
         return result
 
-    def _extract_agencies(self, technology: str, variable: str, plant_size: str) -> set[str]:
-        """Return the set of agencies reporting data for `technology`/`variable`."""
+    def _extract_agencies(
+            self, technology: str, variable: str, plant_size: str) -> list[str]:
+        """Return the agencies reporting data for `technology`/`variable`.
+
+        Sorted, because the agencies are rendered into the source descriptions
+        that are written to disk.
+        """
         rows = self._collect_rows(technology, variable, plant_size)
-        return set(rows["agency"].unique())
+        return sorted(rows["agency"].unique())
     
     def _collect_rows(
-            self, 
-            technology: str, 
-            variable: str, 
+            self,
+            technology: str,
+            variable: str,
+            plant_size: str | None) -> pd.DataFrame:
+        """The rows every agency reports for `technology`/`variable`.
+
+        The result is cached and shared between callers, so it must be
+        treated as read-only.
+        """
+        key = (technology, variable, plant_size)
+        if key not in self._rows_cache:
+            self._rows_cache[key] = self._read_rows(technology, variable, plant_size)
+        return self._rows_cache[key]
+
+    def _read_rows(
+            self,
+            technology: str,
+            variable: str,
             plant_size: str | None) -> pd.DataFrame:
         frames = []
         for agency, dataset in self.data.items():

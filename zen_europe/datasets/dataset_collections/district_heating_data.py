@@ -22,7 +22,6 @@ from zen_europe.utils.utils import interpolate_missing_years
 
 
 import pandas as pd
-from sklearn.linear_model import LinearRegression
 
 class DistrictHeatingData(DatasetCollection):
     """Extracting district heating cost data."""
@@ -177,6 +176,10 @@ class DistrictHeatingData(DatasetCollection):
             potential.index)
         common_nodes = pd.Index(share_regions.columns).intersection(
             potential.index).intersection(element.model.config.system.set_nodes)
+        # imported here because sklearn is slow to import and this is the only
+        # use of it
+        from sklearn.linear_model import LinearRegression
+
         X = share_regions.loc[:, common_nodes].T
         y = potential.loc[common_nodes]
         reg = LinearRegression(fit_intercept=False).fit(X, y)

@@ -20,6 +20,7 @@ dependencies = [
     "scikit-learn",
     "powerplantmatching",
     "cdsapi",
+    "python-calamine",
 ]
 
 [project.scripts]
