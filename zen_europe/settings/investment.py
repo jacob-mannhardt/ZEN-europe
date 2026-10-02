@@ -31,7 +31,7 @@ class InvestmentSettings(SettingsCategory):
     use_diffusion_rates: bool = True
     use_inf_spillover_rate: bool = True
     use_unbounded_market_share: bool = True
-    use_unbounded_capacity_addition_carbon: bool = True
+    use_unbounded_capacity_addition_carbon: bool = False
     knowledge_depreciation_rate: float = 0.1
-    set_future_CCS_investments: bool = True
+    set_future_CCS_investments: bool = False
     consider_carbon_storage_expansion: bool = False

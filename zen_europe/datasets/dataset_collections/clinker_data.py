@@ -15,11 +15,19 @@ if TYPE_CHECKING:
     from zen_creator import Dataset, Element
 
 
-from zen_creator import Attribute, ConversionTechnology, DatasetCollection
+from zen_creator import (
+    Attribute,
+    ConversionTechnology,
+    DatasetCollection,
+    RetrofittingTechnology,
+)
 from zen_creator.utils.attribute import SourceInformation
 
 from zen_europe.datasets.datasets.carrier.aidres import Aidres
 from zen_europe.datasets.datasets.carrier.british_geological_survey import BritishGeologicalSurvey
+from zen_europe.datasets.datasets.technology.ecra_technology_papers import (
+    ECRATechnologyPapers,
+)
 
 class ClinkerData(DatasetCollection):
     """Extracting clinker data data."""
@@ -39,6 +47,7 @@ class ClinkerData(DatasetCollection):
             "aidres": Aidres(self.source_path),
             "british_geological_survey": BritishGeologicalSurvey(self.source_path),
             "material_economics": MaterialEconomics(self.source_path),
+            "ecra_technology_papers": ECRATechnologyPapers(self.source_path),
         }
 
     def _calculate_clinker_demand(self, element: Element) -> Attribute:
@@ -135,6 +144,43 @@ class ClinkerData(DatasetCollection):
                     "clinker-to-cement ratio of 0.70."
                     " The reference cement fuel is hard coal, which can be substituted "
                     "by other fuels in the model ('<x>_to_cement_fuel')."
+                ),
+                metadata=self.metadata,
+            ),
+        )
+        return attr
+
+    def get_retrofit_flow_coupling_factor(
+            self, element: RetrofittingTechnology) -> Attribute:
+        """
+        Get the retrofit flow coupling factor for cement fuel.
+
+        The factor limits the fuel a cement fuel technology supplies to the share of
+        the kiln fuel demand that this fuel can cover at most. It is therefore the
+        product of the substitution potential of the fuel and the fuel consumption of
+        the cement kiln, both per ton of clinker.
+        """
+        attr = element.retrofit_flow_coupling_factor
+        me_dataset = cast(MaterialEconomics, self.data["material_economics"])
+        ecra_dataset = cast(
+            ECRATechnologyPapers, self.data["ecra_technology_papers"])
+        fuel_consumption_kiln = me_dataset.get_fuel_consumption_cement_kiln()
+        substitution_potential = ecra_dataset.get_substitution_potential(element.name)
+        attr.set_data(
+            default_value=(
+                substitution_potential *
+                fuel_consumption_kiln /
+                (Constants.GJ_PER_MWH * 1000)),
+            base_technology="cement_kiln",
+            unit="GWh/tproduct",
+            source=SourceInformation(
+                description=(
+                    "The retrofit flow coupling factor of cement fuel technologies is "
+                    "the product of the substitution potential of the fuel "
+                    f"({substitution_potential:.0%} of the kiln fuel demand, ECRA "
+                    "(2022), Technology Papers 2022) and the fuel consumption of the "
+                    "cement kiln of 3.7 GJ per ton of clinker (Material Economics "
+                    "(2019), 'Industrial Transformation 2050')."
                 ),
                 metadata=self.metadata,
             ),

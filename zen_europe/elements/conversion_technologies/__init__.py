@@ -5,11 +5,9 @@ from .BF_BOF import BF_BOF
 from .biomass_boiler import BiomassBoiler
 from .biomass_boiler_DH import BiomassBoilerDH
 from .biomass_plant import BiomassPlant
-from .biomass_to_cement_fuel import BiomassToCementFuel
 from .biomethane_conversion import BiomethaneConversion
 from .carbon_storage import CarbonStorage
 from .cement_kiln import CementKiln
-from .coal_to_cement_fuel import CoalToCementFuel
 from .DAC import DAC
 from .diesel_ICE_ship import DieselICEShip
 from .district_heating_grid import DistrictHeatingGrid
@@ -30,7 +28,6 @@ from .HDT_FCEV import HDT_FCEV
 from .heat_pump import HeatPump
 from .heat_pump_DH import HeatPumpDH
 from .hydrogen_FC_ship import HydrogenFCShip
-from .hydrogen_to_cement_fuel import HydrogenToCementFuel
 from .ICE_diesel import ICE_diesel
 from .ICE_petrol import ICE_petrol
 from .lignite_coal_plant import LigniteCoalPlant
@@ -61,7 +58,6 @@ from .run_of_river_hydro import RunOfRiverHydro
 from .SMR import SMR
 from .waste_boiler_DH import WasteBoilerDH
 from .waste_plant import WastePlant
-from .waste_to_cement_fuel import WasteToCementFuel
 from .wind_offshore import WindOffshore
 from .wind_onshore import WindOnshore
 
@@ -109,10 +105,6 @@ __all__ = [
     "OlefinFromNaphtha",
     "HaberBosch",
     "CementKiln",
-    "CoalToCementFuel",
-    "HydrogenToCementFuel",
-    "WasteToCementFuel",
-    "BiomassToCementFuel",
     "BF_BOF",
     "H2_DRI",
     "NG_DRI",

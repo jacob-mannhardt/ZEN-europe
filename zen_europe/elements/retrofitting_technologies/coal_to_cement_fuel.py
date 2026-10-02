@@ -11,10 +11,10 @@ from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt impo
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import AssumptionInformation, Attribute, ConversionTechnology
+from zen_creator import AssumptionInformation, Attribute, RetrofittingTechnology
 
 
-class CoalToCementFuel(ConversionTechnology):
+class CoalToCementFuel(RetrofittingTechnology):
     """Class containing all data and assumptions for coal-fired cement-kiln
     fuel supply (hard coal to fuel for cement)."""
 
@@ -46,6 +46,16 @@ class CoalToCementFuel(ConversionTechnology):
         """
         return Attribute(
             name="output_carrier", default_value=["fuel_for_cement"], element=self
+        )
+
+    def _set_retrofit_reference_carrier(self) -> Attribute:
+        """
+        Sets the retrofit reference carrier of coal to cement fuel to fuel for
+        cement.
+        """
+        return Attribute(
+            name="retrofit_reference_carrier", default_value=["fuel_for_cement"],
+            element=self
         )
 
     # ---------- Required methods that are called during object build ----------
@@ -81,6 +91,16 @@ class CoalToCementFuel(ConversionTechnology):
         aidres_dataset = Aidres(source_path=self.source_path)
         return aidres_dataset.get_conversion_factor_cement_fuel(self)
 
+    def _set_retrofit_flow_coupling_factor(self) -> Attribute:
+        """
+        Return the retrofit flow coupling factor of coal to cement fuel.
+
+        Hard coal is the reference fuel of cement kilns and can cover the entire
+        kiln fuel demand.
+        """
+        clinker_demand_dataset = ClinkerData(source_path=self.source_path)
+        return clinker_demand_dataset.get_retrofit_flow_coupling_factor(self)
+
     def _set_capex_specific_conversion(self) -> Attribute:
         """
         Sets the specific capital expenditure (capex) for coal to cement fuel.
@@ -108,7 +128,7 @@ class CoalToCementFuel(ConversionTechnology):
 
     def _set_capacity_existing(self) -> Attribute:
         """
-        Sets the existing capacity of waste to cement fuel.
+        Sets the existing capacity of coal to cement fuel.
 
         Returns:
             Attribute: An Attribute object containing the existing capacity data.
@@ -128,7 +148,6 @@ class CoalToCementFuel(ConversionTechnology):
                 ),
             )
             return attr
-    
 
     def _set_max_diffusion_rate(self) -> Attribute:
         """
