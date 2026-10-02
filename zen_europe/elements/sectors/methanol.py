@@ -30,7 +30,7 @@ class MethanolSector(Sector):
     """Methanol and olefin production and transport."""
 
     name = "methanol"
-    required_sectors = ["electricity", "district_heating","hydrogen", "refining"]
+    required_sectors = ["electricity", "district_heating", "hydrogen", "refining", "gas"]
 
     def __init__(self) -> None:
         super().__init__()

@@ -171,7 +171,6 @@ class ClinkerData(DatasetCollection):
                 substitution_potential *
                 fuel_consumption_kiln /
                 (Constants.GJ_PER_MWH * 1000)),
-            base_technology="cement_kiln",
             unit="GWh/tproduct",
             source=SourceInformation(
                 description=(

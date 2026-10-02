@@ -4,7 +4,6 @@ from zen_europe.elements.carriers.biomass import Biomass
 from zen_europe.elements.carriers.electricity import Electricity
 from zen_europe.elements.carriers.hard_coal import HardCoal
 from zen_europe.elements.carriers.lignite import Lignite
-from zen_europe.elements.carriers.natural_gas import NaturalGas
 from zen_europe.elements.carriers.oil import Oil
 from zen_europe.elements.carriers.uranium import Uranium
 from zen_europe.elements.carriers.waste import Waste
@@ -41,7 +40,7 @@ class ElectricitySector(Sector):
     """Electricity generation, storage and transmission."""
 
     name = "electricity"
-    required_sectors: list[str] = []
+    required_sectors = ["gas"]
 
     def __init__(self) -> None:
         super().__init__()
@@ -65,7 +64,6 @@ class ElectricitySector(Sector):
             PowerLine,
             Electricity,
             HardCoal,
-            NaturalGas,
             Uranium,
             Lignite,
             Biomass,

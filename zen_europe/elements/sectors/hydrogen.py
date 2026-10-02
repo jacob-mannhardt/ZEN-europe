@@ -38,7 +38,7 @@ class HydrogenSector(Sector):
     """Hydrogen production, storage and transport, and its direct derivatives."""
 
     name = "hydrogen"
-    required_sectors = ["electricity", "heat", "district_heating"]
+    required_sectors = ["electricity", "heat", "district_heating", "gas"]
 
     def __init__(self) -> None:
         super().__init__()

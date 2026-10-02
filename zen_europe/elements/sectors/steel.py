@@ -15,7 +15,7 @@ class SteelSector(Sector):
     """Primary and secondary steel production."""
 
     name = "steel"
-    required_sectors = ["electricity"]
+    required_sectors = ["electricity", "gas"]
 
     def __init__(self) -> None:
         super().__init__()

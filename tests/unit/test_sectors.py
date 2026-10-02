@@ -42,11 +42,11 @@ def test_sector_elements_are_element_subclasses() -> None:
             assert issubclass(element_cls, Element)
 
 
-def test_electricity_sector_has_no_required_sectors() -> None:
-    """The electricity sector is the root of the taxonomy."""
-    from zen_europe.elements.sectors.electricity import ElectricitySector
+def test_gas_sector_has_no_required_sectors() -> None:
+    """The gas sector is the root of the taxonomy."""
+    from zen_europe.elements.sectors.gas import GasSector
 
-    assert ElectricitySector.required_sectors == []
+    assert GasSector.required_sectors == []
     
 
 def test_every_registered_technology_and_carrier_belongs_to_a_sector() -> None:

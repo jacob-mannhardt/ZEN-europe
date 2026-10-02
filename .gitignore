@@ -76,6 +76,7 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/files/generated/model_structure/
 
 # PyBuilder
 .pybuilder/

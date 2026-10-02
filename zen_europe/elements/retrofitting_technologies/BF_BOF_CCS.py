@@ -14,12 +14,16 @@ from zen_europe.datasets.datasets.technology.IOGP_carbon_storage_projects import
 from zen_europe.datasets.datasets.technology.technology_diffusion_mannhardt import (
     TechnologyDiffusionMannhardt,
 )
-from zen_europe.utils.constants import Constants
 
 if TYPE_CHECKING:
     from zen_creator.model import Model
 
-from zen_creator import AssumptionInformation, Attribute, RetrofittingTechnology
+from zen_creator import (
+    AssumptionInformation,
+    Attribute,
+    RetrofittingTechnology,
+    SourceInformation,
+)
 
 
 class BF_BOF_CCS(RetrofittingTechnology):
@@ -28,6 +32,7 @@ class BF_BOF_CCS(RetrofittingTechnology):
     carbon capture (CCS)."""
 
     name: str = "BF_BOF_CCS"
+    base_technology_name: str = "BF_BOF"
 
     def __init__(self, model: Model, power_unit: str = "tCO2/h"):
         super().__init__(model=model, power_unit=power_unit)
@@ -188,14 +193,19 @@ class BF_BOF_CCS(RetrofittingTechnology):
         attr = self.capacity_addition_unbounded
         if not self.settings.investment.use_unbounded_capacity_addition_carbon:
             return attr
-        attr.set_data(
-            default_value=Constants.DUIVEN_CAPTURE_CAPACITY / Constants.HOURS_PER_YEAR,
+        iogp_projects = IOGPCarbonStorageProjects(
+                    settings=self.settings, source_path=self.source_path)
+        data = iogp_projects.get_capacity_existing_data()
+        median_add = data.median()
+        return attr.set_data(
+            default_value=median_add,
             unit="tCO2/h",
-            source=AssumptionInformation(
+            source=SourceInformation(
                 description=(
-                    "The unbounded capacity addition is the size of the Duiven "
-                    "carbon capture plant (0.1 MtCO2 per year)."
+                    "The unbounded capacity addition of carbon storage is "
+                    "based on the median existing and future capacity from the IOGP report, "
+                    "divided by the number of nodes in the dataset."
                 ),
+                metadata=iogp_projects.metadata,
             ),
         )
-        return attr

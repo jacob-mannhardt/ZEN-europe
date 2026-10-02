@@ -35,10 +35,6 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
         "BF_BOF_CCS": 2.77,
         "NG_DRI_CCS": 1.45,
     }
-    BASE_TECHNOLOGIES = {
-        "BF_BOF_CCS": "BF_BOF",
-        "NG_DRI_CCS": "NG_DRI",
-    }
 
     def __init__(self, source_path: Path | str | None = None):
         super().__init__(source_path=source_path)
@@ -246,17 +242,10 @@ class AgoraIndustrySteel(Dataset[pd.DataFrame]):
             Attribute: An Attribute object containing the retrofit flow
                 coupling factor data.
         """
-        base_tech = self.BASE_TECHNOLOGIES.get(element.name)
-        if base_tech is None:
-            raise ValueError(
-                f"Agora Industry does not report a base technology for "
-                f"{element.name}, expected one of "
-                f"{sorted(self.BASE_TECHNOLOGIES)}.")
         capture_rate = self.get_carbon_capture_rate(element)
         attr = element.retrofit_flow_coupling_factor
         attr.set_data(
             default_value=capture_rate,
-            base_technology=base_tech,
             unit="tCO2/tproduct",
             source=SourceInformation(
                 description=(

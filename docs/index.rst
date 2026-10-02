@@ -20,6 +20,7 @@ Documentation
 
    files/introduction/design
    files/introduction/structure
+   files/generated/model_structure/index
 
 .. toctree::
    :maxdepth: 1

@@ -22,6 +22,7 @@ class WasteToCementFuel(RetrofittingTechnology):
     fuel supply (waste to fuel for cement)."""
 
     name: str = "waste_to_cement_fuel"
+    base_technology_name: str = "cement_kiln"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)

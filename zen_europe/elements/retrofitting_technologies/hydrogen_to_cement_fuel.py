@@ -22,6 +22,7 @@ class HydrogenToCementFuel(RetrofittingTechnology):
     cement-kiln fuel supply (hydrogen to fuel for cement)."""
 
     name: str = "hydrogen_to_cement_fuel"
+    base_technology_name: str = "cement_kiln"
 
     def __init__(self, model: Model, power_unit: str = "MW"):
         super().__init__(model=model, power_unit=power_unit)

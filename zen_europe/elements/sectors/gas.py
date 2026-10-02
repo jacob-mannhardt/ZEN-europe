@@ -1,6 +1,7 @@
 from zen_creator import Sector
 
 from zen_europe.elements.carriers.lng import LNG
+from zen_europe.elements.carriers.natural_gas import NaturalGas
 from zen_europe.elements.conversion_technologies.lng_terminal import LNGTerminal
 from zen_europe.elements.storage_technologies.natural_gas_storage import (
     NaturalGasStorage,
@@ -23,4 +24,5 @@ class GasSector(Sector):
             NaturalGasPipeline,
             NaturalGasStorage,
             LNG,
+            NaturalGas,
         ]

@@ -85,60 +85,8 @@ Sectors
 
 Elements are grouped into sectors. A sector lists the technologies and carriers
 that belong to it and the sectors it cannot exist without. The default
-dataset includes all 15 sectors.
-
-.. list-table::
-   :header-rows: 1
-   :widths: 22 48 30
-
-   * - Sector
-     - Content
-     - Requires
-   * - ``electricity``
-     - Electricity generation, storage and transmission
-     -
-   * - ``gas``
-     - Natural gas import, storage and transport
-     -
-   * - ``cement``
-     - Cement clinker production
-     -
-   * - ``heat``
-     - Decentralized heat generation
-     - electricity
-   * - ``district_heating``
-     - District heating generation and grid
-     - heat, electricity
-   * - ``carbon``
-     - Carbon capture, transport and storage
-     - electricity, heat
-   * - ``hydrogen``
-     - Hydrogen production, storage and transport, and its direct derivatives
-     - electricity, heat, district_heating
-   * - ``ammonia``
-     - Ammonia production and transport
-     - electricity, hydrogen
-   * - ``refining``
-     - Crude oil refining into gasoline, diesel, naphtha and kerosene
-     - hydrogen
-   * - ``methanol``
-     - Methanol and olefin production and transport
-     - electricity, district_heating, hydrogen, refining
-   * - ``aviation``
-     - Aviation fuel demand
-     - refining
-   * - ``shipping``
-     - Shipping fuel demand, split by fuel technology
-     - electricity, hydrogen
-   * - ``steel``
-     - Primary and secondary steel production
-     - electricity
-   * - ``passenger_transport``
-     - Passenger vehicle transport demand
-     - electricity
-   * - ``truck_transport``
-     - Truck freight transport demand
-     - electricity
+dataset includes all sectors. They are listed, with their technologies,
+carriers and carrier flows, in :ref:`model_structure.index`.
 
 Some technologies connect two sectors. They are declared by every sector they
 belong to and are only part of the model when all of these sectors are
@@ -150,24 +98,9 @@ sector has no gas turbines with carbon capture.
 Elements
 ========
 
-The element library of ZEN-europe contains:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 50 20
-
-   * - Element type
-     - Number
-   * - Carriers
-     - 30
-   * - Conversion technologies
-     - 66
-   * - Retrofitting technologies
-     - 6
-   * - Storage technologies
-     - 6
-   * - Transport technologies
-     - 8
+The element library of ZEN-europe contains carriers and conversion,
+retrofitting, storage and transport technologies. They are listed in
+:ref:`model_structure.technologies` and :ref:`model_structure.carriers`.
 
 Each element is a class in ``zen_europe/elements/<element type>/``. The class
 name and the ``name`` attribute identify the element, for example

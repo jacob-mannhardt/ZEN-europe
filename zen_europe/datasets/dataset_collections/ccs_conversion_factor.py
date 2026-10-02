@@ -137,9 +137,8 @@ class CCSConversionFactor(DatasetCollection):
             raise ValueError(f"Unexpected unit for carbon intensity: {unit}")
         attr = element.retrofit_flow_coupling_factor
         return attr.set_data(
-            default_value=carbon_removal_factor, 
+            default_value=carbon_removal_factor,
             unit=unit,
-            base_technology=base_tech.name,
             source=SourceInformation(
                 description=(
                     "The retrofit flow coupling factor of CCS technologies is "
@@ -168,7 +167,6 @@ class CCSConversionFactor(DatasetCollection):
         return attr.set_data(
             default_value=carbon_removal_factor, 
             unit="tCO2/MWh",
-            base_technology=base_tech.name,
             source=SourceInformation(
                 description=(
                     "The retrofit flow coupling factor of SMR CCS technology is "
