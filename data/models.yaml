@@ -1,0 +1,13 @@
+models:
+  Multimodel:
+    settings:
+      time:
+        reference_year: 2050
+        last_year: 2050
+      investment:
+        use_existing_capacities: false
+        keep_existing_hydro_capacities: true
+        use_battery_e2p_ratio: true
+      emissions:
+        use_carbon_budget: false
+        use_carbon_annual_limit: true
