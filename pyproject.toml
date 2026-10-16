@@ -53,11 +53,20 @@ dev = [
     "pandas-stubs",
     "types-geopandas",
     "types-docutils",
-    "scipy-stubs"
+    "scipy-stubs",
+    # to type-check the dashboard
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
 ]
 
 vis = [
     "matplotlib"
+]
+
+# the web dashboard in dashboard/ (beta)
+dashboard = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
 ]
 
 [tool.pytest.ini_options]

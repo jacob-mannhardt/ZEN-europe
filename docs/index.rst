@@ -28,6 +28,7 @@ Documentation
 
    files/user_guide/execution
    files/user_guide/tutorials
+   files/user_guide/dashboard
 
 .. toctree::
    :maxdepth: 1

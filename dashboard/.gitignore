@@ -1,0 +1,11 @@
+# the dashboard's models file, generated datasets and logs
+workspace/
+
+frontend/node_modules/
+frontend/dist/
+
+__pycache__/
+*.pyc
+
+# the root .gitignore ignores lib/ folders of Python builds; this one is source
+!frontend/src/lib/
