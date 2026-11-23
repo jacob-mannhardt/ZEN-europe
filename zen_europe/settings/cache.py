@@ -32,6 +32,7 @@ class CacheSettings(SettingsCategory):
     overwrite_pecd_hydro_capacities: bool = False
     overwrite_powerplantmatching: bool = False
     overwrite_dac_costs_sievert: bool = False
+    overwrite_enspreso2_offshore: bool = False
 
 
 class CacheArtifactKind(str, Enum):
@@ -113,8 +114,7 @@ CACHE_PROVIDERS = (
         CacheArtifactKind.DOWNLOADED_SOURCE,
         (
             "03-technology/climate_data/*_raw.zip",
-            "03-technology/climate_data/onshore_wind_weights.csv",
-            "03-technology/climate_data/offshore_wind_weights.csv",
+            "03-technology/climate_data/*_wind_weights.csv",
         ),
     ),
     CacheProvider(
@@ -144,6 +144,14 @@ CACHE_PROVIDERS = (
         "pecd_hydro_capacities",
         CacheArtifactKind.DOWNLOADED_SOURCE,
         ("03-technology/capacity_existing/PECD-hydro-capacities.csv",),
+    ),
+    CacheProvider(
+        "enspreso2_offshore",
+        CacheArtifactKind.DOWNLOADED_SOURCE,
+        (
+            "03-technology/potential_capacity_renewables/"
+            "enspreso2_offshore_wind_eez_data.dbf",
+        ),
     ),
     CacheProvider(
         "powerplantmatching",
